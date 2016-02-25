@@ -15,14 +15,14 @@ SRC=src
 INC=src/include
 
 # Source and header files.
-SRC_OBJS=line vec
-INC_OBJS=line vec
+SRC_OBJS=line vec err
+INC_OBJS=line vec err
 
 OBJ_PATHS=$(addprefix $(SRC)/, $(addsuffix .o, $(SRC_OBJS)))
 INC_PATHS=$(addprefix $(INC)/, $(addsuffix .h, $(INC_OBJS)))
 
 # Compiler flags.
-CCFLAGS=-I$(INC) -g -Wall -Wextra -Wno-unused-parameter -Wformat -Wpedantic --std=c89
+CCFLAGS=-I$(INC) -g -Wall -Wextra -Wno-unused-parameter -Wformat -Wpedantic -Wimplicit --std=c89
 
 # Default rule for compiling object files.
 %.o: %.c $(INC)
