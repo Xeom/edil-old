@@ -1,5 +1,6 @@
 #ifndef ERR_H
 #define ERR_H
+#include <stddef.h>
 
 typedef enum
 {
@@ -11,19 +12,55 @@ typedef enum
 	errlvl_end
 } errlvl;
 
+#define CHECK_NULL_PRM(funct, var, rtn)								\
+	if (var == NULL) {													\
+		err_new(high,													\
+				#funct ": NULL argument", "Argument name: " #var);		\
+		return rtn;													\
+	}
+
+#define CHECK_ALLOC(funct, var, rtn)									\
+	if (var == NULL) {													\
+		err_new(terminal,												\
+				#funct ": Out of memory",								\
+				"Could not allocate memory for " #var);				\
+		return rtn;													\
+	}
+
+#define TRACE_NONZRO(funct, call, var, rtn)							\
+	if (var) {															\
+		err_new(err_last_lvl,											\
+				#funct ": Call " #call " failed",						\
+				#call " returned nonzero return code");				\
+		return rtn;													\
+	}
+
+#define TRACE_NONZRO_CALL(funct, call, rtn) TRACE_NONZRO(funct, call, call, rtn)
+
+#define TRACE_NULL(funct, call, var, rtn)								\
+	if (var == NULL) {													\
+		err_new(err_last_lvl,											\
+				#funct ": Call " #call " failed",						\
+				#call " returned nonzero return code");				\
+		return rtn;													\
+	}
+
+
 typedef struct err_s err;
 
 errlvl err_min_quit_lvl;
 errlvl err_min_alert_lvl;
 errlvl err_min_detail_lvl;
 
+errlvl err_last_lvl;
+
 void err_init(void);
 
 void err_new(errlvl level, const char *title, const char *details);
 
-err *err_get(err *e, errlvl level, size_t i);
+err *err_get(errlvl level, size_t i);
 
-err *err_pop(err *e);
+err *err_pop(void);
 
 errlvl err_get_lvl(err *e);
 
