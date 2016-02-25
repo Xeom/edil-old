@@ -4,9 +4,8 @@
 #include <stdint.h>
 #include "vec.h"
 
-#define INVALID_LINE SIZE_MAX
-
 typedef size_t lineno;
+typedef size_t colno;
 
 typedef struct textcont_s textcont;
 
@@ -28,6 +27,8 @@ int line_set_text(line *l, char *c);
 char *line_get_text(line *l);
 
 lineno line_get_lineno(line *l);
+
+lineno line_get_lineno_hint(line *l, lineno hline, chunk *hchunk);
 
 line *textcont_insert  (textcont *t, lineno n);
 

@@ -7,7 +7,7 @@
 struct line_s
 {
 	chunk *chunk;
-	size_t length;
+	colno  length;
 	char  *data;
 };
 
@@ -28,12 +28,7 @@ chunk *chunk_init(void)
 {
 	chunk *rtn = malloc(sizeof(chunk));
 
-	if (rtn == NULL)
-	{
-		err_new(terminal, "chunk_init: Out of memory",
-				"Could not allocate memory for new chunk");
-		return NULL;
-	}
+	CHECK_ALLOC(chunk_init, rtn, NULL);
 
 	rtn->startline = 0;
 	rtn->next      = NULL;
@@ -55,12 +50,7 @@ line *line_init(chunk *chunk)
 
 	rtn = malloc(sizeof(line));
 
-	if (rtn == NULL)
-	{
-		err_new(terminal, "line_init: Out of memory",
-				"Could not allocate memory for new line of text");
-		return NULL;
-	}
+	CHECK_ALLOC(line_init, rtn, NULL);
 
 	rtn->chunk  = chunk;
 	rtn->length = 0;
@@ -76,6 +66,14 @@ void line_free(line *l)
 
 	free(l->data);
 	free(l);
+}
+
+lineno line_get_len(line *l)
+{
+	if (l == NULL)
+		return 0;
+
+	return l->length;
 }
 
 void reset_chunk_starts(chunk *c)
@@ -176,11 +174,8 @@ int chunk_resize(chunk *c)
 
 int line_delete(line *l)
 {
-	if (l->chunk == NULL)
-	{
-		err_new(high, "line_delete: Handed NULL line", NULL);
-		return -1;
-	}
+	CHECK_NULL_PRM(line_delete, l,        -1);
+	CHECK_NULL_PRM(line_delete, l->chunk, -1);
 
 	if (vec_remove(l->chunk->lines, &l))
 	{
@@ -207,11 +202,7 @@ line *textcont_insert(textcont *t, lineno n)
 	line   *rtn;
 	chunk  *c;
 
-	if (t == NULL)
-	{
-		err_new(high, "textcont_insert: Handed NULL textcontainer", NULL);
-		return NULL;
-	}
+	CHECK_NULL_PRM(textcont_insert, t, NULL);
 
 	c = t->currchunk;
 
@@ -277,11 +268,7 @@ line *textcont_get_line(textcont *t, lineno n)
 	size_t  offset;
 	chunk  *c;
 
-	if (t == NULL)
-	{
-		err_new(high, "textcont_get_line: Handed NULL textcontainer", NULL);
-		return NULL;
-	}
+	CHECK_NULL_PRM(textcont_get_line, t, NULL);
 
 	c = t->currchunk;
 
@@ -314,30 +301,66 @@ line *textcont_get_line(textcont *t, lineno n)
 	return *(line**)vec_get(c->lines, offset);
 }
 
+int line_insert_text(line *l, colno pos, char *c)
+{
+	size_t len;
+
+	CHECK_NULL_PRM(line_insert_text, l, -1);
+	CHECK_NULL_PRM(line_insert_text, c, -1);
+
+	len = strlen(c);
+
+	l->length += len;
+	l->data    = realloc(l->data, l->length);
+
+	CHECK_ALLOC(line_insert_text, l->data, -1);
+
+	if (pos > l->length)
+		pos = l->length;
+
+	memmove(l->data + pos + len,
+			l->data + pos,  len);
+
+	memmove(l->data + pos, c, len);
+
+	return 0;
+}
+
+int line_delete_text(line *l, colno pos, colno n)
+{
+	CHECK_NULL_PRM(line_delete_text, l, -1);
+
+	if (pos > l->length)
+		pos = l->length;
+
+	if (n > l->length - pos)
+		n = l->length - pos;
+
+	memmove(l->data + pos,
+			l->data + pos + n, n);
+
+	l->length -= n;
+	l->data    = realloc(l->data, l->length);
+
+	CHECK_ALLOC(line_delete_text, l->data, -1);
+
+	return 0;
+}
+
+
 int line_set_text(line *l, char *c)
 {
 	size_t len;
 
-	if (l == NULL)
-	{
-		err_new(high, "line_set_text: Handed null line", NULL);
-		return -1;
-	}
-
-	if (c == NULL)
-	{
-		err_new(high, "line_set_text: Handed null string", NULL);
-		return -1;
-	}
+	CHECK_NULL_PRM(line_set_text, l, -1);
+	CHECK_NULL_PRM(line_set_text, c, -1);
 
 	len = strlen(c);
 	l->data    = realloc(l->data, len);
 
-	if (l->data == NULL)
-		err_new(terminal, "line_set_text: Out of memory",
-				"Could not realloc memory for new text data of line");
-	else
-		memcpy(l->data, c, len);
+	CHECK_ALLOC(line_set_text, l->data, -1);
+
+	memcpy(l->data, c, len);
 
 	return 0;
 }
@@ -346,20 +369,11 @@ char *line_get_text(line *l)
 {
 	char *rtn;
 
-	if (l == NULL)
-	{
-		err_new(high, "line_get_text: Handed null line", NULL);
-		return NULL;
-	}
+	CHECK_NULL_PRM(line_get_text, l, NULL);
 
 	rtn = malloc(l->length);
 
-	if (rtn == NULL)
-	{
-		err_new(terminal, "line_get_text: Out of memory",
-				"Could not allocate memory for strinng to return line data");
-		return NULL;
-	}
+	CHECK_ALLOC(line_set_text, rtn, NULL);
 
 	memcpy(rtn, l->data, l->length);
 
@@ -371,16 +385,12 @@ lineno line_get_lineno(line *l)
 	chunk *c;
 	vec   *v;
 
-	if (l == NULL)
-	{
-		err_new(high, "line_get_lineno: Handed null line", NULL);
-		return INVALID_LINE;
-	}
+	CHECK_NULL_PRM(line_get_lineno, l, INVALID_INDEX);
 
 	c = l->chunk;
 
 	if (c == NULL)
-		return INVALID_LINE;
+		return INVALID_INDEX;
 
 	v = c->lines;
 
@@ -388,7 +398,7 @@ lineno line_get_lineno(line *l)
 	{
 		err_new(critical, "line_get_lineno: NULL chunk lines vector",
 				"chunk * -> lines was NULL");
-		return INVALID_LINE;
+		return INVALID_INDEX;
 	}
 
 	return c->startline + vec_find(v, &l);
@@ -400,19 +410,12 @@ lineno line_get_lineno_hint(line *l, lineno hline, chunk *hchunk)
 	chunk *c;
 	vec   *v;
 
+	CHECK_NULL_PRM(line_get_lineno_hint, l,               INVALID_INDEX);
+	CHECK_NULL_PRM(line_get_lineno_hint, l->chunk,        INVALID_INDEX);
+	CHECK_NULL_PRM(line_get_lineno_hint, l->chunk->lines, INVALID_INDEX);
+
 	c = l->chunk;
-
-	if (c == NULL)
-		return INVALID_LINE;
-
 	v = c->lines;
-
-	if (v == NULL)
-	{
-		err_new(critical, "line_get_lineno_hint: NULL chunk lines vector",
-				"chunk * -> lines was NULL");
-		return INVALID_LINE;
-	}
 
 	if (c == hchunk)
 	{
@@ -436,7 +439,7 @@ lineno line_get_lineno_hint(line *l, lineno hline, chunk *hchunk)
 
 		err_new(critical, "line_get_lineno_hint: Line not found",
 				"The line thinks it is in a chunk of text that does not contain it (by deviation search)");
-		return INVALID_LINE;
+		return INVALID_INDEX;
 	}
 	else if (l->chunk->prev == hchunk)
 	{
@@ -446,7 +449,7 @@ lineno line_get_lineno_hint(line *l, lineno hline, chunk *hchunk)
 		{
 			err_new(critical, "line_get_lineno_hint: Line not found",
 					"The line thinks it is in a chunk of text that does not contain it (by vec_rfind)");
-			return INVALID_LINE;
+			return INVALID_INDEX;
 		}
 
 		return l->chunk->startline + index;
@@ -458,23 +461,29 @@ lineno line_get_lineno_hint(line *l, lineno hline, chunk *hchunk)
 	{
 		err_new(critical, "line_get_lineno_hint: Line not found",
 				"The line thinks it is in a chunk of text that does not contain it (by vec_find)");
-		return INVALID_LINE;
+		return INVALID_INDEX;
 	}
 
 	return l->chunk->startline + index;
+}
+
+chunk *line_get_chunk(line *l)
+{
+	CHECK_NULL_PRM(line_get_chunk, l, NULL);
+
+	return l->chunk;
 }
 
 lineno textcont_get_total_lines(textcont *t)
 {
 	chunk *c;
 
-	if (t == NULL)
-		return INVALID_LINE;
+	CHECK_NULL_PRM(textcont_get_total_lines, t, INVALID_INDEX);
 
 	c = t->currchunk;
 
 	if (c == NULL)
-		return INVALID_LINE;
+		return INVALID_INDEX;
 
 	while (c->next)
 		c = c->next;
@@ -487,6 +496,8 @@ size_t textcont_get_total_chars(textcont *t)
 	int    offset;
 	size_t count;
 	chunk *chunk;
+
+	CHECK_NULL_PRM(textcont_get_total_lines, t, INVALID_INDEX);
 
 	count = 0;
 	chunk = t->currchunk;
@@ -503,7 +514,7 @@ size_t textcont_get_total_chars(textcont *t)
 
 	chunk = t->currchunk;
 
-	while (chunk->prev)
+	while (chunk && chunk->prev)
 	{
 		chunk = chunk->prev;
 
