@@ -1,6 +1,7 @@
 #include "cursor.h"
 #include "err.h"
 #include <string.h>
+#include <stdlib.h>
 
 struct cursor_s
 {
@@ -62,7 +63,7 @@ int cursor_set_col(cursor *cur, colno n)
 	return 0;
 }
 
-int cursor_set_line(cursor *cur, lineno n)
+int cursor_set_lineno(cursor *cur, lineno n)
 {
 	line *l;
 
@@ -86,20 +87,6 @@ int cursor_insert(cursor *cur, char *str)
 	return 0;
 }
 
-int cursor_delete_backwards(cursor *cur, size_t n)
-{/* MAKE THIS PRETTY ALSO */
-	colno col;
-
-	col = cursor_get_col(cur);
-
-	if (col < n)
-		n = col;
-
-	TRACE_NONZRO_CALL(cursor_delete_backwards, line_delete_text(cur->l, col - n, n), -1);
-	TRACE_NONZRO_CALL(cursor_delete_backwards, cursor_set_col(cur, col - n),         -1);
-
-	return 0;
-}
 
 line *cursor_next_line(cursor *cur)
 {
@@ -114,9 +101,203 @@ line *cursor_next_line(cursor *cur)
 	return rtn;
 }
 
+line *cursor_prev_line(cursor *cur)
+{
+	lineno prev, curr;
+	line *rtn;
+
+	curr = cursor_get_lineno(cur);
+
+	if (curr == 0)
+	{
+		err_new(medium, "cursor_prev_line: Start of textcont",
+				"Could not go back a line because we're already at the first one");
+		return NULL;
+	}
+
+	prev = curr - 1;
+
+	rtn = textcont_get_line(cur->text, prev);
+	TRACE_NULL(cursor_get_next_line, textcont_get_line(cur->text, prev), rtn, NULL);
+
+	return rtn;
+}
+
+char *cursor_get_text_forwards(cursor *cur, size_t n)
+{
+	char  *rtn, *linetext;
+	line  *currline;
+	colno  linelen;
+	lineno currln;
+	int    islast;
+	size_t i;
+
+
+	rtn      = malloc(n + 1);
+	currln   = cursor_get_lineno(cur);
+	currline = cur->l;
+
+	i = 0;
+
+	while (1)
+	{
+		linelen = line_get_len(currline);
+		linetext = line_get_text(currline);
+
+		if (linelen < n - i)
+		{
+			memcpy(rtn + i, linetext, linelen);
+			i += linelen;
+		}
+		else
+		{
+			memcpy(rtn + i, linetext, n - i);
+			return rtn;
+		}
+
+		islast = textcont_is_first_line(cur->text, currline);
+
+		if (islast == 1)
+		{
+			rtn = realloc(rtn, i + 1);
+			rtn[i] = '\0';
+
+			return rtn;
+		}
+
+		if (islast == -1)
+		{
+			err_new(err_last_lvl,
+					"cursor_get_text_forwards: Call textcont_is_first_line(cur->text, currline) failed",
+					"textcont_is_first_line(cur->text, currline) returned -1");
+			return NULL;
+		}
+
+		rtn[i] = '\n';
+
+		if (i == n)
+			return rtn;
+
+		--currln;
+		currline = textcont_get_line(cur->text, currln);
+	}
+}
+
+char *cursor_get_text_backwards(cursor *cur, size_t n)
+{
+	char  *rtn, *linetext;
+	line  *currline;
+	int    isfirst;
+	colno  linelen;
+	lineno currln;
+	size_t i;
+
+	rtn      = malloc(n + 1);
+	currln   = cursor_get_lineno(cur);
+	currline = cur->l;
+
+	i = n;
+	rtn[i] = '\0';
+
+	while (1)
+	{
+		linelen  = line_get_len(currline);
+		linetext = line_get_text(currline);
+
+		if (linelen < i)
+		{
+			i -= linelen;
+			memcpy(rtn + i, linetext, linelen);
+		}
+		else
+		{
+			memcpy(rtn, linetext + linelen - i, linelen);
+			return rtn;
+		}
+
+		isfirst = textcont_is_first_line(cur->text, currline);
+
+		if (isfirst == 1)
+		{
+			memmove(rtn, rtn + i, n - i);
+			rtn = realloc(rtn, n - i + 1);
+			rtn[n - i] = '\0';
+
+			return rtn;
+		}
+
+		if (isfirst == -1)
+		{
+			err_new(err_last_lvl,
+					"cursor_get_text_backwards: Call textcont_is_first_line(cur->text, currline) failed",
+					"textcont_is_first_line(cur->text, currline) returned -1");
+			return NULL;
+		}
+
+		--i;
+		rtn[i] = '\n';
+
+		if (i == 0)
+			return rtn;
+
+		--currln;
+		currline = textcont_get_line(cur->text, currln);
+	}
+}
+
+int cursor_delete_backwards(cursor *cur, size_t n)
+{
+	char *linetext;
+	line *l, *prev;
+	textcont *t;
+	int isfirst;
+	colno col;
+
+	col = cursor_get_col(cur);
+	t   = cur->text;
+	l   = cur->l;
+
+	while (n > col)
+	{
+		n--;
+
+		isfirst = textcont_is_first_line(t, l);
+
+		if (isfirst == 1)
+		{
+			n = col;
+			break;
+		}
+
+		if (isfirst == -1)
+		{
+			err_new(err_last_lvl, "cursor_delete_backwards: Call textcont_is_first_line(t, l) failed",
+					"textcont_is_first_line(t, l) returned -1");
+			return -1;
+		}
+
+		prev = cursor_prev_line(cur);
+
+		linetext = line_get_text(prev);
+		line_insert_text(l, 0, linetext);
+		free(linetext);
+
+		col += line_get_len(prev);
+
+		line_delete(prev);
+		line_free(prev); /* ACTUALLY DO KILLBUFFER STUFF */
+	}
+
+	TRACE_NONZRO_CALL(cursor_delete_backwards, line_delete_text(cur->l, col - n, n), -1);
+	TRACE_NONZRO_CALL(cursor_delete_backwards, cursor_set_col(cur, col - n),         -1);
+
+	return 0;
+}
+
 int cursor_delete_forwards(cursor *cur, size_t n)
 {
-	colno     col, deln;
+	char *linetext;
+	colno     col;
 	line     *l, *next;
 	textcont *t;
 	int       islast;
@@ -132,7 +313,10 @@ int cursor_delete_forwards(cursor *cur, size_t n)
 		islast = textcont_is_last_line(t, l);
 
 		if (islast == 1)
+		{
+			n = line_get_len(l) - col;
 			break;
+		}
 
 		if (islast == -1)
 		{
@@ -143,16 +327,15 @@ int cursor_delete_forwards(cursor *cur, size_t n)
 
 		next = cursor_next_line(cur);
 
-		line_insert_text(l, line_get_len(l), line_get_text(next));
+		linetext = line_get_text(next);
+		line_insert_text(l, line_get_len(l), linetext);
+		free(linetext);
 
 		line_delete(next);
-		line_free(next);
+		line_free(next); /* ACTUALLY DO KILLBUFFER STUFF */
 	}
 
-	deln = line_get_len(l);
-	deln = deln > n ? n : deln;
-
-	TRACE_NONZRO_CALL(cursor_delete_forwards, line_delete_text(l, col, deln), -1);
+	TRACE_NONZRO_CALL(cursor_delete_forwards, line_delete_text(l, col, n), -1);
 
 	return 0;
 }
