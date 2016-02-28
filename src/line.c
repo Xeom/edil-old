@@ -104,7 +104,7 @@ int chunk_resize(chunk *c)
 
 		if (overflow == NULL)
 		{
-			err_new(critical, "chunk_resize: Could not vec_slice lines up",
+			ERR_NEW(critical, "chunk_resize: Could not vec_slice lines up",
 					vec_err_str());
 
 			return -1;
@@ -120,7 +120,7 @@ int chunk_resize(chunk *c)
 
 			if (dump == NULL)
 			{
-				err_new(critical, "chunk_resize: Could not init new chunk",
+				ERR_NEW(critical, "chunk_resize: Could not init new chunk",
 						"Could not initialize a new chunk to dump overflow lines in");
 				return -1;
 			}
@@ -134,7 +134,7 @@ int chunk_resize(chunk *c)
 		if(vec_append(dump->lines, overflow))
 		{
 			vec_free(overflow);
-			err_new(critical, "chunk_resize: Could not append lines to dump",
+			ERR_NEW(critical, "chunk_resize: Could not append lines to dump",
 					vec_err_str());
 			return -1;
 		}
@@ -158,7 +158,7 @@ int chunk_resize(chunk *c)
 
 		if (vec_append(dump->lines, overflow))
 		{
-			err_new(critical, "chunk_resize: Could not append lines to dump",
+			ERR_NEW(critical, "chunk_resize: Could not append lines to dump",
 					vec_err_str());
 			chunk_free(c);
 			return -1;
@@ -179,13 +179,13 @@ int line_delete(line *l)
 
 	if (vec_remove(l->chunk->lines, &l))
 	{
-		err_new(critical, "line_delete: Removing line from vector failed", vec_err_str());
+		ERR_NEW(critical, line_delete: Removing line from vector failed, vec_err_str());
 		return -1;
 	}
 
 	if (chunk_resize(l->chunk))
 	{
-		err_new(critical, "line_delete: Resizing chunk failed", NULL);
+		ERR_NEW(critical, line_delete: Resizing chunk failed, NULL);
 		return -1;
 	}
 
@@ -210,8 +210,8 @@ line *textcont_insert(textcont *t, lineno n)
 	{
 		if (c->prev == NULL)
 		{
-			err_new(critical, "textcont_insert: First chunk startline nonzero",
-					"Chunk with no prev link has a startline greater than requested line");
+			ERR_NEW(critical, textcont_insert: First chunk startline nonzero,
+					Chunk with no prev link has a startline greater than requested line);
 			return NULL;
 		}
 		c = c->prev;
@@ -221,7 +221,7 @@ line *textcont_insert(textcont *t, lineno n)
 	{
 		if (c->next == NULL)
 		{
-			err_new(medium, "textcont_insert: Line out of range of textcont", NULL);
+			ERR_NEW(medium, textcont_insert: Line out of range of textcont, NULL);
 			return NULL;
 		}
 		c = c->next;
@@ -235,8 +235,8 @@ line *textcont_insert(textcont *t, lineno n)
 
 	if (rtn == NULL)
 	{
-		err_new(critical, "textcont_insert: Could not create new line",
-				"line_init returned NULL");
+		ERR_NEW(critical, textcont_insert: Could not create new line,
+				line_init returned NULL);
 
 		return NULL;
 	}
@@ -244,17 +244,17 @@ line *textcont_insert(textcont *t, lineno n)
 	if(vec_insert(c->lines, offset, &rtn))
 	{
 		if (vecerr == E_VEC_INVALID_INDEX)
-			err_new(high, "textcont_insert: Invalid index handed to function", NULL);
+			ERR_NEW(high, textcont_insert: Invalid index handed to function, NULL);
 
 		else
-			err_new(critical, "textcont_insert: Inserting into lines vector failed", vec_err_str());
+			ERR_NEW(critical, textcont_insert: Inserting into lines vector failed, vec_err_str());
 
 		return NULL;
 	}
 
 	if (chunk_resize(c))
 	{
-		err_new(critical, "textcont_insert: Could not resize chunk", NULL);
+		ERR_NEW(critical, textcont_insert: Could not resize chunk, NULL);
 		return NULL;
 	}
 
@@ -276,8 +276,8 @@ line *textcont_get_line(textcont *t, lineno n)
 	{
 		if (c->prev == NULL)
 		{
-			err_new(critical, "textcont_get_line: First chunk startline nonzero",
-					"Chunk with no prev link has a startline greater than requested line");
+			ERR_NEW(critical, textcont_get_line: First chunk startline nonzero,
+					Chunk with no prev link has a startline greater than requested line);
 			return NULL;
 		}
 
@@ -288,7 +288,7 @@ line *textcont_get_line(textcont *t, lineno n)
 	{
 		if (c->next == NULL)
 		{
-			err_new(medium, "textcont_get_line: Line out of range of textcont", NULL);
+			ERR_NEW(medium, textcont_get_line: Line out of range of textcont, NULL);
 			return NULL;
 		}
 		c = c->next;
@@ -371,11 +371,12 @@ char *line_get_text(line *l)
 
 	CHECK_NULL_PRM(line_get_text, l, NULL);
 
-	rtn = malloc(l->length);
+	rtn = malloc(l->length + 1);
 
 	CHECK_ALLOC(line_set_text, rtn, NULL);
 
 	memcpy(rtn, l->data, l->length);
+	rtn[l->length] = '\0';
 
 	return rtn;
 }
@@ -396,8 +397,8 @@ lineno line_get_lineno(line *l)
 
 	if (v == NULL)
 	{
-		err_new(critical, "line_get_lineno: NULL chunk lines vector",
-				"chunk * -> lines was NULL");
+		ERR_NEW(critical, line_get_lineno: NULL chunk lines vector,
+				chunk * -> lines was NULL);
 		return INVALID_INDEX;
 	}
 
@@ -437,8 +438,8 @@ lineno line_get_lineno_hint(line *l, lineno hline, chunk *hchunk)
 					return hline + deviation;
 		}
 
-		err_new(critical, "line_get_lineno_hint: Line not found",
-				"The line thinks it is in a chunk of text that does not contain it (by deviation search)");
+		ERR_NEW(critical, line_get_lineno_hint: Line not found,
+				The line thinks it is in a chunk of text that does not contain it (by deviation search));
 		return INVALID_INDEX;
 	}
 	else if (l->chunk->prev == hchunk)
@@ -447,8 +448,8 @@ lineno line_get_lineno_hint(line *l, lineno hline, chunk *hchunk)
 
 		if (index == INVALID_INDEX)
 		{
-			err_new(critical, "line_get_lineno_hint: Line not found",
-					"The line thinks it is in a chunk of text that does not contain it (by vec_rfind)");
+			ERR_NEW(critical, line_get_lineno_hint: Line not found,
+					The line thinks it is in a chunk of text that does not contain it (by vec_rfind));
 			return INVALID_INDEX;
 		}
 
@@ -459,8 +460,8 @@ lineno line_get_lineno_hint(line *l, lineno hline, chunk *hchunk)
 
 	if (index == INVALID_INDEX)
 	{
-		err_new(critical, "line_get_lineno_hint: Line not found",
-				"The line thinks it is in a chunk of text that does not contain it (by vec_find)");
+		ERR_NEW(critical, line_get_lineno_hint: Line not found,
+				The line thinks it is in a chunk of text that does not contain it (by vec_find));
 		return INVALID_INDEX;
 	}
 
@@ -525,4 +526,42 @@ size_t textcont_get_total_chars(textcont *t)
 	}
 
 	return count;
+}
+
+int textcont_has_line(textcont *t, lineno ln)
+{
+	chunk *c;
+
+	CHECK_NULL_PRM(textcont_is_last_line, t, -1);
+
+	c = t->currchunk;
+
+	while (c)
+	{
+		if (c->startline + vec_len(c->lines) > ln)
+			return 1;
+
+		c = c->next;
+	}
+
+	return 0;
+}
+
+int textcont_is_last_line(textcont *t, line *l)
+{
+	chunk *c;
+
+	CHECK_NULL_PRM(textcont_is_last_line, t,        -1);
+	CHECK_NULL_PRM(textcont_is_last_line, l,        -1);
+	CHECK_NULL_PRM(textcont_is_last_line, l->chunk, -1);
+
+	c = l->chunk;
+
+	if (c->next)
+		return 0;
+
+	if (*((line**)vec_get(c->lines, vec_len(c->lines))) ==  l)
+		return 1;
+
+	return 0;
 }

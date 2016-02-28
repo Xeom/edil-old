@@ -110,8 +110,8 @@ line *cursor_prev_line(cursor *cur)
 
 	if (curr == 0)
 	{
-		err_new(medium, "cursor_prev_line: Start of textcont",
-				"Could not go back a line because we're already at the first one");
+		ERR_NEW(medium, cursor_prev_line: Start of textcont,
+				Could not go back a line because we are already at the first one);
 		return NULL;
 	}
 
@@ -167,9 +167,9 @@ char *cursor_get_text_forwards(cursor *cur, size_t n)
 
 		if (islast == -1)
 		{
-			err_new(err_last_lvl,
-					"cursor_get_text_forwards: Call textcont_is_first_line(cur->text, currline) failed",
-					"textcont_is_first_line(cur->text, currline) returned -1");
+			ERR_NEW(err_last_lvl,
+					cursor_get_text_forwards: Call "textcont_is_first_line(cur->text, currline)" failed,
+					textcont_is_first_line(cur->text, currline) returned -1);
 			return NULL;
 		}
 
@@ -228,9 +228,9 @@ char *cursor_get_text_backwards(cursor *cur, size_t n)
 
 		if (isfirst == -1)
 		{
-			err_new(err_last_lvl,
-					"cursor_get_text_backwards: Call textcont_is_first_line(cur->text, currline) failed",
-					"textcont_is_first_line(cur->text, currline) returned -1");
+			ERR_NEW(err_last_lvl,
+					cursor_get_text_backwards: Call "textcont_is_first_line(cur->text, currline)" failed,
+					"textcont_is_first_line(cur->text, currline)" returned -1);
 			return NULL;
 		}
 
@@ -271,8 +271,8 @@ int cursor_delete_backwards(cursor *cur, size_t n)
 
 		if (isfirst == -1)
 		{
-			err_new(err_last_lvl, "cursor_delete_backwards: Call textcont_is_first_line(t, l) failed",
-					"textcont_is_first_line(t, l) returned -1");
+			ERR_NEW(err_last_lvl, cursor_delete_backwards: Call "textcont_is_first_line(t, l)" failed,
+					"textcont_is_first_line(t, l)" returned -1);
 			return -1;
 		}
 
@@ -320,8 +320,8 @@ int cursor_delete_forwards(cursor *cur, size_t n)
 
 		if (islast == -1)
 		{
-			err_new(err_last_lvl, "cursor_delete_forwards: Call textcont_is_last_line(t, l) failed",
-					"textcont_is_last_line(t, l) returned -1");
+			ERR_NEW(err_last_lvl, cursor_delete_forwards: Call textcont_is_last_line(t, l) failed,
+					textcont_is_last_line(t, l) returned -1);
 			return -1;
 		}
 

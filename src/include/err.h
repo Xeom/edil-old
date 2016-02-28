@@ -12,26 +12,30 @@ typedef enum
 	errlvl_end
 } errlvl;
 
+#define ERRLOC Line: __LINE__ File: __FILE__
+#define ERR_NEW_CALL(level, title, details) err_new(level, #title, #details)
+#define ERR_NEW(level, title, details) ERR_NEW_CALL(level, title, details ERRLOC)
+
 #define CHECK_NULL_PRM(funct, var, rtn)								\
 	if (var == NULL) {													\
-		err_new(high,													\
-				#funct ": NULL argument", "Argument name: " #var);		\
+		ERR_NEW(high,													\
+				funct  : NULL argument, Argument name: var);			\
 		return rtn;													\
 	}
 
 #define CHECK_ALLOC(funct, var, rtn)									\
 	if (var == NULL) {													\
-		err_new(terminal,												\
-				#funct ": Out of memory",								\
-				"Could not allocate memory for " #var);				\
+		ERR_NEW(terminal,												\
+				funct : Out of memory,								\
+				Could not allocate memory for var);			\
 		return rtn;													\
 	}
 
 #define TRACE_NONZRO(funct, call, var, rtn)							\
 	if (var) {															\
-		err_new(err_last_lvl,											\
-				#funct ": Call " #call " failed",						\
-				#call " returned nonzero return code");				\
+		ERR_NEW(err_last_lvl,											\
+				funct : Call call failed,							\
+				call returned nonzero return code);				\
 		return rtn;													\
 	}
 
@@ -39,12 +43,11 @@ typedef enum
 
 #define TRACE_NULL(funct, call, var, rtn)								\
 	if (var == NULL) {													\
-		err_new(err_last_lvl,											\
-				#funct ": Call " #call " failed",						\
-				#call " returned nonzero return code");				\
+		ERR_NEW(err_last_lvl,											\
+				funct : Call call failed,						\
+				call returned nonzero return code ERRLOC); 		\
 		return rtn;													\
 	}
-
 
 typedef struct err_s err;
 
