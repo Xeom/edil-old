@@ -7,6 +7,8 @@
 
 #define ERR(err, rtn) {vecerr = E_VEC_ ## err; return rtn;}
 
+size_t INVALID_INDEX = SIZE_MAX;
+
 struct vec_s
 {
 	void *data;
@@ -90,18 +92,30 @@ int vec_push(vec *v, const void *value)
 	return 0;
 }
 
-int vec_pop(vec *v)
+void *vec_pop(vec *v)
 {
+	void *rtn;
+	ptrdiff_t offset;
+
 	if (v == NULL)
-		ERR(NULL_VEC, -1);
+		ERR(NULL_VEC, NULL);
 
 	if (v->length == 0)
-		ERR(INVALID_INDEX, -1);
+		ERR(INVALID_INDEX, NULL);
+
+	rtn = malloc(v->width);
+
+	if (rtn == NULL)
+		ERR(NO_MEMORY, NULL);
+
+	offset = v->length - v->width;
+
+	memcpy(rtn, (void *)((intptr_t)v->data + offset), v->width);
 
 	v->length -= v->width;
 
 	if (vec_resize(v) != 0)
-		return -1;
+		return NULL;
 
 	return 0;
 }

@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define INVALID_INDEX SIZE_MAX
+size_t INVALID_INDEX;
 
 typedef enum
 {
@@ -24,7 +24,7 @@ void vec_free(vec *v);
 
 int vec_push(vec *v, const void *data);
 
-int vec_pop(vec *v);
+void *vec_pop(vec *v);
 
 void *vec_get(vec *v, size_t index);
 
@@ -37,7 +37,6 @@ vec *vec_slice(vec *v, size_t start, size_t end);
 int vec_append(vec *v, vec *other);
 
 size_t vec_len(vec *v);
-
 size_t vec_find(vec *v, void *value);
 
 size_t vec_rfind(vec *v, void *value);
