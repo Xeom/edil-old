@@ -5,9 +5,9 @@
 
 struct err_s
 {
-	const char *title;
-	const char *detail;
-	errlvl lvl;
+    const char *title;
+    const char *detail;
+    errlvl lvl;
 };
 
 #define FUCK_IT(err) {fputs("\n", stderr); fputs(err, stderr); fputs("\nFuck it.\n", stderr); abort();}
@@ -24,160 +24,160 @@ vec *err_queue;
 
 void fuck_vec_err(const char *desc)
 {
-	fputs("\n", stderr);
-	fputs(desc, stderr);
-	FUCK_IT(vec_err_str());
+    fputs("\n", stderr);
+    fputs(desc, stderr);
+    FUCK_IT(vec_err_str());
 }
 
 void errsys_init(void)
 {
-	errlvl i;
-	vec   *newv;
+    errlvl i;
+    vec   *newv;
 
-	err_min_quit_lvl   = terminal;
-	err_min_alert_lvl  = medium;
-	err_min_detail_lvl = errlvl_end;
+    err_min_quit_lvl   = terminal;
+    err_min_alert_lvl  = medium;
+    err_min_detail_lvl = errlvl_end;
 
-	err_queue = vec_init(sizeof(vec*));
+    err_queue = vec_init(sizeof(vec*));
 
-	if (err_queue == NULL)
-		fuck_vec_err("err_init: Could not allocate err_queue main vector");
+    if (err_queue == NULL)
+        fuck_vec_err("err_init: Could not allocate err_queue main vector");
 
-	i = errlvl_end;
+    i = errlvl_end;
 
-	while (--i)
-	{
-		newv = vec_init(sizeof(err));
+    while (--i)
+    {
+        newv = vec_init(sizeof(err));
 
-		if (newv == NULL)
-			fuck_vec_err("err_init: Could not allocate err_queue sub-vector");
+        if (newv == NULL)
+            fuck_vec_err("err_init: Could not allocate err_queue sub-vector");
 
-		if (vec_push(err_queue, newv))
-			fuck_vec_err("err_init: Could not push sub-vector into err_queue");
-	}
+        if (vec_push(err_queue, newv))
+            fuck_vec_err("err_init: Could not push sub-vector into err_queue");
+    }
 }
 
 void err_new_norecurse(errlvl level, const char *title, const char *detail)
 {
-	vec *subqueue;
-	err *e;
+    vec *subqueue;
+    err *e;
 
-	e = malloc(sizeof(err));
+    e = malloc(sizeof(err));
 
-	if (e == NULL)
-		FUCK_IT("err_new_norecurse: Could not allocate memory for error");
+    if (e == NULL)
+        FUCK_IT("err_new_norecurse: Could not allocate memory for error");
 
-	if (title == NULL)
-		title = "Unknown error";
+    if (title == NULL)
+        title = "Unknown error";
 
-	e->title = title;
+    e->title = title;
 
-	if (detail == NULL)
-		detail = "";
+    if (detail == NULL)
+        detail = "";
 
-	e->detail = detail;
+    e->detail = detail;
 
-	if (level >= errlvl_end)
-	{
-		level = high;
-	}
+    if (level >= errlvl_end)
+    {
+        level = high;
+    }
 
-	subqueue = vec_get(err_queue, level);
+    subqueue = vec_get(err_queue, level);
 
-	if (subqueue == NULL)
-		fuck_vec_err("err_new_norecurse: Error getting error subqueue");
+    if (subqueue == NULL)
+        fuck_vec_err("err_new_norecurse: Error getting error subqueue");
 
-	if (vec_insert(subqueue, 0, e))
-		fuck_vec_err("err_new: Error pushing error to subqueue");
+    if (vec_insert(subqueue, 0, e))
+        fuck_vec_err("err_new: Error pushing error to subqueue");
 }
 
 void err_new(errlvl level, const char *title, const char *detail)
 {
-	vec *subqueue;
-	err *e;
+    vec *subqueue;
+    err *e;
 
-	e = malloc(sizeof(err));
+    e = malloc(sizeof(err));
 
-	if (e == NULL)
-		FUCK_IT("err_new: Could not allocate memory for error");
+    if (e == NULL)
+        FUCK_IT("err_new: Could not allocate memory for error");
 
-	if (title == NULL)
-		title = "Unknown error";
+    if (title == NULL)
+        title = "Unknown error";
 
-	e->title = title;
+    e->title = title;
 
-	if (detail == NULL)
-		detail = "";
+    if (detail == NULL)
+        detail = "";
 
-	e->detail = detail;
+    e->detail = detail;
 
-	if (level >= errlvl_end)
-	{
-		err_new_norecurse(high, "err_new: Invalid error level",
-						  "handed unknown (too high) error level");
-		level = high;
-	}
+    if (level >= errlvl_end)
+    {
+        err_new_norecurse(high, "err_new: Invalid error level",
+                          "handed unknown (too high) error level");
+        level = high;
+    }
 
-	subqueue = vec_get(err_queue, level);
+    subqueue = vec_get(err_queue, level);
 
-	err_last_lvl = level;
+    err_last_lvl = level;
 
-	if (subqueue == NULL)
-		err_new_norecurse(critical, "err_new: Error getting error subqueue",
-						  vec_err_str());
+    if (subqueue == NULL)
+        err_new_norecurse(critical, "err_new: Error getting error subqueue",
+                          vec_err_str());
 
-	if (vec_insert(subqueue, 0, e))
-		err_new_norecurse(critical, "err_new: Error pushing error to subqueue",
-						  vec_err_str());
+    if (vec_insert(subqueue, 0, e))
+        err_new_norecurse(critical, "err_new: Error pushing error to subqueue",
+                          vec_err_str());
 }
 
 err *err_get(errlvl level, size_t i)
 {
-	vec *subqueue;
-	err *rtn;
+    vec *subqueue;
+    err *rtn;
 
-	subqueue = vec_get(err_queue, level);
+    subqueue = vec_get(err_queue, level);
 
-	if (subqueue == NULL)
-	{
-		err_new(critical, "err_get: Could not fetch error subqueue",
-				vec_err_str());
-		return NULL;
-	}
+    if (subqueue == NULL)
+    {
+        err_new(critical, "err_get: Could not fetch error subqueue",
+                vec_err_str());
+        return NULL;
+    }
 
-	if (i >= vec_len(subqueue))
-		return NULL;
+    if (i >= vec_len(subqueue))
+        return NULL;
 
-	rtn = vec_get(subqueue, vec_len(subqueue) - i - 1);
+    rtn = vec_get(subqueue, vec_len(subqueue) - i - 1);
 
-	if (rtn == NULL)
-		err_new(critical, "err_get: Error getting err* from subqueue",
-				vec_err_str());
+    if (rtn == NULL)
+        err_new(critical, "err_get: Error getting err* from subqueue",
+                vec_err_str());
 
-	return rtn;
+    return rtn;
 }
 
 err *err_pop(void)
 {
-	errlvl level;
-	vec *subqueue;
+    errlvl level;
+    vec *subqueue;
 
-	level = errlvl_end;
+    level = errlvl_end;
 
-	while (--level)
-	{
-		subqueue = vec_get(err_queue, level);
+    while (--level)
+    {
+        subqueue = vec_get(err_queue, level);
 
-		if (subqueue == NULL)
-		{
-			err_new(critical, "err_get: Could not fetch error subqueue",
-					vec_err_str());
-			return NULL;
-		}
+        if (subqueue == NULL)
+        {
+            err_new(critical, "err_get: Could not fetch error subqueue",
+                    vec_err_str());
+            return NULL;
+        }
 
-		if (vec_len(subqueue))
-			return vec_pop(subqueue);
-	}
+        if (vec_len(subqueue))
+            return vec_pop(subqueue);
+    }
 
-	return NULL;
+    return NULL;
 }

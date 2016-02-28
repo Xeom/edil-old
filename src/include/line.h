@@ -15,7 +15,7 @@ typedef struct line_s line;
 
 struct textcont_s
 {
-	chunk *currchunk;
+    chunk *currchunk;
 };
 
 void line_free(line *l);

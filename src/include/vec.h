@@ -7,11 +7,11 @@ size_t INVALID_INDEX;
 
 typedef enum
 {
-	E_VEC_NULL_VALUE,
-	E_VEC_NULL_VEC,
-	E_VEC_INVALID_INDEX,
-	E_VEC_NO_MEMORY,
-	E_VEC_INVALID_WIDTH
+    E_VEC_NULL_VALUE,
+    E_VEC_NULL_VEC,
+    E_VEC_INVALID_INDEX,
+    E_VEC_NO_MEMORY,
+    E_VEC_INVALID_WIDTH
 } vecerr_t;
 
 vecerr_t vecerr;
