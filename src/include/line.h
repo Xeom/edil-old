@@ -20,7 +20,17 @@ struct textcont_s
 
 void line_free(line *l);
 
+lineno line_get_len(line *l);
+
 int line_delete(line *l);
+
+line *textcont_insert(textcont *t, lineno n);
+
+line *textcont_get_line(textcont *t, lineno n);
+
+int line_insert_text(line *l, colno pos, char *c);
+
+int line_delete_text(line *l, colno pos, colno n);
 
 int line_set_text(line *l, char *c);
 
@@ -30,12 +40,14 @@ lineno line_get_lineno(line *l);
 
 lineno line_get_lineno_hint(line *l, lineno hline, chunk *hchunk);
 
-line *textcont_insert  (textcont *t, lineno n);
-
-line *textcont_get_line(textcont *t, lineno n);
+chunk *line_get_chunk(line *l);
 
 lineno textcont_get_total_lines(textcont *t);
 
 size_t textcont_get_total_chars(textcont *t);
+
+int textcont_is_last_line(textcont *t, line *l);
+
+int textcont_is_first_line(textcont *t, line *l);
 
 #endif /* LINE_H */
