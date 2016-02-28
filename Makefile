@@ -15,8 +15,8 @@ SRC=src
 INC=src/include
 
 # Source and header files.
-SRC_OBJS=line vec err
-INC_OBJS=line vec err
+SRC_OBJS=line vec err cursor
+INC_OBJS=line vec err cursor
 
 OBJ_PATHS=$(addprefix $(SRC)/, $(addsuffix .o, $(SRC_OBJS)))
 INC_PATHS=$(addprefix $(INC)/, $(addsuffix .h, $(INC_OBJS)))
