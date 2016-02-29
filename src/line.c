@@ -35,7 +35,28 @@ chunk *chunk_init(void)
     rtn->prev      = NULL;
     rtn->lines     = vec_init(sizeof(line*));
 
+    if (rtn->lines == NULL)
+    {
+        free(rtn);
+        TRACE(chunk_init, vec_init(sizeof(line*)), NULL);
+    }
+
     return rtn;
+}
+
+textcont *textcont_init(void)
+{
+    textcont *rtn = malloc(sizeof(textcont));
+
+    CHECK_ALLOC(textcont_init, rtn, NULL);
+
+    rtn->currchunk = chunk_init();
+
+    if (rtn->currchunk == NULL)
+    {
+        free(rtn);
+        TRACE(textcont_init, chunk_init());
+    }
 }
 
 void chunk_free(chunk *c)

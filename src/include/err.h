@@ -43,11 +43,11 @@ typedef enum
  * rtn is the value to return from the function using this macro if var is NULL.
  *
  */
-#define CHECK_NULL_PRM(funct, var, rtn)                                 \
-    if (var == NULL) {                                                  \
-        ERR_NEW(high,                                                   \
-                funct  : NULL argument, Argument name: var);            \
-        return rtn;                                                     \
+#define CHECK_NULL_PRM(funct, var, rtn)                      \
+    if (var == NULL) {                                       \
+        ERR_NEW(high,                                        \
+                funct  : NULL argument, Argument name: var); \
+        return rtn;                                          \
     }
 
 /*
@@ -62,12 +62,12 @@ typedef enum
  * rtn is the value to return from the function using this macro if var is NULL.
  *
  */
-#define CHECK_ALLOC(funct, var, rtn)                                    \
-    if (var == NULL) {                                                  \
-        ERR_NEW(terminal,                                               \
-                funct : Out of memory,                                  \
-                Could not allocate memory for var);                     \
-        return rtn;                                                     \
+#define CHECK_ALLOC(funct, var, rtn)                \
+    if (var == NULL) {                              \
+        ERR_NEW(terminal,                           \
+                funct : Out of memory,              \
+                Could not allocate memory for var); \
+        return rtn;                                 \
     }
 
 /*
@@ -84,12 +84,12 @@ typedef enum
  *
  * rtn is the value to return from the function using this macro if var is nonzero.
  */
-#define TRACE_NONZRO(funct, call, var, rtn)                             \
-    if (var) {                                                          \
-        ERR_NEW(err_last_lvl,                                           \
-                funct : Call call failed,                               \
-                call returned nonzero return code);                     \
-        return rtn;                                                     \
+#define TRACE_NONZRO(funct, call, var, rtn)         \
+    if (var) {                                      \
+        ERR_NEW(err_last_lvl,                       \
+                funct : Call call failed,           \
+                call returned nonzero return code); \
+        return rtn;                                 \
     }
 
 /*

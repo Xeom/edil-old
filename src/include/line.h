@@ -18,6 +18,8 @@ struct textcont_s
     chunk *currchunk;
 };
 
+textcont *textcont_init(void);
+
 void line_free(line *l);
 
 lineno line_get_len(line *l);
