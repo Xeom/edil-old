@@ -21,10 +21,15 @@ void cursor_set_heuristics(cursor *cur, lineno n)
 lineno cursor_get_lineno(cursor *cur)
 {
     lineno n;
+    
+    CHECK_NULL_PRM(cursor_get_lineno, cur,    INVALID_INDEX);
 
     n = line_get_lineno_hint(cur->l,
                              cur->probablyline,
                              cur->probablychunk);
+
+    if (n == INVALID_INDEX)
+        TRACE(cursor_get_lineno, line_get_lineno_hint(cur->l, cur->probablyline, cur->probablychunk), INVALID_INDEX);
 
     cursor_set_heuristics(cur, n);
 
@@ -35,7 +40,8 @@ colno cursor_get_col(cursor *cur)
 {
     colno len;
 
-    CHECK_NULL_PRM(cursor_set_col, cur, -1);
+    CHECK_NULL_PRM(cursor_get_col, cur,    INVALID_INDEX);
+    CHECK_NULL_PRM(cursor_get_col, cur->l, INVALID_INDEX);
 
     len = line_get_len(cur->l);
 
@@ -51,7 +57,8 @@ int cursor_set_col(cursor *cur, colno n)
 {
     colno len;
 
-    CHECK_NULL_PRM(cursor_set_col, cur, -1);
+    CHECK_NULL_PRM(cursor_set_col, cur,    -1);
+    CHECK_NULL_PRM(cursor_set_col, cur->l, -1);
 
     len = line_get_len(cur->l);
 
@@ -132,10 +139,17 @@ char *cursor_get_text_forwards(cursor *cur, size_t n)
     int    islast;
     size_t i;
 
-
     rtn      = malloc(n + 1);
     currln   = cursor_get_lineno(cur);
     currline = cur->l;
+
+    CHECK_ALLOC(cursor_get_text_forwards, rtn, NULL);
+
+    if (currln == INVALID_INDEX)
+    {
+        free(rtn);
+        TRACE(cursor_get_text_forwards, cursor_get_lineno(cur), NULL);
+    }
 
     i = 0;
 
@@ -143,6 +157,18 @@ char *cursor_get_text_forwards(cursor *cur, size_t n)
     {
         linelen = line_get_len(currline);
         linetext = line_get_text(currline);
+
+        if (linelen == INVALID_INDEX)
+        {
+            free(rtn);
+            TRACE(cursor_get_text_forwards, line_get_len(currline), NULL);
+        }
+        
+        if (linetext == NULL)
+        {
+            free(rtn);
+            TRACE(cursor_get_text_forwards, line_get_text(currline), NULL);
+        }
 
         if (linelen < n - i)
         {
@@ -161,25 +187,31 @@ char *cursor_get_text_forwards(cursor *cur, size_t n)
         {
             rtn = realloc(rtn, i + 1);
             rtn[i] = '\0';
+            
+            CHECK_ALLOC(cursor_get_text_forwards, rtn, NULL);
 
             return rtn;
         }
 
         if (islast == -1)
         {
-            ERR_NEW(err_last_lvl,
-                    cursor_get_text_forwards: Call "textcont_is_first_line(cur->text, currline)" failed,
-                    textcont_is_first_line(cur->text, currline) returned -1);
-            return NULL;
+            free(rtn);
+            TRACE(cursor_get_text_forwards, textcont_is_first_line(cur->text, currline), NULL);
         }
 
-        rtn[i] = '\n';
+        rtn[i] = '\n';/* TODO: support \r\n, \v, \f etc */
 
         if (i == n)
             return rtn;
 
         --currln;
         currline = textcont_get_line(cur->text, currln);
+        
+        if (currline == INVALID_INDEX)
+        {
+            free(rtn);
+            TRACE(cursor_get_text_forwards, textcont_get_line(cur->text, currln), NULL);
+        }
     }
 }
 
@@ -196,6 +228,14 @@ char *cursor_get_text_backwards(cursor *cur, size_t n)
     currln   = cursor_get_lineno(cur);
     currline = cur->l;
 
+    CHECK_ALLOC(cursor_get_text_backwards, rtn, NULL);
+
+    if (currln == INVALID_INDEX)
+    {
+        free(rtn);
+        TRACE(cursor_get_text_backwards, cursor_get_lineno(cur), NULL);
+    }
+
     i = n;
     rtn[i] = '\0';
 
@@ -203,6 +243,18 @@ char *cursor_get_text_backwards(cursor *cur, size_t n)
     {
         linelen  = line_get_len(currline);
         linetext = line_get_text(currline);
+
+        if (linelen == INVALID_INDEX)
+        {
+            free(rtn);
+            TRACE(cursor_get_text_backwards, line_get_len(currline), NULL);
+        }
+        
+        if (linetext == NULL)
+        {
+            free(rtn);
+            TRACE(cursor_get_text_backwards, line_get_text(currline), NULL);
+        }
 
         if (linelen < i)
         {
@@ -221,6 +273,9 @@ char *cursor_get_text_backwards(cursor *cur, size_t n)
         {
             memmove(rtn, rtn + i, n - i);
             rtn = realloc(rtn, n - i + 1);
+
+            CHECK_ALLOC(cursor_get_text_backwards, rtn, NULL);
+
             rtn[n - i] = '\0';
 
             return rtn;
@@ -228,10 +283,8 @@ char *cursor_get_text_backwards(cursor *cur, size_t n)
 
         if (isfirst == -1)
         {
-            ERR_NEW(err_last_lvl,
-                    cursor_get_text_backwards: Call "textcont_is_first_line(cur->text, currline)" failed,
-                    "textcont_is_first_line(cur->text, currline)" returned -1);
-            return NULL;
+            free(rtn);
+            TRACE(cursor_get_text_backwards, textcont_is_first_line(cur->text, currline), NULL);
         }
 
         --i;
@@ -251,11 +304,17 @@ int cursor_delete_backwards(cursor *cur, size_t n)
     line *l, *prev;
     textcont *t;
     int isfirst;
-    colno col;
+    colno col, prevlen;
+    
+    CHECK_NULL_PRM(cursor_delete_backwards, cur);
 
     col = cursor_get_col(cur);
+    
     t   = cur->text;
     l   = cur->l;
+    
+    if (col == INVALID_INDEX)
+        TRACE(cursor_delete_backwards, cursor_get_col(cur), NULL);
 
     while (n > col)
     {
@@ -270,21 +329,27 @@ int cursor_delete_backwards(cursor *cur, size_t n)
         }
 
         if (isfirst == -1)
-        {
-            ERR_NEW(err_last_lvl, cursor_delete_backwards: Call "textcont_is_first_line(t, l)" failed,
-                    "textcont_is_first_line(t, l)" returned -1);
-            return -1;
-        }
+        `   TRACE(cursor_delete_backwards, textcont_is_first_line(t, l), -1);
 
         prev = cursor_prev_line(cur);
+        
+        TRACE_NULL(cursor_delete_backwards, cursor_prev_line(cur), prev, -1);
 
         linetext = line_get_text(prev);
-        line_insert_text(l, 0, linetext);
+        
+        TRACE_NULL(cursor_delete_backwards, line_get_text(prev), linetext, -1);
+        TRACE_NONZRO_CALL(cursor_delete_backwards, line_insert_text(l, 0, linetext), -1);
+
         free(linetext);
 
-        col += line_get_len(prev);
+        prevlen= line_get_len(prev);
+        
+        if (prevlen == INVALID_INDEX)
+            TRACE(cursor_delete_backwards, line_get_len(prev), -1);
 
-        line_delete(prev);
+        col += prevlen;
+
+        TRACE_NONZRO_CALL(cursor_delete_backwards, line_delete(prev), -1);
         line_free(prev); /* ACTUALLY DO KILLBUFFER STUFF */
     }
 
@@ -303,6 +368,10 @@ int cursor_delete_forwards(cursor *cur, size_t n)
     int       islast;
 
     col = cursor_get_col(cur);
+    
+    if (col == INVALID_INDEX)
+        TRACE(cursor_delete_forwards, cursor_get_col(cur), -1);
+
     t   = cur->text;
     l   = cur->l;
 
@@ -319,19 +388,20 @@ int cursor_delete_forwards(cursor *cur, size_t n)
         }
 
         if (islast == -1)
-        {
-            ERR_NEW(err_last_lvl, cursor_delete_forwards: Call textcont_is_last_line(t, l) failed,
-                    textcont_is_last_line(t, l) returned -1);
-            return -1;
-        }
+            TRACE(cursor_delete_forwards, textcont_is_last_line(t, l), -1);
 
         next = cursor_next_line(cur);
+        
+        TRACE_NULL(cursor_delete_forwards, cursor_next_line(cur), next, -1);
 
         linetext = line_get_text(next);
-        line_insert_text(l, line_get_len(l), linetext);
+        
+        TRACE_NULL(cursor_delete_forwards, line_get_text(next), linetext, -1);
+        
+        TRACE_NONZRO_CALL(cursor_delete_forwards, line_insert_text(l, line_get_len(l), linetext), -1);
         free(linetext);
 
-        line_delete(next);
+        TRACE_NONZRO_CALL(cursor_delete_forwards, line_delete(next), -1);
         line_free(next); /* ACTUALLY DO KILLBUFFER STUFF */
     }
 

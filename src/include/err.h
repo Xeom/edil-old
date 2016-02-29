@@ -125,6 +125,24 @@ typedef enum
                 call returned nonzero return code ERRLOC);              \
         return rtn;                                                     \
     }
+/*
+ * Raises an error of the save level as the last error raised, stating that funct had an error
+ * calling call. Then returns value rtn. Used for producing pseudo-tracebacks of errors. NOTE: Proper
+ * tracebacks may be implemented in the future.
+ *
+ * funct is the name of the function using this macro.
+ *
+ * call is the function and parameters that caused the error.
+ *
+ * rtn is the value to return from the function using this macro.
+ */
+#define TRACE(funct, call, rtn)                    \
+    {                                              \
+        ERR_NEW(err_last_lvl,                      \
+                funct : Call call failed,          \
+                call experienced an error ERRLOC); \
+        return rtn;                                \
+    }
 
 typedef struct err_s err;
 
