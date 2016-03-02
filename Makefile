@@ -15,8 +15,8 @@ SRC=src
 INC=src/include
 
 # Source and header files.
-SRC_OBJS=line vec err cursor
-INC_OBJS=line vec err cursor
+SRC_OBJS=line vec err cursor ui wintree wincont
+INC_OBJS=line vec err cursor ui wintree wincont
 
 OBJ_PATHS=$(addprefix $(SRC)/, $(addsuffix .o, $(SRC_OBJS)))
 INC_PATHS=$(addprefix $(INC)/, $(addsuffix .h, $(INC_OBJS)))
@@ -30,6 +30,8 @@ CCFLAGS=-I$(INC) -g -Wall -Wextra -Wno-unused-parameter -Wformat -Wpedantic -Wim
 
 # Main rule.
 all: lib.so
+test: $(OBJ_PATHS)
+	$(CC) -g $^  -lncurses -o $@
 
 # Lib shit yo
 lib.so: $(OBJ_PATHS)
