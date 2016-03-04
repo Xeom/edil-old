@@ -8,12 +8,12 @@ int ui_initsys(void);
 
 void ui_set_char_defaults(void);
 
-char ui_more_left_char;
-char ui_more_right_char;
-char ui_window_vertical_char;
-char ui_window_horizontal_char;
-char ui_window_corner_char;
+extern char ui_more_left_char;
+extern char ui_more_right_char;
+extern char ui_window_vertical_char;
+extern char ui_window_horizontal_char;
+extern char ui_window_corner_char;
 
-int ui_display_wintree(wintree *tree);
+int ui_display_wintrees(void);
 
 #endif /* UI_H */

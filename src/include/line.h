@@ -52,4 +52,6 @@ int textcont_is_last_line(textcont *t, line *l);
 
 int textcont_is_first_line(textcont *t, line *l);
 
+int textcont_has_line(textcont *t, lineno ln);
+
 #endif /* LINE_H */

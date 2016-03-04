@@ -29,6 +29,8 @@ wintree *wintree_init(wincont *content);
 
 int wintree_set_root_size(size_t x, size_t y);
 
+wintree *wintree_get_sub_selected(wintree *tree);
+
 wintree *wintree_delete_sub1(wintree *tree);
 
 wintree *wintree_delete_sub2(wintree *tree);

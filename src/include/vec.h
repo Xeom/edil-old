@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-size_t INVALID_INDEX;
+#define INVALID_INDEX SIZE_MAX;
 
 typedef enum
 {
@@ -14,7 +14,7 @@ typedef enum
     E_VEC_INVALID_WIDTH
 } vecerr_t;
 
-vecerr_t vecerr;
+extern vecerr_t vecerr;
 
 typedef struct vec_s vec;
 
