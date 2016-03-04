@@ -10,6 +10,9 @@
 
 wintree *ui_rootwin;
 
+int ui_display_wintree_border(wintree *tree);
+int ui_display_wintree_line(wintree *tree, lineno ln);
+
 int ui_initsys(void)
 {
     initscr();
@@ -101,9 +104,9 @@ int ui_display_wintrees(void)
     wintree *selected, *curr;
 
     selected = wintree_get_selected();
-    ui_display_wintree_border(curr);
+    ui_display_wintree_border(selected);
     curr = wintree_iter_next_content(selected);
-    
+
     while (curr != selected)
     {
         ui_display_wintree_border(curr);

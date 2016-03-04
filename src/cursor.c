@@ -12,6 +12,11 @@ struct cursor_s
     textcont *text;
 };
 
+void cursor_set_heuristics(cursor *cur, lineno n);
+line *cursor_next_line(cursor *cur);
+line *cursor_prev_line(cursor *cur);
+
+
 void cursor_set_heuristics(cursor *cur, lineno n)
 {
     cur->probablyline = n;
@@ -21,7 +26,7 @@ void cursor_set_heuristics(cursor *cur, lineno n)
 lineno cursor_get_lineno(cursor *cur)
 {
     lineno n;
-    
+
     CHECK_NULL_PRM(cursor_get_lineno, cur,    INVALID_INDEX);
 
     n = line_get_lineno_hint(cur->l,
@@ -100,10 +105,15 @@ line *cursor_next_line(cursor *cur)
     lineno next;
     line  *rtn;
 
-    next = cursor_get_lineno(cur) + 1;
+    next = cursor_get_lineno(cur);
+
+    if (next == INVALID_INDEX)
+        TRACE(cursor_next_line, cursor_get_lineno(cur), NULL);
+
+    next += 1;
 
     rtn = textcont_get_line(cur->text, next);
-    TRACE_NULL(cursor_get_next_line, textcont_get_line(cur->text, next), rtn, NULL);
+    TRACE_NULL(cursor_next_line, textcont_get_line(cur->text, next), rtn, NULL);
 
     return rtn;
 }
@@ -114,6 +124,9 @@ line *cursor_prev_line(cursor *cur)
     line *rtn;
 
     curr = cursor_get_lineno(cur);
+
+    if (curr == INVALID_INDEX)
+        TRACE(cursor_prev_line, cursor_get_lineno(cur), NULL);
 
     if (curr == 0)
     {
@@ -163,7 +176,7 @@ char *cursor_get_text_forwards(cursor *cur, size_t n)
             free(rtn);
             TRACE(cursor_get_text_forwards, line_get_len(currline), NULL);
         }
-        
+
         if (linetext == NULL)
         {
             free(rtn);
@@ -187,7 +200,7 @@ char *cursor_get_text_forwards(cursor *cur, size_t n)
         {
             rtn = realloc(rtn, i + 1);
             rtn[i] = '\0';
-            
+
             CHECK_ALLOC(cursor_get_text_forwards, rtn, NULL);
 
             return rtn;
@@ -206,8 +219,8 @@ char *cursor_get_text_forwards(cursor *cur, size_t n)
 
         --currln;
         currline = textcont_get_line(cur->text, currln);
-        
-        if (currline == INVALID_INDEX)
+
+        if (currline == NULL)
         {
             free(rtn);
             TRACE(cursor_get_text_forwards, textcont_get_line(cur->text, currln), NULL);
@@ -249,7 +262,7 @@ char *cursor_get_text_backwards(cursor *cur, size_t n)
             free(rtn);
             TRACE(cursor_get_text_backwards, line_get_len(currline), NULL);
         }
-        
+
         if (linetext == NULL)
         {
             free(rtn);
@@ -305,16 +318,16 @@ int cursor_delete_backwards(cursor *cur, size_t n)
     textcont *t;
     int isfirst;
     colno col, prevlen;
-    
-    CHECK_NULL_PRM(cursor_delete_backwards, cur);
+
+    CHECK_NULL_PRM(cursor_delete_backwards, cur, -1);
 
     col = cursor_get_col(cur);
-    
+
     t   = cur->text;
     l   = cur->l;
-    
+
     if (col == INVALID_INDEX)
-        TRACE(cursor_delete_backwards, cursor_get_col(cur), NULL);
+        TRACE(cursor_delete_backwards, cursor_get_col(cur), -1);
 
     while (n > col)
     {
@@ -329,21 +342,21 @@ int cursor_delete_backwards(cursor *cur, size_t n)
         }
 
         if (isfirst == -1)
-        `   TRACE(cursor_delete_backwards, textcont_is_first_line(t, l), -1);
+            TRACE(cursor_delete_backwards, textcont_is_first_line(t, l), -1);
 
         prev = cursor_prev_line(cur);
-        
+
         TRACE_NULL(cursor_delete_backwards, cursor_prev_line(cur), prev, -1);
 
         linetext = line_get_text(prev);
-        
+
         TRACE_NULL(cursor_delete_backwards, line_get_text(prev), linetext, -1);
         TRACE_NONZRO_CALL(cursor_delete_backwards, line_insert_text(l, 0, linetext), -1);
 
         free(linetext);
 
         prevlen= line_get_len(prev);
-        
+
         if (prevlen == INVALID_INDEX)
             TRACE(cursor_delete_backwards, line_get_len(prev), -1);
 
@@ -368,7 +381,7 @@ int cursor_delete_forwards(cursor *cur, size_t n)
     int       islast;
 
     col = cursor_get_col(cur);
-    
+
     if (col == INVALID_INDEX)
         TRACE(cursor_delete_forwards, cursor_get_col(cur), -1);
 
@@ -391,13 +404,13 @@ int cursor_delete_forwards(cursor *cur, size_t n)
             TRACE(cursor_delete_forwards, textcont_is_last_line(t, l), -1);
 
         next = cursor_next_line(cur);
-        
+
         TRACE_NULL(cursor_delete_forwards, cursor_next_line(cur), next, -1);
 
         linetext = line_get_text(next);
-        
+
         TRACE_NULL(cursor_delete_forwards, line_get_text(next), linetext, -1);
-        
+
         TRACE_NONZRO_CALL(cursor_delete_forwards, line_insert_text(l, line_get_len(l), linetext), -1);
         free(linetext);
 

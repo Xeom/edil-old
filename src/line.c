@@ -24,6 +24,15 @@ struct chunk_s
     vec   *lines;
 };
 
+chunk *chunk_init(void);
+void   chunk_free(chunk *c);
+int    chunk_resize(chunk *c);
+
+void   reset_chunk_starts(chunk *c);
+void   lines_move_chunk(vec *lines, chunk *newchunk);
+
+line  *line_init(chunk *chunk);
+
 chunk *chunk_init(void)
 {
     chunk *rtn = malloc(sizeof(chunk));
@@ -55,8 +64,10 @@ textcont *textcont_init(void)
     if (rtn->currchunk == NULL)
     {
         free(rtn);
-        TRACE(textcont_init, chunk_init());
+        TRACE(textcont_init, chunk_init(), NULL);
     }
+
+    return rtn;
 }
 
 void chunk_free(chunk *c)
@@ -65,7 +76,7 @@ void chunk_free(chunk *c)
     free(c);
 }
 
-line *line_init(chunk *chunk)
+line *line_init(chunk *c)
 {
     line *rtn;
 
@@ -73,7 +84,7 @@ line *line_init(chunk *chunk)
 
     CHECK_ALLOC(line_init, rtn, NULL);
 
-    rtn->chunk  = chunk;
+    rtn->chunk  = c;
     rtn->length = 0;
     rtn->data   = NULL;
 
@@ -582,6 +593,25 @@ int textcont_is_last_line(textcont *t, line *l)
         return 0;
 
     if (*((line**)vec_get(c->lines, vec_len(c->lines))) ==  l)
+        return 1;
+
+    return 0;
+}
+
+int textcont_is_first_line(textcont *t, line *l)
+{
+    chunk *c;
+
+    CHECK_NULL_PRM(textcont_is_first_line, t,        -1);
+    CHECK_NULL_PRM(textcont_is_first_line, l,        -1);
+    CHECK_NULL_PRM(textcont_is_first_line, l->chunk, -1);
+
+    c = l->chunk;
+
+    if (c->prev)
+        return 0;
+
+    if (*((line**)vec_get(c->lines, 0)) == l)
         return 1;
 
     return 0;
