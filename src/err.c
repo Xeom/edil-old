@@ -11,6 +11,7 @@ struct err_s
 };
 
 #define FUCK_IT(err) {fputs("\n", stderr); fputs(err, stderr); fputs("\nFuck it.\n", stderr); abort();}
+#define FUCK_VEC_ERR(err) {fputs("\n", stderr); fputs(err, stderr); FUCK_IT(vec_err_str());}
 
 /*
     [
@@ -22,12 +23,7 @@ struct err_s
 */
 vec *err_queue;
 
-void fuck_vec_err(const char *desc)
-{
-    fputs("\n", stderr);
-    fputs(desc, stderr);
-    FUCK_IT(vec_err_str());
-}
+void err_new_norecurse(errlvl level, const char *title, const char *detail);
 
 void errsys_init(void)
 {
@@ -41,7 +37,7 @@ void errsys_init(void)
     err_queue = vec_init(sizeof(vec*));
 
     if (err_queue == NULL)
-        fuck_vec_err("err_init: Could not allocate err_queue main vector");
+        FUCK_VEC_ERR("err_init: Could not allocate err_queue main vector");
 
     i = errlvl_end;
 
@@ -50,10 +46,10 @@ void errsys_init(void)
         newv = vec_init(sizeof(err));
 
         if (newv == NULL)
-            fuck_vec_err("err_init: Could not allocate err_queue sub-vector");
+            FUCK_VEC_ERR("err_init: Could not allocate err_queue sub-vector");
 
         if (vec_push(err_queue, newv))
-            fuck_vec_err("err_init: Could not push sub-vector into err_queue");
+            FUCK_VEC_ERR("err_init: Could not push sub-vector into err_queue");
     }
 }
 
@@ -85,10 +81,10 @@ void err_new_norecurse(errlvl level, const char *title, const char *detail)
     subqueue = vec_get(err_queue, level);
 
     if (subqueue == NULL)
-        fuck_vec_err("err_new_norecurse: Error getting error subqueue");
+        FUCK_VEC_ERR("err_new_norecurse: Error getting error subqueue");
 
     if (vec_insert(subqueue, 0, e))
-        fuck_vec_err("err_new: Error pushing error to subqueue");
+        FUCK_VEC_ERR("err_new: Error pushing error to subqueue");
 }
 
 void err_new(errlvl level, const char *title, const char *detail)
