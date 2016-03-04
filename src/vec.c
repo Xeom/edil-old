@@ -17,6 +17,8 @@ struct vec_s
     size_t capacity;
 };
 
+int vec_resize(vec *v);
+
 int vec_resize(vec *v)
 {
     if (v->length > v->capacity)
@@ -283,6 +285,31 @@ int vec_insert(vec *v, size_t i, void *value)
     return 0;
 }
 
+int vec_remove(vec *v, void *value)
+{
+    ptrdiff_t offset;
+    intptr_t  ptr;
+    size_t i;
+
+    i = vec_find(v, value);
+
+    if (i == INVALID_INDEX)
+        return -1;
+
+    offset = i * v->width;
+    ptr    = (intptr_t)v->data;
+
+    memmove((void*)(ptr + offset),
+            (void*)(ptr + offset + v->width), (v->length - offset - 1));
+
+    v->length -= v->width;
+
+
+    if (vec_resize(v) == -1)
+        return -1;
+
+    return 0;
+}
 const char *vec_err_str()
 {
     if (vecerr == E_VEC_NULL_VALUE)
