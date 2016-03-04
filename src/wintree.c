@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+#define WINTREE_MIN_SIZE 3
+
 #define issplitter(tree) (tree->sub1 && tree->sub2)
 #define iscontent(tree) (tree->content)
 
@@ -18,9 +20,10 @@ struct wintree_s
     wincont    *content;
 };
 
-#define WINTREE_MIN_SIZE 3
-
 wintree *wintree_root;
+
+void wintree_free_norecurse(wintree *tree);
+void wintree_free(wintree *tree);
 
 int wintree_initsys(void)
 {
@@ -48,11 +51,6 @@ wintree *wintree_init(wincont *content)
     return rtn;
 }
 
-void wintree_free_norecurse(wintree *tree)
-{
-    free(tree);
-}
-
 void wintree_free(wintree *tree)
 {
     if (issplitter(tree))
@@ -62,6 +60,11 @@ void wintree_free(wintree *tree)
     }
 
     wintree_free_norecurse(tree);
+}
+
+void wintree_free_norecurse(wintree *tree)
+{
+    free(tree);
 }
 
 wintree *wintree_delete_sub1(wintree *tree)
