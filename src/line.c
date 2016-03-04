@@ -1,12 +1,14 @@
 #include "line.h"
 #include "vec.h"
 #include "err.h"
+#include "face.h"
 #include <stdlib.h>
 #include <string.h>
 
 struct line_s
 {
     chunk *chunk;
+    vec   *faces;
     colno  length;
     char  *data;
 };
@@ -84,6 +86,14 @@ line *line_init(chunk *c)
 
     CHECK_ALLOC(line_init, rtn, NULL);
 
+    rtn->faces  = vec_init(sizeof(face));
+
+    if (rtn->faces == NULL)
+    {
+        free(rtn);
+        TRACE(line_init, vec_init(sizeof(face)), NULL);
+    }
+
     rtn->chunk  = c;
     rtn->length = 0;
     rtn->data   = NULL;
@@ -96,6 +106,7 @@ void line_free(line *l)
     if (l->chunk)
         line_delete(l);
 
+    vec_free(l->faces);
     free(l->data);
     free(l);
 }
@@ -379,7 +390,6 @@ int line_delete_text(line *l, colno pos, colno n)
     return 0;
 }
 
-
 int line_set_text(line *l, char *c)
 {
     size_t len;
@@ -615,4 +625,11 @@ int textcont_is_first_line(textcont *t, line *l)
         return 1;
 
     return 0;
+}
+
+vec *line_get_faces(line *l)
+{
+    CHECK_NULL_PRM(line_get_faces, l, NULL);
+
+    return l->faces;
 }

@@ -10,8 +10,18 @@
 
 wintree *ui_rootwin;
 
-int ui_display_wintree_border(wintree *tree);
+char ui_more_left_char;
+char ui_more_right_char;
+char ui_window_vertical_char;
+char ui_window_horizontal_char;
+char ui_window_corner_char;
+face *ui_window_border_face;
+face *ui_window_border_selected_face;
+
+
+int ui_display_wintree_border(wintree *tree, face *f);
 int ui_display_wintree_line(wintree *tree, lineno ln);
+void ui_set_defaults(void);
 
 int ui_initsys(void)
 {
@@ -20,19 +30,21 @@ int ui_initsys(void)
     noecho();
     cbreak();
     keypad(stdscr, TRUE);
-    init_pair(1, COLOR_RED, COLOR_WHITE);
-    ui_set_char_defaults();
+    ui_set_defaults();
 
     return 0;
 }
 
-void ui_set_char_defaults(void)
+void ui_set_defaults(void)
 {
     ui_more_left_char         = '\253';
     ui_more_right_char        = '\273';
     ui_window_vertical_char   = '|';
     ui_window_horizontal_char = '-';
     ui_window_corner_char     = '\'';
+
+    ui_window_border_selected_face = face_init(COLOR_RED, COLOR_WHITE);
+    ui_window_border_face          = face_init(COLOR_RED, COLOR_BLACK);
 }
 
 int ui_display_wintree_line(wintree *tree, lineno ln)
@@ -67,9 +79,11 @@ int ui_display_wintree_line(wintree *tree, lineno ln)
     return 0;
 }
 
-int ui_display_wintree_border(wintree *tree)
+int ui_display_wintree_border(wintree *tree, face *f)
 {
     size_t posx, posy, lastposx, lastposy;
+
+    attron(face_get_attr(f));
 
     posx = wintree_getposx(tree);
     posy = wintree_getposy(tree);
@@ -95,6 +109,8 @@ int ui_display_wintree_border(wintree *tree)
 
     mvaddch(lastposy, lastposx, ui_window_corner_char);
 
+    attroff(face_get_attr(f));
+
     return 0;
 }
 
@@ -104,12 +120,12 @@ int ui_display_wintrees(void)
     wintree *selected, *curr;
 
     selected = wintree_get_selected();
-    ui_display_wintree_border(selected);
+    ui_display_wintree_border(selected, ui_window_border_selected_face);
     curr = wintree_iter_next_content(selected);
 
     while (curr != selected)
     {
-        ui_display_wintree_border(curr);
+        ui_display_wintree_border(curr, ui_window_border_face);
         curr = wintree_iter_next_content(curr);
     } while (curr != selected);
     return 0;

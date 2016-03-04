@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define INVALID_INDEX SIZE_MAX;
+#define INVALID_INDEX SIZE_MAX
 
 typedef enum
 {
@@ -45,7 +45,7 @@ int vec_insert(vec *v, size_t i, void *value);
 
 int vec_remove(vec *v, void *value);
 
-int vec_delete(vec *v, size_t i);
+int vec_del(vec *v, size_t i);
 
 const char *vec_err_str(void);
 

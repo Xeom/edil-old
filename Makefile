@@ -19,8 +19,8 @@ WARNINGS=all extra no-unused-parameter pedantic missing-prototypes fatal-errors 
 W_FLAGS=$(addprefix -W, $(WARNINGS))
 
 # Source and header files.
-SRC_OBJS=line vec err cursor ui wintree wincont
-INC_OBJS=line vec err cursor ui wintree wincont
+SRC_OBJS=line vec err cursor ui wintree wincont face
+INC_OBJS=line vec err cursor ui wintree wincont face
 
 OBJ_PATHS=$(addprefix $(SRC)/, $(addsuffix .o, $(SRC_OBJS)))
 INC_PATHS=$(addprefix $(INC)/, $(addsuffix .h, $(INC_OBJS)))

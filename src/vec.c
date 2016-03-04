@@ -7,7 +7,7 @@
 
 #define ERR(err, rtn) {vecerr = E_VEC_ ## err; return rtn;}
 
-size_t INVALID_INDEX = SIZE_MAX;
+vecerr_t vecerr;
 
 struct vec_s
 {
@@ -287,14 +287,16 @@ int vec_insert(vec *v, size_t i, void *value)
 
 int vec_remove(vec *v, void *value)
 {
+    return vec_del(v, vec_find(v, value));
+}
+
+int vec_del(vec *v, size_t i)
+{
     ptrdiff_t offset;
     intptr_t  ptr;
-    size_t i;
 
-    i = vec_find(v, value);
-
-    if (i == INVALID_INDEX)
-        return -1;
+    if (i > vec_len(v))
+        ERR(INVALID_INDEX, -1);
 
     offset = i * v->width;
     ptr    = (intptr_t)v->data;
@@ -304,12 +306,12 @@ int vec_remove(vec *v, void *value)
 
     v->length -= v->width;
 
-
     if (vec_resize(v) == -1)
         return -1;
 
     return 0;
 }
+
 const char *vec_err_str()
 {
     if (vecerr == E_VEC_NULL_VALUE)

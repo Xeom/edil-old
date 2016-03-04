@@ -44,6 +44,8 @@ lineno line_get_lineno_hint(line *l, lineno hline, chunk *hchunk);
 
 chunk *line_get_chunk(line *l);
 
+vec *line_get_faces(line *l);
+
 lineno textcont_get_total_lines(textcont *t);
 
 size_t textcont_get_total_chars(textcont *t);
