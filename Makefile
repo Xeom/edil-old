@@ -1,49 +1,64 @@
 #!/usr/bin/make
 
-all_proxy: all
+include MakefileConf
+# Get configuration
 
-VERSION=0.0.1
+incify=$(addprefix $(INC)/, $(addsuffix .h, $(1))) # Change names into header paths
+srcify=$(addprefix $(SRC)/, $(addsuffix .c, $(1))) # Change names into .c paths
+objify=$(addprefix $(SRC)/, $(addsuffix .o, $(1))) # Change names into .cs' .o paths
 
-# Toolchain programs.
-CC=gcc
-LD=ld
-AR=ar
-LN=ln
+INC_PATHS=$(call incify, $(INC_NAMES)) # All the headers' paths
+SRC_PATHS=$(call srcify, $(SRC_NAMES)) # All the .c files' paths
+OBJ_PATHS=$(call objify, $(SRC_NAMES)) # All the .cs' .o files' paths
+TEST_PATH=$(call srcify, $(TEST_NAME)) # The path of the .c test file
 
-# Directories.
-SRC=src
-INC=src/include
+L_FLAGS=$(addprefix -l, $(LINKS)) #  # all the links... (-l*)
+W_FLAGS=$(addprefix -W, $(WARNINGS)) # all the warnings... (-W*)
 
-WARNINGS=all extra no-unused-parameter pedantic missing-prototypes fatal-errors format
+OBJ_FLAGS=-I$(INC) -g $(W_FLAGS) -fPIC # for compiling objects
+DEP_FLAGS=-I$(INC) -MM #               # for getting dependency rules
 
-W_FLAGS=$(addprefix -W, $(WARNINGS))
+get_rule=$(SRC)/$(subst \ ,,$(shell $(CC) $(DEP_FLAGS) $(1) -o -)) # Get a dependency rule for a
+                                                                   # file($(1)) from the compiler.
 
-# Source and header files.
-SRC_OBJS=line vec err cursor ui wintree wincont face
-INC_OBJS=line vec err cursor ui wintree wincont face
+append_rule=$(file >>$(DEPS_FILE),$(1)) # Append a rule ($(1)) to the dependecies file.
 
-OBJ_PATHS=$(addprefix $(SRC)/, $(addsuffix .o, $(SRC_OBJS)))
-INC_PATHS=$(addprefix $(INC)/, $(addsuffix .h, $(INC_OBJS)))
+add_deps=$(call append_rule,$(call get_rule, $(1))) # Add the dependency rule to the depdendency file for a file ($(1))
 
-# Compiler flags.
-CCFLAGS=-I$(INC) -g $(W_FLAGS)
+$(shell rm -f $(DEPS_FILE))                        # Remove the old deps file
+$(foreach F, $(SRC_PATHS), $(call add_deps, $(F))) # For every .c file, add dependencies,
+$(call add_deps, $(TEST_PATH))                     # including the test file.
 
-# Default rule for compiling object files.
-%.o: %.c $(INC)
-	$(CC) $(CCFLAGS) -fPIC -c $< -o $@
+#########
+# RULES #
+#########
 
-# Main rule.
-all: lib.so
-test: $(OBJ_PATHS) $(SRC)/test.c
-	$(CC) -g $^ -lncurses -o $@
+include $(DEPS_FILE) # Include dynamic dependencies
 
-# Lib shit yo
+# Rule for compiling any .o file
+%.o:
+	@echo "Compiling $@ ..."
+	@$(CC) $(OBJ_FLAGS) -c $< -o $@
+
+objs: $(OBJ_PATHS) # A proxy for compiling all objects
+
+# Rule to compile test.out. Main should be in TEST_PATH
+test.out: $(OBJ_PATHS) $(TEST_PATH)
+	@echo "Linking into ./test"
+	@$(CC) -g $^ $(L_FLAGS) -o $@
+
+# Compile a shared object and copy into python directory
 lib.so: $(OBJ_PATHS)
-	$(CC) -shared -fPIC -g $^ -o $@
-	cp $@ python/lib.so
+	@echo "Linking into lib.so"
+	@$(CC) -shared $(L_FLAGS) -g $^ -o $@
+	@cp $@ python/lib.so
 
-# Clean repo.
+# Cleanup the repo
 clean:
-	rm -f $(OBJ_PATHS) test
+	@rm -f $(OBJ_PATHS) $(DEPS_FILE)
 
-.PHONY: all_proxy all clean
+# Nicer names
+test: test.out
+lib:  lib.so
+
+.PHONY: test lib clean_tmp clean objs
