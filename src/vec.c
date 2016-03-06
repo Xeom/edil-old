@@ -9,14 +9,6 @@
 
 vecerr_t vecerr;
 
-struct vec_s
-{
-    void *data;
-    size_t width;
-    size_t length;
-    size_t capacity;
-};
-
 int vec_resize(vec *v);
 
 int vec_resize(vec *v)
@@ -29,14 +21,14 @@ int vec_resize(vec *v)
         v->capacity >>= 1;
 
     else
-        return 0;
+        ERR(OK, 0);
 
     v->data = realloc(v->data, v->capacity);
 
     if (v->data == NULL)
         ERR(NO_MEMORY, -1);
 
-    return 0;
+    ERR(OK, 0);
 }
 
 vec *vec_init(size_t width)
@@ -63,7 +55,7 @@ vec *vec_init(size_t width)
     if (vec_resize(rtn) != 0)
         return NULL;
 
-    return rtn;
+    ERR(OK, rtn);
 }
 
 void vec_free(vec *v)
@@ -91,7 +83,7 @@ int vec_push(vec *v, const void *value)
 
     memcpy((void *)((intptr_t)v->data + offset), value, v->width);
 
-    return 0;
+    ERR(OK, 0);
 }
 
 void *vec_pop(vec *v)
@@ -119,22 +111,30 @@ void *vec_pop(vec *v)
     if (vec_resize(v) != 0)
         return NULL;
 
-    return 0;
+    ERR(OK, rtn);
 }
 
 void *vec_get(vec *v, size_t index)
 {
-    size_t offset = v->width * index;
+    size_t offset;
+
+    if (v == NULL)
+        ERR(NULL_VEC, NULL);
+
+    offset = v->width * index;
 
     if (offset >= v->length)
         ERR(INVALID_INDEX, NULL);
 
-    return (void *)((intptr_t)v->data + (ptrdiff_t)offset);
+    ERR(OK, (void *)((intptr_t)v->data + (ptrdiff_t)offset));
 }
 
 int vec_set(vec *v, size_t index, const void *data)
 {
     size_t offset = v->width * index;
+
+    if (v == NULL)
+        ERR(NULL_VEC, -1);
 
     if (offset >= v->length)
         ERR(INVALID_INDEX, -1);
@@ -142,7 +142,7 @@ int vec_set(vec *v, size_t index, const void *data)
     memcpy((void *)((intptr_t)v->data + (ptrdiff_t)offset),
            data, v->width);
 
-    return 0;
+    ERR(OK, 0);
 }
 
 int vec_trim(vec *v, size_t amount)
@@ -152,15 +152,17 @@ int vec_trim(vec *v, size_t amount)
     if (v == NULL)
         ERR(NULL_VEC, -1);
 
-    newlength = amount * v->length;
+    newlength = amount * v->width;
 
     if (newlength > v->length)
         ERR(INVALID_INDEX, -1);
 
+    v->length = newlength;
+
     if (vec_resize(v) != 0)
         return -1;
 
-    return 0;
+    ERR(OK, 0);
 }
 
 vec *vec_slice(vec *v, size_t start, size_t end)
@@ -173,7 +175,7 @@ vec *vec_slice(vec *v, size_t start, size_t end)
     rtn = vec_init(v->width);
 
     if (rtn == NULL)
-        return NULL;
+        ERR(NO_MEMORY, NULL);
 
     for (;start < end && start < v->length; ++start)
     {
@@ -181,7 +183,7 @@ vec *vec_slice(vec *v, size_t start, size_t end)
             return NULL;
     }
 
-    return rtn;
+    ERR(OK, rtn);
 }
 
 int vec_append(vec *v, vec *other)
@@ -193,68 +195,72 @@ int vec_append(vec *v, vec *other)
 
     i = 0;
 
-    while (i < v->length)
+    while (i < vec_len(other))
     {
         if (vec_push(v, vec_get(other, i)) != 0)
             return -1;
         ++i;
     }
 
-    return 0;
+    ERR(OK, 0);
 }
 
 size_t vec_len(vec *v)
 {
     if (v == NULL)
-        return 0;
+        ERR(NULL_VEC, 0);
 
-    return v->length * v->width;
+    ERR(OK, v->length / v->width);
 }
 
-size_t vec_find(vec *v, void *value)
+size_t vec_find(vec *v, const void *value)
 {
+    void *cmp;
     size_t i;
 
     if (v == NULL)
-        return INVALID_INDEX;
+        ERR(NULL_VEC, INVALID_INDEX);
 
     i = 0;
 
     while (i < v->length)
     {
-        if (memcmp(vec_get(v, i), value, v->width) == 0)
-            return i;
+        cmp = vec_get(v, i);
+
+        if (memcmp(cmp, value, v->width) == 0)
+            ERR(OK, i);
+
         ++i;
     }
 
-    return INVALID_INDEX;
+    ERR(INVALID_VALUE, INVALID_INDEX);
 }
 
-size_t vec_rfind(vec *v, void *value)
+size_t vec_rfind(vec *v, const void *value)
 {
     size_t i;
+    void  *cmp;
 
     if (v == NULL)
-        return INVALID_INDEX;
+        ERR(NULL_VEC, INVALID_INDEX);
 
-    i = v->length;
+    i = vec_len(v);
 
-    while (i)
+    while (i--)
     {
-        void *cmp = vec_get(v, i);
+        cmp = vec_get(v, i);
 
         if (cmp == NULL)
             return INVALID_INDEX;
 
         if (memcmp(cmp, value, v->width) == 0)
-            return i;
-        --i;
+            ERR(OK, i);
     }
 
-    return INVALID_INDEX;
+    ERR(INVALID_VALUE, INVALID_INDEX);
 }
 
-int vec_insert(vec *v, size_t i, void *value)
+int vec_insert(vec *v, size_t i, const void *value)
 {
     ptrdiff_t offset;
     intptr_t  ptr;
@@ -282,12 +288,19 @@ int vec_insert(vec *v, size_t i, void *value)
     if (vec_set(v, i, value) == -1)
         return -1;
 
-    return 0;
+    ERR(OK, 0);
 }
 
-int vec_remove(vec *v, void *value)
+int vec_remove(vec *v, const void *value)
 {
-    return vec_del(v, vec_find(v, value));
+    size_t index;
+
+    index = vec_find(v, value);
+
+    if (index == INVALID_INDEX)
+        return -1;
+
+    return vec_del(v, index);
 }
 
 int vec_del(vec *v, size_t i)
@@ -309,7 +322,7 @@ int vec_del(vec *v, size_t i)
     if (vec_resize(v) == -1)
         return -1;
 
-    return 0;
+    ERR(OK, 0);
 }
 
 const char *vec_err_str()
@@ -323,11 +336,17 @@ const char *vec_err_str()
     if (vecerr == E_VEC_INVALID_INDEX)
         return "E_VEC_INVALID_INDEX";
 
+    if (vecerr == E_VEC_INVALID_VALUE)
+        return "E_VEC_INVALID_VALUE";
+
     if (vecerr == E_VEC_NO_MEMORY)
         return "E_VEC_NO_MEMORY";
 
     if (vecerr == E_VEC_INVALID_WIDTH)
         return "E_VEC_INVALID_WIDTH";
 
-    return "<Unkown vec error>";
+    if (vecerr == E_VEC_OK)
+        return "E_VEC_OK";
+
+    return "<Unknown vec error>";
 }
