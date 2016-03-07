@@ -93,31 +93,37 @@ len.argtypes = [vec_p]
 len.restype  = ctypes.c_size_t
 len.errcheck = check_invalid_index
 
+# size_t vec_find(vec *v, const void *value)
 find = so.vec_find
 find.argtypes = [vec_p, ctypes.c_void_p]
 find.restype  = ctypes.c_size_t
 find.errcheck = check_invalid_index
 
+# size_t vec_rfind(vec *v, const void *value)
 rfind = so.vec_rfind
 rfind.argtypes = [vec_p, ctypes.c_void_p]
 rfind.restype  = ctypes.c_size_t
 rfind.errcheck = check_invalid_index
 
+# int vec_insert(vec *v, size_t i, const void *value)
 insert = so.vec_insert
-insert.argtypes = [vec_p, ctypes.c_void_p]
+insert.argtypes = [vec_p, ctypes.c_size_t, ctypes.c_void_p]
 insert.restype  = ctypes.c_int
 insert.errcheck = check_nonzro_return
 
+# int vec_remove(vec *v, const void *value)
 remove = so.vec_remove
 remove.argtypes = [vec_p, ctypes.c_void_p]
 remove.restype  = ctypes.c_int
 remove.errcheck = check_nonzro_return
 
 # Can't call it del in python...
+# int vec_del(vec *v, size_t i)
 delete = so.vec_del
 delete.argtypes = [vec_p, ctypes.c_size_t]
 delete.errcheck = check_nonzro_return
 
+# const char *vec_err_str(void)
 err_str = so.vec_err_str
 err_str.argtypes = []
 err_str.restype  = ctypes.c_char_p
