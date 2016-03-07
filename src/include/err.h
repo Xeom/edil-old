@@ -29,11 +29,11 @@ typedef enum
  *     This may be NULL.
  *
  */
-#define ERR_NEW(level, title, details) ERR_NEW_CALL(level, title, details ERRLOC)
+#define ERR_NEW(level, title, details) ERR_NEW_CALL(level, title, details)
 
 /*
  * Checks that var is not NULL. If it is, throws a high level error stating that funct was
- * handed var as a parameter, and it was null. The macro then returns rtn from the function 
+ * handed var as a parameter, and it was null. The macro then returns rtn from the function
  * using this macro. A useful shortcut for ERR_NEW.
  *
  * funct is the name of the function using the macro.
@@ -156,7 +156,7 @@ errlvl err_min_detail_lvl;
 errlvl err_last_lvl;
 
 /* Initialize the error system */
-void errsys_init(void);
+void err_initsys(void);
 
 /*
  * Raises a new error to the error system
@@ -216,7 +216,7 @@ errlvl err_get_lvl(err *e);
  * e is the error whose details we want
  *
  */
-const char *err_get_details(err *e);
+const char *err_get_detail(err *e);
 
 /*
  * Returns the title of an error.

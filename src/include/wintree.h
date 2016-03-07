@@ -19,50 +19,35 @@ typedef enum
     none
 } winsplitdir;
 
-int wintree_ui_display(wintree *tree);
-
-int wintree_ui_display_root(void);
-
 int wintree_initsys(void);
 
 wintree *wintree_init(wincont *content);
 
 int wintree_set_root_size(size_t x, size_t y);
 
-wintree *wintree_get_sub_selected(wintree *tree);
-
-wintree *wintree_delete_sub1(wintree *tree);
-
-wintree *wintree_delete_sub2(wintree *tree);
-
 int wintree_delete(wintree *tree);
 
 int wintree_swap_next(wintree *tree);
-
 int wintree_swap_prev(wintree *tree);
-
-size_t wintree_getposx(wintree *tree);
-
-size_t wintree_getposy(wintree *tree);
-
-wintree *wintree_get_selected(void);
 
 int wintree_move_border(wintree *tree, int n);
 
-size_t wintree_getsizex(wintree *tree);
+size_t wintree_get_posx(wintree *tree);
+size_t wintree_get_posy(wintree *tree);
 
-size_t wintree_getsizey(wintree *tree);
+int wintree_set_sizey(wintree *tree, size_t newsize);
+int wintree_set_sizex(wintree *tree, size_t newsize);
 
-int wintree_setsizey(wintree *tree, size_t newsize);
+wintree *wintree_iter_next(wintree *tree);
 
-int wintree_setsizex(wintree *tree, size_t newsize);
-
-wintree *wintree_iter_next_content(wintree *tree);
+wintree *wintree_get_selected(void);
+int wintree_select_next(wintree *tree);
 
 int wintree_split(wintree *tree, windir dir);
 
-char *wintree_get_line(wintree *tree, lineno ln);
-
-
+wincont *wintree_get_content(wintree *tree);
+wintree *wintree_get_parent(wintree *tree);
+size_t   wintree_get_sizex(wintree *tree);
+size_t   wintree_get_sizey(wintree *tree);
 
 #endif /* WINTREE_H */
