@@ -53,6 +53,7 @@ wintree *wintree_init(wincont *content)
 
     CHECK_ALLOC(wintree_init, rtn, NULL);
 
+    /* Easier than setting individual attributes ... */
     memset(rtn, 0, sizeof(wintree));
 
     rtn->sdir    = none;
@@ -63,6 +64,7 @@ wintree *wintree_init(wincont *content)
 
 void wintree_free(wintree *tree)
 {
+    /* Recurse down the tree if there is one */
     if (issplitter(tree))
     {
         wintree_free(tree->sub1);
@@ -117,6 +119,8 @@ void wintree_move_contents(wintree *dst, wintree *src)
  * parent                                                       */
 wintree *wintree_get_sister(wintree *tree)
 {
+    /* If current tree is the sub1 of its parent, return her *
+     * parent's sub2, and vice versa.                        */
     if (issub1(tree))
         return tree->parent->sub2;
 
@@ -132,6 +136,7 @@ int wintree_delete(wintree *tree)
 
     parent = tree->parent;
 
+    /* No, no you can't delete that */
     if (parent == NULL)
     {
         ERR_NEW(high, wintree_delete: Tried to delete wintree_root (or wintree with no parent), \0);
@@ -145,7 +150,8 @@ int wintree_delete(wintree *tree)
         ERR_NEW(critical, wintree_delete: Could not get sister, Could not fetch sister to replace parent of tree);
         return -1;
     }
-
+    /* Because the parent splitter  is no longer needed, we can move the sister's *
+     * contents into where it used to be.                                         */
     wintree_move_contents(parent, sister);
 
     wintree_free(tree);
@@ -161,6 +167,8 @@ int wintree_swap_prev(wintree *tree)
 
     prev = wincont_prev(tree->content);
     TRACE_NULL(wintree_swap_prev, wincont_prev(tree->content), prev, -1);
+    
+    tree->content = prev;
 
     return 0;
 }
@@ -173,6 +181,8 @@ int wintree_swap_next(wintree *tree)
 
     next = wincont_next(tree->content);
     TRACE_NULL(wintree_swap_next, wincont_next(tree->content), next, -1);
+    
+    tree->content = next;
 
     return 0;
 }
@@ -184,6 +194,7 @@ size_t wintree_get_posx(wintree *tree)
     CHECK_NULL_PRM(wintree_get_posx, tree, INVALID_INDEX);
 
     pos = 0;
+    /* Add up the relative positions of all ancestors */
     while (tree)
     {
         pos += tree->relposx;
@@ -200,6 +211,7 @@ size_t wintree_get_posy(wintree *tree)
     CHECK_NULL_PRM(wintree_get_posx, tree, INVALID_INDEX);
 
     pos = 0;
+    /* Add up the relative positions of all ancestors */
     while (tree)
     {
         pos += tree->relposy;
