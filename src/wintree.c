@@ -10,11 +10,13 @@
 
 #define issplitter(tree) (tree->sub1 && tree->sub2)
 #define iscontent(tree) (tree->content)
+#define issub1(tree) (tree->parent && tree->parent->sub1 == tree)
+#define issub2(tree) (tree->parent && tree->parent->sub2 == tree)
 
 struct wintree_s
 {
     winsplitdir sdir;
-    windir      selected;
+    char        selected;
     size_t      sizex, sizey, relposx, relposy;
     wintree    *parent, *sub1, *sub2;
     wincont    *content;
@@ -24,6 +26,9 @@ wintree *wintree_root;
 
 void wintree_free_norecurse(wintree *tree);
 void wintree_free(wintree *tree);
+void wintree_move_contents(wintree *dst, wintree *src);
+void wintree_move_contents(wintree *dst, wintree *src);
+wintree *wintree_get_sister(wintree *tree);
 
 int wintree_initsys(void)
 {
@@ -34,8 +39,8 @@ int wintree_initsys(void)
 
 int wintree_set_root_size(size_t x, size_t y)
 {
-    wintree_root->sizex = x;
-    wintree_root->sizey = y;
+    wintree_set_sizex(wintree_root, x);
+    wintree_set_sizey(wintree_root, y);
     return 0;
 }
 
@@ -47,7 +52,8 @@ wintree *wintree_init(wincont *content)
     memset(rtn, 0, sizeof(wintree));
     rtn->sdir = none;
     rtn->content = content;
-
+    rtn->relposx = 0;
+    rtn->relposy = 0;
     return rtn;
 }
 
@@ -67,76 +73,59 @@ void wintree_free_norecurse(wintree *tree)
     free(tree);
 }
 
-wintree *wintree_delete_sub1(wintree *tree)
+void wintree_move_contents(wintree *dst, wintree *src)
 {
     wintree *sub1, *sub2;
 
-    sub1 = tree->sub1;
-    sub2 = tree->sub2;
+    wintree_set_sizex(src, dst->sizex);
+    wintree_set_sizey(src, dst->sizey);
 
-    wintree_setsizex(sub2, wintree_getsizex(tree));
-    wintree_setsizey(sub2, wintree_getsizey(tree));
+    sub1 = src->sub1;
+    sub2 = src->sub2;
 
-    sub2->parent = tree->parent;
+    if (sub1)
+        sub1->parent = dst;
 
-    if (tree->parent)
-    {
-        if (tree == tree->parent->sub1)
-            tree->parent->sub1 = sub2;
+    if (sub2)
+        sub2->parent = dst;
 
-        if (tree == tree->parent->sub2)
-            tree->parent->sub1 = sub2;
-    }
+    dst->sub1 = sub1;
+    dst->sub2 = sub2;
 
-    wintree_free(sub1);
+    dst->selected = src->selected;
+    dst->sdir     = src->sdir;
 
-    wintree_free_norecurse(tree);
-
-    return 0;
+    dst->content = src->content;
 }
 
-wintree *wintree_delete_sub2(wintree *tree)
+wintree *wintree_get_sister(wintree *tree)
 {
-    wintree *sub1, *sub2;
+    if (issub1(tree))
+        return tree->parent->sub2;
 
-    sub1 = tree->sub1;
-    sub2 = tree->sub2;
+    if (issub2(tree))
+        return tree->parent->sub2;
 
-    wintree_setsizex(sub1, wintree_getsizex(tree));
-    wintree_setsizey(sub1, wintree_getsizey(tree));
-
-    sub2->parent = tree->parent;
-
-    if (tree->parent)
-    {
-        if (tree == tree->parent->sub1)
-            tree->parent->sub1 = sub1;
-
-        if (tree == tree->parent->sub2)
-            tree->parent->sub1 = sub1;
-    }
-
-    wintree_free(sub2);
-
-    wintree_free_norecurse(tree);
-
-    return 0;
+    return NULL;
 }
 
 int wintree_delete(wintree *tree)
 {
-    wintree *parent;
+    wintree *sister, *parent;
 
     parent = tree->parent;
 
-    if (parent)
-    {
-        if (parent->sub1 == tree)
-            wintree_delete_sub1(parent);
+    if (parent == NULL)
+        return -1;
 
-        else if (parent->sub2 == tree)
-            wintree_delete_sub2(parent);
-    }
+    sister = wintree_get_sister(tree);
+
+    if (sister == NULL)
+        return -1;
+
+    wintree_move_contents(parent, sister);
+
+    wintree_free(tree);
 
     return 0;
 }
@@ -165,12 +154,11 @@ int wintree_swap_next(wintree *tree)
     return 0;
 }
 
-size_t wintree_getposx(wintree *tree)
+size_t wintree_get_posx(wintree *tree)
 {
     size_t pos;
 
     pos = 0;
-
     while (tree)
     {
         pos += tree->relposx;
@@ -180,12 +168,11 @@ size_t wintree_getposx(wintree *tree)
     return pos;
 }
 
-size_t wintree_getposy(wintree *tree)
+size_t wintree_get_posy(wintree *tree)
 {
     size_t pos;
 
     pos = 0;
-
     while (tree)
     {
         pos += tree->relposy;
@@ -195,23 +182,21 @@ size_t wintree_getposy(wintree *tree)
     return pos;
 }
 
-wintree *wintree_get_sub_selected(wintree *tree)
+wintree *wintree_get_selected(void)
 {
-    if (issplitter(tree))
-    {
-        if (tree->selected == up || tree->selected == left)
-            return wintree_get_sub_selected(tree->sub1);
+    wintree *tree = wintree_root;
 
-        else if (tree->selected == down || tree->selected == right)
-            return wintree_get_sub_selected(tree->sub2);
+    while (issplitter(tree))
+    {
+        if      (tree->selected == 1)
+            tree = tree->sub1;
+        else if (tree->selected == 2)
+            tree = tree->sub2;
+        else
+            return NULL;
     }
 
     return tree;
-}
-
-wintree *wintree_get_selected(void)
-{
-    return wintree_get_sub_selected(wintree_root);
 }
 
 int wintree_move_border(wintree *tree, int n)
@@ -226,11 +211,11 @@ int wintree_move_border(wintree *tree, int n)
 
     if (tree->sdir == lr)
     {
-        if (-n >= (int)wintree_getsizex(sub1) || n >= (int)wintree_getsizex(sub2))
+        if (-n >= (int)wintree_get_sizex(sub1) || n >= (int)wintree_get_sizex(sub2))
             return -1;
 
-        wintree_setsizex(sub1, wintree_getsizex(sub1) + n);
-        wintree_setsizex(sub2, wintree_getsizex(sub2) - n);
+        wintree_set_sizex(sub1, wintree_get_sizex(sub1) + n);
+        wintree_set_sizex(sub2, wintree_get_sizex(sub2) - n);
 
         sub2->relposx += n;
     }
@@ -238,11 +223,11 @@ int wintree_move_border(wintree *tree, int n)
 
     if (tree->sdir == ud)
     {
-        if (-n >= (int)wintree_getsizey(sub1) || n >= (int)wintree_getsizey(sub2))
+        if (-n >= (int)wintree_get_sizey(sub1) || n >= (int)wintree_get_sizey(sub2))
             return -1;
 
-        wintree_setsizey(sub1, wintree_getsizey(sub1) + n);
-        wintree_setsizey(sub2, wintree_getsizey(sub2) - n);
+        wintree_set_sizey(sub1, wintree_get_sizey(sub1) + n);
+        wintree_set_sizey(sub2, wintree_get_sizey(sub2) - n);
 
         sub2->relposy += n;
     }
@@ -250,24 +235,14 @@ int wintree_move_border(wintree *tree, int n)
     return 0;
 }
 
-size_t wintree_getsizex(wintree *tree)
-{
-    return tree->sizex;
-}
-
-size_t wintree_getsizey(wintree *tree)
-{
-    return tree->sizey;
-}
-
-int wintree_setsizey(wintree *tree, size_t newsize)
+int wintree_set_sizey(wintree *tree, size_t newsize)
 {
     size_t oldsize;
 
     if (newsize < WINTREE_MIN_SIZE)
         wintree_delete(tree);
 
-    oldsize = wintree_getsizey(tree);
+    oldsize = wintree_get_sizey(tree);
 
     if (oldsize == newsize)
         return 0;
@@ -279,20 +254,21 @@ int wintree_setsizey(wintree *tree, size_t newsize)
 
     if (tree->sdir == ud)
     {
-        wintree_setsizey(tree->sub1, (newsize - oldsize) / 2);
-        wintree_setsizey(tree->sub2, (newsize - tree->sub1->sizex));
+        wintree_set_sizey(tree->sub1, (newsize - oldsize) / 2);
+        tree->sub2->relposy = tree->sub1->sizey;
+        wintree_set_sizey(tree->sub2, (newsize - tree->sub1->sizey));
     }
 
     if (tree->sdir == lr)
     {
-        wintree_setsizey(tree->sub1, newsize);
-        wintree_setsizey(tree->sub2, newsize);
+        wintree_set_sizey(tree->sub1, newsize);
+        wintree_set_sizey(tree->sub2, newsize);
     }
 
     return 0;
 }
 
-int wintree_setsizex(wintree *tree, size_t newsize)
+int wintree_set_sizex(wintree *tree, size_t newsize)
 {
     size_t oldsize;
 
@@ -311,149 +287,128 @@ int wintree_setsizex(wintree *tree, size_t newsize)
 
     if (tree->sdir == lr)
     {
-        wintree_setsizex(tree->sub1, (newsize - oldsize) / 2);
-        wintree_setsizex(tree->sub2, (newsize - tree->sub1->sizex));
+        wintree_set_sizex(tree->sub1, (newsize - oldsize) / 2);
+        tree->sub2->relposx = tree->sub1->sizex;
+        wintree_set_sizex(tree->sub2, (newsize - tree->sub1->sizex));
     }
 
     if (tree->sdir == ud)
     {
-        wintree_setsizex(tree->sub1, newsize);
-        wintree_setsizex(tree->sub2, newsize);
+        wintree_set_sizex(tree->sub1, newsize);
+        wintree_set_sizex(tree->sub2, newsize);
     }
 
     return 0;
 }
 
-wintree *wintree_iter_next_content(wintree *tree)
+wintree *wintree_iter_next(wintree *tree)
 {
     wintree *parent, *next;
+
     parent = tree->parent;
 
-    if (parent)
-    {
-        if (tree == parent->sub1)
-            next = parent->sub2;
-        else
-            next = wintree_iter_next_content(parent);
-    }
+    if      (issub2(tree))
+        return wintree_iter_next(parent);
+
+    else if (issub1(tree))
+        next = parent->sub2;
+
     else
-    {
         next = tree;
-    }
 
     while (next->sub1)
-    {
         next = next->sub1;
-    }
 
     return next;
 }
 
-int wintree_split(wintree *tree, windir dir)
+int wintree_select_next(wintree *tree)
 {
-    wintree *splitter, *sub1, *sub2;
-    size_t newsize;
+    wintree *parent, *next;
 
-    splitter = wintree_init(NULL);
+    parent = tree->parent;
 
-    splitter->selected = dir;
+    if      (issub2(tree))
+        return wintree_select_next(parent);
 
-    splitter->sizex   = tree->sizex;
-    splitter->sizey   = tree->sizey;
-    splitter->relposx = tree->relposx;
-    splitter->relposy = tree->relposy;
-
-    if (dir == up || dir == left)
+    else if (issub1(tree))
     {
-        sub1 = wintree_init(tree->content);
-        sub2 = tree;
+        parent->selected = 2;
+        next = parent->sub2;
     }
     else
+        next = tree;
+
+    while (next)
     {
-        sub1 = tree;
-        sub2 = wintree_init(tree->content);
+        next->selected = 1;
+        next = next->sub1;
     }
-
-    splitter->sub1 = sub1;
-    splitter->sub2 = sub2;
-
-    sub1->relposx = 0;
-    sub1->relposy = 0;
-
-    if (dir == left || dir == right)
-    {
-        splitter->sdir = lr;
-        splitter->selected = left;
-
-        newsize = splitter->sizex / 2;
-        wintree_setsizex(sub1, newsize);
-
-        newsize = splitter->sizex - newsize;
-        wintree_setsizex(sub2, newsize);
-
-        wintree_setsizey(sub1, wintree_getsizey(splitter));
-        wintree_setsizey(sub2, wintree_getsizey(splitter));
-
-        sub2->relposx = sub1->sizex;
-        sub2->relposy = 0;
-    }
-
-    else if (dir == up || dir == down)
-    {
-        splitter->sdir = ud;
-        splitter->selected = up;
-
-        newsize = splitter->sizey / 2;
-        wintree_setsizey(sub1, newsize);
-
-        newsize = splitter->sizey - newsize;
-        wintree_setsizey(sub2, newsize);
-
-        wintree_setsizex(sub1, splitter->sizex);
-        wintree_setsizex(sub2, splitter->sizex);
-
-        sub2->relposx = 0;
-        sub2->relposy = sub1->sizey;
-    }
-
-    splitter->parent = tree->parent;
-
-    if (splitter->parent)
-    {
-        if (splitter->parent->sub1 == tree)
-            splitter->parent->sub1  = splitter;
-        else
-            splitter->parent->sub2  = splitter;
-    }
-
-    sub1->parent = splitter;
-    sub2->parent = splitter;
 
     return 0;
 }
 
-char *wintree_get_line(wintree *tree, lineno ln)
+int wintree_split(wintree *tree, windir dir)
 {
-    char *rtn;
-    line *l;
-    wincont *content;
+    wintree *sub1, *sub2;
+    size_t newsize;
 
-    CHECK_NULL_PRM(ui_display_wintree_line, tree,  NULL);
+    sub1 = wintree_init(NULL);
+    sub2 = wintree_init(NULL);
 
-    if (ln == 0)
-        return NULL;
-    
-    if (ln >= tree->sizey)
-        return NULL;
+    if (dir == left || dir == right)
+    {
+        tree->sdir = lr;
 
-    content = tree->content;
-    l = wincont_get_line(content, ln - 1);
+        wintree_set_sizey(sub1, tree->sizey);
+        wintree_set_sizey(sub2, tree->sizey);
 
-    TRACE_NULL(wintree_get_line, wincont_get_line(content, ln), l, NULL);
+        newsize = tree->sizex / 2;
+        wintree_set_sizex(sub1, newsize);
+        sub2->relposx = newsize;
 
-    rtn = line_get_text(l);
+        newsize = tree->sizex - newsize;
+        wintree_set_sizex(sub2, newsize);
+    }
 
-    TRACE_NULL(wintree_get_line, line_get_text(l), rtn, NULL);
+    if (dir == up || dir == down)
+    {
+        tree->sdir = ud;
 
-    return rtn;
+        wintree_set_sizex(sub1, tree->sizex);
+        wintree_set_sizex(sub2, tree->sizex);
+
+        newsize = tree->sizey / 2;
+        wintree_set_sizey(sub1, newsize);
+        sub2->relposy = newsize;
+
+        newsize = tree->sizey - newsize;
+        wintree_set_sizey(sub2, newsize);
+    }
+
+    if (dir == up || dir == left)
+    {
+        wintree_move_contents(sub2, tree);
+        sub1->content = wincont_clone(wintree_get_selected()->content);
+    }
+
+    if (dir == down || dir == right)
+    {
+        wintree_move_contents(sub1, tree);
+        sub2->content = wincont_clone(wintree_get_selected()->content);
+    }
+
+    return 0;
 }
+
+#define F_WINTREE_GET(type, name, errrtn)                      \
+    type wintree_get_ ## name (wintree *tree)                  \
+    {                                                          \
+        CHECK_NULL_PRM(wintree_get_ ## name, tree, errrtn);    \
+        return tree-> name;                                    \
+    }                                                          \
+
+F_WINTREE_GET(size_t,     sizex, INVALID_INDEX)
+F_WINTREE_GET(size_t,     sizey, INVALID_INDEX)
+F_WINTREE_GET(wincont*, content, NULL)
+F_WINTREE_GET(wintree*,  parent, NULL)

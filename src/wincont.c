@@ -51,12 +51,6 @@ wincont *wincont_clone(wincont *cont)
 
     rtn = wincont_init(cont->text);
 
-    rtn->next = cont->next;
-    rtn->prev = cont;
-
-    cont->next->prev = rtn;
-    cont->next = rtn;
-
     rtn->startline = cont->startline;
     rtn->startcol  = cont->startcol;
 
@@ -71,6 +65,18 @@ wincont *wincont_next(wincont *cont)
 wincont *wincont_prev(wincont *cont)
 {
     return cont->prev;
+}
+
+const char *wincont_get_line_text_const(wincont *cont, line *l)
+{
+    const char *linetext;
+
+    linetext = line_get_text_const(l);
+
+    if (cont->startcol >= line_get_len(l))
+        return "";
+    else
+        return linetext + cont->startcol;
 }
 
 line *wincont_get_line(wincont *cont, lineno ln)
@@ -102,4 +108,9 @@ line *wincont_get_line(wincont *cont, lineno ln)
 wincont *wincont_get_root(void)
 {
     return wincont_root;
+}
+
+textcont *wincont_get_textcont(wincont *cont)
+{
+    return cont->text;
 }
