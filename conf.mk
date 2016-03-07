@@ -21,5 +21,5 @@ INC_NAMES=line vec err cursor ui wintree wincont face
 
 TEST_NAME=test
 
-DEPS_FILE=deps
+DEPS_FILE=deps.mk
 

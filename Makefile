@@ -1,6 +1,6 @@
 #!/usr/bin/make
 
-include MakefileConf
+include conf.mk
 # Get configuration
 
 incify=$(addprefix $(INC)/, $(addsuffix .h, $(1))) # Change names into header paths
@@ -36,7 +36,7 @@ $(call add_deps, $(TEST_PATH))                     # including the test file.
 include $(DEPS_FILE) # Include dynamic dependencies
 
 # Rule for compiling any .o file
-%.o:
+%.o: %.c
 	@echo "Compiling $@ ..."
 	@$(CC) $(OBJ_FLAGS) -c $< -o $@
 
@@ -55,6 +55,7 @@ lib.so: $(OBJ_PATHS)
 
 # Cleanup the repo
 clean:
+	@echo Removing deps.mj and *.o
 	@rm -f $(OBJ_PATHS) $(DEPS_FILE)
 
 # Nicer names
