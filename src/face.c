@@ -5,11 +5,15 @@
 #include "face.h"
 #include "line.h"
 
-/*
- * If I ever meet whatever idiotic arseholes designed ncurses' color system...
- */
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * If I ever meet whatever idiotic arseholes designed ncurses' color system... *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+/* This translates an fg and bg into the pairid it should be allocated 
+ * It's a bit odd since id 0 must be white fg, black bg
+ */
 #define pairid(fg, bg) (7 - (fg % 8) + (bg % 8) * 8)
+/* These macros just get the original fg and bg from a pairid */
 #define idgetbg(id)    (id / 8)
 #define idgetfg(id)    (7 - id % 8)
 
@@ -33,12 +37,19 @@ face *face_init(short fgid, short bgid)
     rtn->fgid = fgid;
     rtn->bgid = bgid;
 
+    rtn->under = 0;
+    rtn->bright = 0;
+
     return rtn;
 }
 
-short face_get_attr(face *f)
+int face_get_attr(face *f)
 {
-    return COLOR_PAIR(pairid(f->fgid, f->bgid));
+    CHECK_NULL_PRM(face_get_attr, f, 0);
+
+    return (f->under  ? A_UNDERLINE : 0)
+        |  (f->bright ? A_BOLD      : 0)
+        |  COLOR_PAIR(pairid(f->fgid, f->bgid));
 }
 
 int line_add_face(line *l, face *f, colno start, colno end)
@@ -68,7 +79,7 @@ int line_add_face(line *l, face *f, colno start, colno end)
 
         TRACE_NULL(line_add_face, vec_get(faces, i++), curr, -1);
 
-        if (curr->end < start)
+        if (curr->end <= start)
             break;
 
         if (curr->start < end)
