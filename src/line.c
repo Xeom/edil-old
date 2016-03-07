@@ -260,11 +260,11 @@ line *textcont_insert(textcont *t, lineno n)
         c = c->prev;
     }
 
-    while (c->startline + vec_len(c->lines) <= n)
+    while (c->startline + vec_len(c->lines) < n)
     {
         if (c->next == NULL)
         {
-            ERR_NEW(medium, textcont_insert: Line out of range of textcont, NULL);
+            ERR_NEW(medium, textcont_insert: Line out of range of textcont, \0);
             return NULL;
         }
         c = c->next;
@@ -390,7 +390,7 @@ int line_delete_text(line *l, colno pos, colno n)
     return 0;
 }
 
-int line_set_text(line *l, char *c)
+int line_set_text(line *l, const char *c)
 {
     size_t len;
 
@@ -398,11 +398,12 @@ int line_set_text(line *l, char *c)
     CHECK_NULL_PRM(line_set_text, c, -1);
 
     len = strlen(c);
+
     l->data    = realloc(l->data, len);
 
     CHECK_ALLOC(line_set_text, l->data, -1);
 
-    memcpy(l->data, c, len);
+    memcpy(l->data, c, len + 1);
 
     return 0;
 }
@@ -422,6 +423,14 @@ char *line_get_text(line *l)
 
     return rtn;
 }
+
+const char *line_get_text_const(line *l)
+{
+    CHECK_NULL_PRM(line_get_text, l, NULL);
+
+    return l->data;
+}
+
 
 lineno line_get_lineno(line *l)
 {
