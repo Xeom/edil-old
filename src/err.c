@@ -25,7 +25,7 @@ vec *err_queue;
 
 void err_new_norecurse(errlvl level, const char *title, const char *detail);
 
-void errsys_init(void)
+void err_initsys(void)
 {
     errlvl i;
     vec   *newv;
@@ -34,23 +34,24 @@ void errsys_init(void)
     err_min_alert_lvl  = medium;
     err_min_detail_lvl = errlvl_end;
 
-    err_queue = vec_init(sizeof(vec*));
+    err_queue = vec_init(sizeof(vec));
 
     if (err_queue == NULL)
         FUCK_VEC_ERR("err_init: Could not allocate err_queue main vector");
 
     i = errlvl_end;
 
-    while (--i)
+    newv = vec_init(sizeof(err));
+
+    if (newv == NULL)
+        FUCK_VEC_ERR("err_init: Could not allocate err_queue sub-vector");
+
+    while (i--)
     {
-        newv = vec_init(sizeof(err));
-
-        if (newv == NULL)
-            FUCK_VEC_ERR("err_init: Could not allocate err_queue sub-vector");
-
         if (vec_push(err_queue, newv))
             FUCK_VEC_ERR("err_init: Could not push sub-vector into err_queue");
     }
+    free(newv);
 }
 
 void err_new_norecurse(errlvl level, const char *title, const char *detail)
@@ -159,7 +160,6 @@ err *err_pop(void)
     vec *subqueue;
 
     level = errlvl_end;
-
     while (--level)
     {
         subqueue = vec_get(err_queue, level);
@@ -176,4 +176,21 @@ err *err_pop(void)
     }
 
     return NULL;
+}
+
+const char *err_get_detail(err *e)
+{
+    if (e == NULL)
+        return NULL;
+
+    return e->detail;
+}
+
+
+const char *err_get_title(err *e)
+{
+    if (e == NULL)
+        return NULL;
+
+    return e->title;
 }
