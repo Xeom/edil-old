@@ -117,9 +117,8 @@ remove.argtypes = [vec_p, ctypes.c_void_p]
 remove.restype  = ctypes.c_int
 remove.errcheck = check_nonzro_return
 
-# Can't call it del in python...
-# int vec_del(vec *v, size_t i)
-delete = so.vec_del
+# int vec_delete(vec *v, size_t i)
+delete = so.vec_delete
 delete.argtypes = [vec_p, ctypes.c_size_t]
 delete.errcheck = check_nonzro_return
 
