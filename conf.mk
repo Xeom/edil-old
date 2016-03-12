@@ -16,8 +16,9 @@ INC=src/include
 WARNINGS=all extra no-unused-parameter pedantic missing-prototypes fatal-errors format
 LINKS=ncurses
 
-SRC_NAMES=line vec err cursor ui wintree wincont face
-INC_NAMES=line vec err cursor ui wintree wincont face
+SRC_NAMES=line vec err cursor ui wintree wincont face chunk textcont
+INC_NAMES=line vec err cursor ui wintree wincont face chunk textcont
+
 
 TEST_NAME=test
 
