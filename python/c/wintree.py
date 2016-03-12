@@ -30,7 +30,7 @@ initsys.restype  = ctypes.c_int
 #wintree *wintree_init(wincont *content)
 #init = so.wintree_init
 #init.argtypes = [c.wincont.wincont_p]
-#init.restype  = wintree_p
+#sinit.restype  = wintree_p
 
 #int wintree_set_root_size(size_t x, size_t y)
 set_root_size = so.wintree_set_root_size
@@ -89,7 +89,7 @@ split.restype  = ctypes.c_int
 
 #wincont *wintree_get_content(wintree *tree);
 get_content = so.wintree_get_content
-get_content.argtypes = [wintree_p] 
+get_content.argtypes = [wintree_p]
 get_content.restype  = ctypes.c_int
 
 #wintree *wintree_get_parent(wintree *tree);

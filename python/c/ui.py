@@ -17,6 +17,9 @@ killsys = so.ui_killsys
 killsys.argtypes = []
 killsys.restype  = ctypes.c_int
 
+key_resize = ctypes.cast(so.ui_key_resize, ctypes.POINTER(ctypes.c_int)).contents.value
+
+
 def set_more_left(char):
     so.ui_more_left_char         = ctypes.c_char_p(ctypes.c_char(char))
 
