@@ -34,6 +34,28 @@ int chunk_items_reset(chunk *c, vec *items)
     return 0;
 }
 
+int chunk_insert_item(chunk *c, size_t offset, void *item)
+{
+    CHECK_NULL_PRM(chunk_insert_item, item, -1);
+
+    if (vec_insert(c->items, offset, &item))
+    {
+        if (vecerr == E_VEC_INVALID_INDEX)
+            ERR_NEW(high, "chunk_insert_item: Invalid offset handed to function", NULL);
+
+        else
+            ERR_NEW(critical, "chunk_insert_item: Inserting into items vector failed", vec_err_str());
+
+        return -1;
+    }
+
+    TRACE_NONZRO_CALL(textcont_insert, chunk_resize(c), -1);
+
+    chunk_reset_starts(c);
+
+    return 0;
+}
+
 int chunk_remove_item(chunk *c, void *item)
 {
     CHECK_NULL_PRM(chunk_remove_line, c, -1);
@@ -125,9 +147,21 @@ chunk *chunk_next(chunk *c)
     return c->next;
 }
 
+int chunk_is_first(chunk *c)
+{
+    return c->next == NULL;
+}
+
+int chunk_is_last(chunk *c)
+{
+    return c->prev == NULL;
+}
+
 chunk *chunk_init(void)
 {
-    chunk *rtn = malloc(sizeof(chunk));
+    chunk *rtn;
+
+    rtn = malloc(sizeof(chunk));
 
     CHECK_ALLOC(chunk_init, rtn, NULL);
 
@@ -233,4 +267,30 @@ int chunk_resize(chunk *c)
     }
 
     return 0;
+}
+
+chunk *chunk_find_containing(chunk *c, size_t n)
+{
+    while (c->startindex > n)
+    {
+        if (chunk_is_first(c))
+        {
+            ERR_NEW(critical, "chunk_find_containing: First chunk startline nonzero",
+                    "Chunk with no prev link has a startline greater than requested line");
+            return NULL;
+        }
+        c = c->prev;
+    }
+
+    while (chunk_get_startindex(c) + chunk_len(c) < n)
+    {
+        if (chunk_is_last(c))
+        {
+            ERR_NEW(medium, "chunk_find_containing: Line out of range of textcont", "");
+            return NULL;
+        }
+        c = c->next;
+    }
+
+    return c;
 }
