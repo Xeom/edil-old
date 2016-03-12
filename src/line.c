@@ -14,10 +14,6 @@ struct line_s
     char  *data;
 };
 
-
-
-line  *line_init(chunk *chunk);
-
 void lines_set_chunk(vec *lines, chunk *newchunk);
 
 void lines_set_chunk(vec *lines, chunk *newchunk)
