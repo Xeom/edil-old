@@ -1,29 +1,34 @@
 #include <curses.h>
+#include <signal.h>
 #include "include/wintree.h"
 #include "include/ui.h"
+#include "include/err.h"
+
 int main(void)
 {
     size_t termx, termy;
 
+    err_initsys();
     wincont_initsys();
     wintree_initsys();
     ui_initsys();
     face_initsys();
-    
-    getmaxyx(stdscr, termy, termx);
-    wintree_set_root_size(termx, termy );
+
+    ui_resize();
     wintree_split(wintree_get_selected(), left);
     wintree_split(wintree_get_selected(), up);
     wintree_split(wintree_get_selected(), right);
     wintree_split(wintree_get_selected(), down);
-    ui_display_wintrees();
-    refresh();
-    printf("Pairs: %hu\n", COLOR_PAIRS);
-    printf("Colors: %hu\n", COLORS);
-    short r, g, b;
-    color_content(70, &r, &g, &b);
-    printf("R %hu G %hu B %hu\n", r, g, b);
-    sleep(100);
+
+    puts("DONE SPLITTING");
+    while (1)
+    {
+        wintree_select_next(wintree_get_selected());
+        ui_display_wintrees();
+/*        refresh();*/
+        getch();
+    }
+
     endwin();
     return 0;
 }

@@ -1,7 +1,8 @@
-#include "cursor.h"
-#include "err.h"
 #include <string.h>
 #include <stdlib.h>
+#include "cursor.h"
+#include "err.h"
+#include "textcont.h"
 
 struct cursor_s
 {
@@ -130,8 +131,8 @@ line *cursor_prev_line(cursor *cur)
 
     if (curr == 0)
     {
-        ERR_NEW(medium, cursor_prev_line: Start of textcont,
-                Could not go back a line because we are already at the first one);
+        ERR_NEW(medium, "cursor_prev_line: Start of textcont",
+                "Could not go back a line because we are already at the first one");
         return NULL;
     }
 

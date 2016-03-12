@@ -83,7 +83,7 @@ int line_add_face(line *l, face *f, colno start, colno end)
             break;
 
         if (curr->start < end)
-            TRACE_NONZRO_CALL(line_add_face, vec_del(faces, i--), -1);
+            TRACE_NONZRO_CALL(line_add_face, vec_delete(faces, i--), -1);
     }
 
     if (f != NULL)

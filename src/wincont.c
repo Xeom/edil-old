@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <stdio.h>
+
 struct wincont_s
 {
     textcont *text;
@@ -17,6 +19,7 @@ wincont *wincont_root;
 
 int wincont_initsys(void)
 {
+    wincont_root = NULL;
     wincont_root = wincont_init(textcont_init());
 
     wincont_root->prev = wincont_root;
@@ -33,9 +36,10 @@ wincont *wincont_init(textcont *text)
 
     if (wincont_root)
     {
-        wincont_root->prev->next = rtn;
-        wincont_root->prev       = rtn;
-        wincont_root             = rtn;
+        rtn->next                = wincont_root;
+        rtn->prev                = wincont_root->prev;
+        rtn->next->prev          = rtn;
+        rtn->prev->next          = rtn;
     }
 
     memset(rtn, 0, sizeof(wincont));
@@ -91,8 +95,8 @@ line *wincont_get_line(wincont *cont, lineno ln)
 
     if (lineexists == 0)
     {
-        ERR_NEW(high, wincont_get_line: Invalid line,
-                textcont_has_line returned 0 - Line out of range of textcont);
+        ERR_NEW(high, "wincont_get_line: Invalid line",
+                "textcont_has_line returned 0 - Line out of range of textcont");
         return NULL;
     }
 

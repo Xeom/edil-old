@@ -16,6 +16,8 @@ volatile char ui_window_vertical_char;
 volatile char ui_window_horizontal_char;
 volatile char ui_window_corner_char;
 
+const int ui_key_resize = KEY_RESIZE;
+
 face *ui_window_border_face;
 face *ui_window_border_selected_face;
 
@@ -23,6 +25,7 @@ int ui_display_line_part(const char *text, const char *end, size_t maxposx, size
 int ui_display_wintree_border(wintree *tree, face *f);
 int ui_display_wintree_line(wintree *tree, lineno ln);
 int ui_display_wintree(wintree *tree, face *borderface);
+
 void ui_set_defaults(void);
 void ui_set_char_defaults(void);
 
@@ -97,7 +100,9 @@ int ui_display_wintree_line(wintree *tree, lineno ln)
         }
         attroff(face_get_attr(face));
     }
+
     textstart = textend;
+
     if (ui_display_line_part(text + textstart, (const char *)UINTPTR_MAX, maxposx, posy, &posx) == 1)
         while (posx++ < maxposx)
             mvaddch(posy, posx, ' ');
@@ -135,6 +140,8 @@ int ui_display_wintree_border(wintree *tree, face *f)
     lastposy = posy + wintree_get_sizey(tree) - 1;
     lastposx = posx + wintree_get_sizex(tree) - 1;
 
+    fprintf(stderr, "%d\n", lastposy);
+
     while (posx < lastposx)
     {
         mvaddch(lastposy, posx, ui_window_horizontal_char);
@@ -160,10 +167,11 @@ int ui_display_wintree(wintree *tree, face *borderface)
 
     ui_display_wintree_border(tree, borderface);
 
+/*
     ln = wintree_get_sizey(tree) - 1;
     while (ln--)
         ui_display_wintree_line(tree, ln);
-
+*/
     return 0;
 }
 
@@ -180,11 +188,25 @@ int ui_display_wintrees(void)
         ui_display_wintree(curr, ui_window_border_face);
         curr = wintree_iter_next(curr);
     } while (curr != selected);
+
     return 0;
 }
 
 int ui_killsys(void)
 {
     endwin();
+    return 0;
+}
+
+int ui_resize(void)
+{
+    size_t termy, termx;
+    getmaxyx(stdscr, termy, termx);
+
+    fputs("Gonna set root size\n", stderr);
+    wintree_set_root_size(termx, termy);
+    fputs("Set root size, gonna display wintrees\n", stderr);
+    ui_display_wintrees();
+
     return 0;
 }

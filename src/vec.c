@@ -9,15 +9,15 @@
 
 vecerr_t vecerr;
 
-int vec_resize(vec *v);
+static int vec_resize(vec *v);
 
-int vec_resize(vec *v)
+static int vec_resize(vec *v)
 {
     if (v->length > v->capacity)
         v->capacity <<= 1;
 
     else if (v->length <  v->capacity >> 2 &&
-             v->length >= v->width)
+           v->length >= v->width)
         v->capacity >>= 1;
 
     else
@@ -300,10 +300,10 @@ int vec_remove(vec *v, const void *value)
     if (index == INVALID_INDEX)
         return -1;
 
-    return vec_del(v, index);
+    return vec_delete(v, index);
 }
 
-int vec_del(vec *v, size_t i)
+int vec_delete(vec *v, size_t i)
 {
     ptrdiff_t offset;
     intptr_t  ptr;

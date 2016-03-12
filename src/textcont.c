@@ -1,4 +1,6 @@
+#include <stdlib.h>
 #include "textcont.h"
+
 #include "line.h"
 #include "vec.h"
 #include "err.h"
@@ -29,60 +31,22 @@ line *textcont_insert(textcont *t, lineno n)
     CHECK_NULL_PRM(textcont_insert, t, NULL);
 
     c = t->currchunk;
-
-    while (c->startline > n)
-    {
-        if (c->prev == NULL)
-        {
-            ERR_NEW(critical, textcont_insert: First chunk startline nonzero,
-                    Chunk with no prev link has a startline greater than requested line);
-            return NULL;
-        }
-        c = c->prev;
-    }
-
-    while (c->startline + vec_len(c->lines) < n)
-    {
-        if (c->next == NULL)
-        {
-            ERR_NEW(medium, textcont_insert: Line out of range of textcont, \0);
-            return NULL;
-        }
-        c = c->next;
-    }
-
+    c = chunk_find_containing(c, n);
+    TRACE_NULL(textcont_insert, chunk_find_containing(c, n), c, NULL);
     t->currchunk = c;
 
-    offset = n - t->currchunk->startline;
+    offset = n - chunk_get_startindex(c);
 
     rtn = line_init(c);
 
-    if (rtn == NULL)
+    if (chunk_insert_item(c, offset, rtn))
     {
-        ERR_NEW(critical, textcont_insert: Could not create new line,
-                line_init returned NULL);
-
-        return NULL;
+        free(rtn);
+        TRACE(textcont_insert, chunk_insert_item(c, offset, rtn), NULL);
     }
 
-    if(vec_insert(c->lines, offset, &rtn))
-    {
-        if (vecerr == E_VEC_INVALID_INDEX)
-            ERR_NEW(high, textcont_insert: Invalid index handed to function, NULL);
+    TRACE_NULL(textcont_insert, line_init(c), rtn, 0);
 
-        else
-            ERR_NEW(critical, textcont_insert: Inserting into lines vector failed, vec_err_str());
-
-        return NULL;
-    }
-
-    if (chunk_resize(c))
-    {
-        ERR_NEW(critical, textcont_insert: Could not resize chunk, NULL);
-        return NULL;
-    }
-
-    reset_chunk_starts(c);
 
     return rtn;
 }
@@ -94,35 +58,13 @@ line *textcont_get_line(textcont *t, lineno n)
 
     CHECK_NULL_PRM(textcont_get_line, t, NULL);
 
-    c = t->currchunk;
-
-    while (c->startline > n)
-    {
-        if (c->prev == NULL)
-        {
-            ERR_NEW(critical, textcont_get_line: First chunk startline nonzero,
-                    Chunk with no prev link has a startline greater than requested line);
-            return NULL;
-        }
-
-        c = c->prev;
-    }
-
-    while (c->startline + vec_len(c->lines) <= n)
-    {
-        if (c->next == NULL)
-        {
-            ERR_NEW(medium, textcont_get_line: Line out of range of textcont, NULL);
-            return NULL;
-        }
-        c = c->next;
-    }
-
+    c = chunk_find_containing(t->currchunk, n);
+    TRACE_NULL(textcont_get_line, chunk_find_containing(t->currchunk, n), c, NULL);
     t->currchunk = c;
 
-    offset = n - c->startline;
+    offset = n - chunk_get_startindex(c);
 
-    return *(line**)vec_get(c->lines, offset);
+    return chunk_get_item(c, offset);
 }
 
 lineno textcont_get_total_lines(textcont *t)
@@ -136,46 +78,10 @@ lineno textcont_get_total_lines(textcont *t)
     if (c == NULL)
         return INVALID_INDEX;
 
-    while (c->next)
-        c = c->next;
+    while (! chunk_is_first(c))
+        c = chunk_next(c);
 
-    return vec_len(c->lines) + c->startline;
-}
-
-size_t textcont_get_total_chars(textcont *t)
-{
-    int    offset;
-    size_t count;
-    chunk *chunk;
-
-    CHECK_NULL_PRM(textcont_get_total_lines, t, INVALID_INDEX);
-
-    count = 0;
-    chunk = t->currchunk;
-
-    while (chunk)
-    {
-        offset = vec_len(chunk->lines);
-
-        while (offset--)
-            count += (*((line**)vec_get(chunk->lines, offset)))->length;
-
-        chunk = chunk->next;
-    }
-
-    chunk = t->currchunk;
-
-    while (chunk && chunk->prev)
-    {
-        chunk = chunk->prev;
-
-        offset = vec_len(chunk->lines);
-
-        while (offset--)
-            count += (*((line**)vec_get(chunk->lines, offset)))->length;
-    }
-
-    return count;
+    return chunk_len(c) + chunk_get_startindex(c);
 }
 
 int textcont_has_line(textcont *t, lineno ln)
@@ -186,13 +92,9 @@ int textcont_has_line(textcont *t, lineno ln)
 
     c = t->currchunk;
 
-    while (c)
-    {
-        if (c->startline + vec_len(c->lines) > ln)
+    while ( (c = chunk_next(c)) )
+        if (chunk_get_startindex(c) + chunk_len(c) > ln)
             return 1;
-
-        c = c->next;
-    }
 
     return 0;
 }
@@ -201,16 +103,15 @@ int textcont_is_last_line(textcont *t, line *l)
 {
     chunk *c;
 
-    CHECK_NULL_PRM(textcont_is_last_line, t,        -1);
-    CHECK_NULL_PRM(textcont_is_last_line, l,        -1);
-    CHECK_NULL_PRM(textcont_is_last_line, l->chunk, -1);
+    CHECK_NULL_PRM(textcont_is_last_line, t, -1);
+    CHECK_NULL_PRM(textcont_is_last_line, l, -1);
 
-    c = l->chunk;
+    c = line_get_chunk(l);
 
-    if (c->next)
+    if (!chunk_is_last(c))
         return 0;
 
-    if (*((line**)vec_get(c->lines, vec_len(c->lines))) ==  l)
+    if (chunk_get_item(c, chunk_len(c) - 1) == l)
         return 1;
 
     return 0;
@@ -220,16 +121,15 @@ int textcont_is_first_line(textcont *t, line *l)
 {
     chunk *c;
 
-    CHECK_NULL_PRM(textcont_is_first_line, t,        -1);
-    CHECK_NULL_PRM(textcont_is_first_line, l,        -1);
-    CHECK_NULL_PRM(textcont_is_first_line, l->chunk, -1);
+    CHECK_NULL_PRM(textcont_is_first_line, t, -1);
+    CHECK_NULL_PRM(textcont_is_first_line, l, -1);
 
-    c = l->chunk;
+    c = line_get_chunk(l);
 
-    if (c->prev)
+    if (!chunk_is_first(c))
         return 0;
 
-    if (*((line**)vec_get(c->lines, 0)) == l)
+    if (chunk_get_item(c, 0) != l)
         return 1;
 
     return 0;

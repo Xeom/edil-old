@@ -6,12 +6,14 @@
 #include <stdlib.h>
 #include <stddef.h>
 
+#include <stdio.h>
+
 #define WINTREE_MIN_SIZE 3
 
 #define issplitter(tree) (tree->sub1 && tree->sub2)
 #define iscontent(tree) (tree->content)
-#define issub1(tree) (tree->parent && tree->parent->sub1 == tree)
-#define issub2(tree) (tree->parent && tree->parent->sub2 == tree)
+#define issub1(tree) (tree->parent && (tree->parent->sub1 == tree))
+#define issub2(tree) (tree->parent && (tree->parent->sub2 == tree))
 
 struct wintree_s
 {
@@ -24,11 +26,13 @@ struct wintree_s
 
 wintree *wintree_root;
 
-void wintree_free_norecurse(wintree *tree);
-void wintree_free(wintree *tree);
-void wintree_move_contents(wintree *dst, wintree *src);
-void wintree_move_contents(wintree *dst, wintree *src);
-wintree *wintree_get_sister(wintree *tree);
+static wintree *wintree_init(wincont *content);
+static void wintree_free_norecurse(wintree *tree);
+static void wintree_free(wintree *tree);
+static void wintree_move_contents(wintree *dst, wintree *src);
+static wintree *wintree_get_sister(wintree *tree);
+static int wintree_set_sizex(wintree *tree, size_t newsize);
+static int wintree_set_sizey(wintree *tree, size_t newsize);
 
 int wintree_initsys(void)
 {
@@ -45,7 +49,7 @@ int wintree_set_root_size(size_t x, size_t y)
     return 0;
 }
 
-wintree *wintree_init(wincont *content)
+static wintree *wintree_init(wincont *content)
 {
     wintree *rtn;
 
@@ -57,11 +61,12 @@ wintree *wintree_init(wincont *content)
 
     rtn->sdir    = none;
     rtn->content = content;
+    rtn->selected = 1;
 
     return rtn;
 }
 
-void wintree_free(wintree *tree)
+static void wintree_free(wintree *tree)
 {
     if (issplitter(tree))
     {
@@ -74,7 +79,7 @@ void wintree_free(wintree *tree)
 
 /* Used internally for where we need to free a wintree without  *
  * affecting its children                                       */
-void wintree_free_norecurse(wintree *tree)
+static void wintree_free_norecurse(wintree *tree)
 {
     free(tree);
 }
@@ -84,13 +89,13 @@ void wintree_free_norecurse(wintree *tree)
  * src are adjusted to fit. The contents of src are generally   *
  * mutilated, and should be deleted to avoid bad shit, like     *
  * parents which do not know their child.                       */
-void wintree_move_contents(wintree *dst, wintree *src)
+static void wintree_move_contents(wintree *dst, wintree *src)
 {
     wintree *sub1, *sub2;
+    size_t   newx,  newy;
 
-    /* Resize src in-place, ready to move to dst */
-    wintree_set_sizex(src, dst->sizex);
-    wintree_set_sizey(src, dst->sizey);
+    newx = dst->sizex;
+    newy = dst->sizey;
 
     sub1 = src->sub1;
     sub2 = src->sub2;
@@ -103,6 +108,9 @@ void wintree_move_contents(wintree *dst, wintree *src)
         sub2->parent = dst;
 
     /* Copy subs, content, selected, sdir */
+    dst->sizex = src->sizex;
+    dst->sizey = src->sizey;
+
     dst->sub1 = sub1;
     dst->sub2 = sub2;
 
@@ -110,18 +118,21 @@ void wintree_move_contents(wintree *dst, wintree *src)
     dst->sdir     = src->sdir;
 
     dst->content = src->content;
+
+    wintree_set_sizex(dst, newx);
+    wintree_set_sizey(dst, newy);
 }
 
 /* Used internally to get the sister of a wintree. i.e. if a    *
  * wintree is sub1 of its parent, this returns sub2 of the      *
  * parent                                                       */
-wintree *wintree_get_sister(wintree *tree)
+static wintree *wintree_get_sister(wintree *tree)
 {
     if (issub1(tree))
         return tree->parent->sub2;
 
     if (issub2(tree))
-        return tree->parent->sub2;
+        return tree->parent->sub1;
 
     return NULL;
 }
@@ -134,7 +145,7 @@ int wintree_delete(wintree *tree)
 
     if (parent == NULL)
     {
-        ERR_NEW(high, wintree_delete: Tried to delete wintree_root (or wintree with no parent), \0);
+        ERR_NEW(high, "wintree_delete: Tried to delete wintree_root (or wintree with no parent)", NULL);
         return -1;
     }
 
@@ -142,13 +153,14 @@ int wintree_delete(wintree *tree)
 
     if (sister == NULL)
     {
-        ERR_NEW(critical, wintree_delete: Could not get sister, Could not fetch sister to replace parent of tree);
+        ERR_NEW(critical, "wintree_delete: Could not get sister", "Could not fetch sister to replace parent of tree");
         return -1;
     }
 
     wintree_move_contents(parent, sister);
 
     wintree_free(tree);
+    wintree_free_norecurse(sister);
 
     return 0;
 }
@@ -262,20 +274,22 @@ int wintree_move_border(wintree *tree, int n)
     return 0;
 }
 
-int wintree_set_sizey(wintree *tree, size_t newsize)
+static int wintree_set_sizey(wintree *tree, size_t newsize)
 {
     size_t oldsize;
+    int delta;
 
     /* Kill the tree if it's too small *
      * Just like kittens.              */
-    if (newsize < WINTREE_MIN_SIZE)
+/*    if (newsize < WINTREE_MIN_SIZE)
         wintree_delete(tree);
-
+*/
     oldsize = tree->sizey;
+    delta   = newsize - oldsize;
 
-    if (oldsize == newsize)
+/*    if (oldsize == newsize)
         return 0;
-
+*/
     tree->sizey = newsize;
 
     /* Content needs no further action */
@@ -285,7 +299,7 @@ int wintree_set_sizey(wintree *tree, size_t newsize)
     if (tree->sdir == ud)
     {
         /* When the splitter is up/down, we gotta divide up the space */
-        wintree_set_sizey(tree->sub1, (newsize - oldsize) / 2);
+        wintree_set_sizey(tree->sub1, tree->sub1->sizey + delta / 2);
         tree->sub2->relposy = tree->sub1->sizey;
         wintree_set_sizey(tree->sub2, (newsize - tree->sub1->sizey));
     }
@@ -301,18 +315,20 @@ int wintree_set_sizey(wintree *tree, size_t newsize)
 }
 
 /* Cba writing comments twice. Look up ^^^ */
-int wintree_set_sizex(wintree *tree, size_t newsize)
+static int wintree_set_sizex(wintree *tree, size_t newsize)
 {
     size_t oldsize;
+    int    delta;
 
-    if (newsize < WINTREE_MIN_SIZE)
+/*    if (newsize < WINTREE_MIN_SIZE)
         wintree_delete(tree);
-
+*/
     oldsize = tree->sizex;
-
+    delta   = newsize - oldsize;
+/*
     if (oldsize == newsize)
-        return -1;
-
+        return 0;
+*/
     tree->sizex = newsize;
 
     if (!issplitter(tree))
@@ -320,7 +336,7 @@ int wintree_set_sizex(wintree *tree, size_t newsize)
 
     if (tree->sdir == lr)
     {
-        wintree_set_sizex(tree->sub1, (newsize - oldsize) / 2);
+        wintree_set_sizex(tree->sub1, tree->sub1->sizex + delta / 2);
         tree->sub2->relposx = tree->sub1->sizex;
         wintree_set_sizex(tree->sub2, (newsize - tree->sub1->sizex));
     }
@@ -337,7 +353,6 @@ int wintree_set_sizex(wintree *tree, size_t newsize)
 wintree *wintree_iter_next(wintree *tree)
 {
     wintree *parent, *next;
-
     parent = tree->parent;
 
     /* If the tree is sub2, continue going up */
@@ -397,7 +412,10 @@ int wintree_select_next(wintree *tree)
 int wintree_split(wintree *tree, windir dir)
 {
     wintree *sub1, *sub2;
+    wincont *newcontent;
     size_t newsize;
+
+    newcontent = wincont_clone(wintree_get_selected()->content);
 
     /* We make two new subs to split into.                     *
      * this seems easier to implement than making a new        *
@@ -442,15 +460,25 @@ int wintree_split(wintree *tree, windir dir)
      * above us, depending which we choose.                     */
     if (dir == up || dir == left)
     {
+        tree->selected = 1;
         wintree_move_contents(sub2, tree);
-        sub1->content = wincont_clone(wintree_get_selected()->content);
+        sub1->content = newcontent;
     }
 
     if (dir == down || dir == right)
     {
+        tree->selected = 2;
         wintree_move_contents(sub1, tree);
-        sub2->content = wincont_clone(wintree_get_selected()->content);
+        sub2->content = newcontent;
     }
+
+    tree->content = NULL;
+
+    tree->sub1 = sub1;
+    tree->sub2 = sub2;
+
+    sub1->parent = tree;
+    sub2->parent = tree;
 
     return 0;
 }
