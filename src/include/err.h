@@ -14,8 +14,7 @@ typedef enum
 
 #define ERRLOC Line: __LINE__ File: __FILE__
 
-/* we need this since # formatting only works on parameters, so we can't do it to ERRLOC */
-#define ERR_NEW_CALL(level, title, details) err_new(level, #title, #details)
+#define ERR_NEW_STRIFY(level, title, details) err_new(level, #title, #details)
 
 /*
  * Reports a new error to the errsys
@@ -29,7 +28,7 @@ typedef enum
  *     This may be NULL.
  *
  */
-#define ERR_NEW(level, title, details) ERR_NEW_CALL(level, title, details)
+#define ERR_NEW(level, title, details) err_new(level, title, details)
 
 /*
  * Checks that var is not NULL. If it is, throws a high level error stating that funct was
@@ -45,7 +44,7 @@ typedef enum
  */
 #define CHECK_NULL_PRM(funct, var, rtn)                      \
     if (var == NULL) {                                       \
-        ERR_NEW(high,                                        \
+        ERR_NEW_STRIFY(high,                                 \
                 funct  : NULL argument, Argument name: var); \
         return rtn;                                          \
     }
@@ -64,7 +63,7 @@ typedef enum
  */
 #define CHECK_ALLOC(funct, var, rtn)                \
     if (var == NULL) {                              \
-        ERR_NEW(terminal,                           \
+        ERR_NEW_STRIFY(terminal,                    \
                 funct : Out of memory,              \
                 Could not allocate memory for var); \
         return rtn;                                 \
@@ -86,7 +85,7 @@ typedef enum
  */
 #define TRACE_NONZRO(funct, call, var, rtn)         \
     if (var) {                                      \
-        ERR_NEW(err_last_lvl,                       \
+        ERR_NEW_STRIFY(err_last_lvl,                \
                 funct : Call call failed,           \
                 call returned nonzero return code); \
         return rtn;                                 \
@@ -120,7 +119,7 @@ typedef enum
  */
 #define TRACE_NULL(funct, call, var, rtn)                               \
     if (var == NULL) {                                                  \
-        ERR_NEW(err_last_lvl,                                           \
+        ERR_NEW_STRIFY(err_last_lvl,                                    \
                 funct : Call call failed,                               \
                 call returned nonzero return code ERRLOC);              \
         return rtn;                                                     \
@@ -138,7 +137,7 @@ typedef enum
  */
 #define TRACE(funct, call, rtn)                    \
     {                                              \
-        ERR_NEW(err_last_lvl,                      \
+        ERR_NEW_STRIFY(err_last_lvl,               \
                 funct : Call call failed,          \
                 call experienced an error ERRLOC); \
         return rtn;                                \

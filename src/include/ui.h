@@ -14,8 +14,11 @@ extern volatile char ui_window_corner_char;
 extern face *ui_window_border_face;
 extern face *ui_window_border_selected_face;
 
+extern const int ui_key_resize;
 int ui_display_wintrees(void);
 
 int ui_killsys(void);
+
+int ui_resize(void);
 
 #endif /* UI_H */

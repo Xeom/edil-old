@@ -10,6 +10,8 @@ typedef size_t colno;
 
 typedef struct line_s line;
 
+line  *line_init(chunk *chunk);
+
 void line_free(line *l);
 
 lineno line_get_len(line *l);

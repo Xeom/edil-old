@@ -1,6 +1,7 @@
 #ifndef WINCONT_H
 # define WINCONT_H
 #include "line.h"
+#include "textcont.h"
 
 typedef struct wincont_s wincont;
 

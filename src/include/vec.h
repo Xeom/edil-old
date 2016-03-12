@@ -15,11 +15,11 @@ struct vec_s
 
 typedef enum
 {
-	E_VEC_OK,
+    E_VEC_OK,
     E_VEC_NULL_VALUE,
     E_VEC_NULL_VEC,
     E_VEC_INVALID_INDEX,
-	E_VEC_INVALID_VALUE,
+    E_VEC_INVALID_VALUE,
     E_VEC_NO_MEMORY,
     E_VEC_INVALID_WIDTH
 } vecerr_t;
@@ -51,7 +51,7 @@ size_t vec_find(vec *v,  const void *value);
 size_t vec_rfind(vec *v, const void *value);
 
 int vec_insert(vec *v, size_t i, const void *value);
-int vec_del(vec *v, size_t i);
+int vec_delete(vec *v, size_t i);
 
 int vec_remove(vec *v, const void *value);
 

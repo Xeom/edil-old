@@ -18,8 +18,6 @@ line *textcont_get_line(textcont *t, lineno n);
 
 lineno textcont_get_total_lines(textcont *t);
 
-size_t textcont_get_total_chars(textcont *t);
-
 int textcont_is_last_line(textcont *t, line *l);
 
 int textcont_is_first_line(textcont *t, line *l);
