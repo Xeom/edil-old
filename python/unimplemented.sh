@@ -3,9 +3,16 @@
 function print_if_unimplemented
 {   modulename=$1;functname=$2
 
-    if ./is_implemented.py $modulename $functname; then
+    ./is_implemented.py $modulename $functname
+
+	rtn=$?
+
+	if [[ $rtn == 0 ]]; then
         echo $functname is not implemented in $modulename ...
-    fi
+    elif [[ $rtn == 255 ]]; then
+		echo error in $modulename
+		exit -1
+	fi
 }
 
 function check_file
