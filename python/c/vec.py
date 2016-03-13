@@ -126,3 +126,76 @@ delete.errcheck = check_nonzro_return
 err_str = so.vec_err_str
 err_str.argtypes = []
 err_str.restype  = ctypes.c_char_p
+
+class Vec:
+    def __init__(self, struct, type):
+        self.struct = struct
+        self.type = type
+        self.type_p = ctypes.POINTER(type)
+
+    def __iter__(self):
+        for i in range(self.__len__()):
+            import sys
+            print(i, file=sys.stderr)
+            yield self.get(i)
+
+    def __len__(self):
+        return self.len()
+
+    def getptr(self, value):
+        if not isinstance(value, self.type):
+            value = self.type(value)
+
+        return self.type_p(value)
+
+    def push(self, value):
+        ptr = self.getptr(value)
+        push(self.struct, ptr)
+
+    def pop(self):
+        ptr = pop(self.struct)
+        ptr = ctypes.cast(ptr, self.type_p)
+        return ptr.contents
+
+    def get(self, index):
+        ptr = get(self.struct, index)
+        ptr = ctypes.cast(ptr, self.type_p)
+        return ptr.contents
+
+    def len(self):
+        return len(self.struct)
+
+    def set(self, index, value):
+        ptr = self.getptr(value)
+        set(self.struct, index, ptr)
+
+    def trim(self, size):
+        trim(self.struct, size)
+
+    def slice(self, start, end):
+        ptr = slice(self.struct, start, end)
+        newvec = Vec(self.type)
+        newvec.struct = ptr
+        return newvec
+
+    def append(self, other):
+        append(self.struct, other.struct)
+
+    def find(self, value):
+        ptr = self.getptr(value)
+        return find(self.struct, ptr)
+
+    def rfind(self, value):
+        ptr = self.getptr(value)
+        return rfind(self.struct, ptr)
+
+    def insert(self, index, value):
+        ptr = self.getptr(value)
+        insert(self.struct, index, ptr)
+
+    def remove(self, value):
+        ptr = self.getptr(value)
+        remove(self.struct, ptr)
+
+    def delete(self, index):
+        delete(self.struct, index)
