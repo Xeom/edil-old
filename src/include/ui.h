@@ -2,6 +2,7 @@
 # define UI_H
 #include "wintree.h"
 #include "face.h"
+#include "hook.h"
 
 int ui_initsys(void);
 
@@ -15,6 +16,9 @@ extern face *ui_window_border_face;
 extern face *ui_window_border_selected_face;
 
 extern const int ui_key_resize;
+
+extern hook *ui_on_resize;
+
 int ui_display_wintrees(void);
 
 int ui_killsys(void);

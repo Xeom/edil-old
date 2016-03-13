@@ -3,7 +3,6 @@
 #include "line.h"
 #include "ui.h"
 #include "wincont.h"
-#include "wintree.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -21,13 +20,16 @@ const int ui_key_resize = KEY_RESIZE;
 face *ui_window_border_face;
 face *ui_window_border_selected_face;
 
+hook *ui_on_resize;
+
 int ui_display_line_part(const char *text, const char *end, size_t maxposx, size_t posy, size_t *posx);
-int ui_display_wintree_border(wintree *tree, face *f);
+int ui_display_wintree_border(wintree *tree);
 int ui_display_wintree_line(wintree *tree, lineno ln);
-int ui_display_wintree(wintree *tree, face *borderface);
+int ui_display_wintree(wintree *tree);
 
 void ui_set_defaults(void);
 void ui_set_char_defaults(void);
+void ui_highlight_selected(void);
 
 int ui_initsys(void)
 {
@@ -37,6 +39,8 @@ int ui_initsys(void)
     cbreak();
     keypad(stdscr, TRUE);
     ui_set_defaults();
+
+    ui_on_resize = hook_init(2);
 
     return 0;
 }
@@ -49,7 +53,7 @@ void ui_set_defaults(void)
     ui_window_horizontal_char = '-';
     ui_window_corner_char     = '\'';
 
-    ui_window_border_selected_face = face_init(COLOR_RED, COLOR_WHITE);
+    ui_window_border_selected_face = face_init(COLOR_BLACK, COLOR_WHITE);
     ui_window_border_face          = face_init(COLOR_RED, COLOR_BLACK);
     ui_window_border_face->bright  = 1;
 }
@@ -63,13 +67,13 @@ int ui_display_wintree_line(wintree *tree, lineno ln)
     vec     *faces;
     face    *face;
 
-    posx = wintree_get_posx(tree);
-    posy = wintree_get_posy(tree) + ln;
-    cont = wintree_get_content(tree);
+    posx    = wintree_get_posx(tree);
+    posy    = wintree_get_posy(tree) + ln;
+    cont    = wintree_get_content(tree);
 
     maxposx = posx + wintree_get_sizex(tree) - 2;
 
-    l     = wincont_get_line(cont, ln);
+    l       = wincont_get_line(cont, ln);
 
     if (l == NULL)
         return 0;
@@ -112,7 +116,6 @@ int ui_display_wintree_line(wintree *tree, lineno ln)
 
 int ui_display_line_part(const char *text, const char *end, size_t maxposx, size_t posy, size_t *posx)
 {
-
     while (*posx <= maxposx)
     {
         if (text == '\0' || text >= end)
@@ -125,11 +128,9 @@ int ui_display_line_part(const char *text, const char *end, size_t maxposx, size
     return 0;
 }
 
-int ui_display_wintree_border(wintree *tree, face *f)
+int ui_display_wintree_border(wintree *tree)
 {
     size_t posx, posy, lastposx, lastposy;
-
-    attron(face_get_attr(f));
 
     posx = wintree_get_posx(tree);
     posy = wintree_get_posy(tree);
@@ -139,8 +140,6 @@ int ui_display_wintree_border(wintree *tree, face *f)
 
     lastposy = posy + wintree_get_sizey(tree) - 1;
     lastposx = posx + wintree_get_sizex(tree) - 1;
-
-    fprintf(stderr, "%d\n", lastposy);
 
     while (posx < lastposx)
     {
@@ -156,16 +155,14 @@ int ui_display_wintree_border(wintree *tree, face *f)
 
     mvaddch(lastposy, lastposx, ui_window_corner_char);
 
-    attroff(face_get_attr(f));
-
     return 0;
 }
 
-int ui_display_wintree(wintree *tree, face *borderface)
+int ui_display_wintree(wintree *tree)
 {
     size_t ln;
 
-    ui_display_wintree_border(tree, borderface);
+    ui_display_wintree_border(tree);
 
 /*
     ln = wintree_get_sizey(tree) - 1;
@@ -175,19 +172,44 @@ int ui_display_wintree(wintree *tree, face *borderface)
     return 0;
 }
 
-int ui_display_wintrees(void)
+void ui_highlight_selected(void)
 {
-    wintree *selected, *curr;
+    size_t   posx, posy, sizex, sizey;
+    wintree *selected;
 
     selected = wintree_get_selected();
-    ui_display_wintree(selected, ui_window_border_selected_face);
-    curr = wintree_iter_next(selected);
 
-    while (curr != selected)
+    if (selected == NULL)
+        return;
+
+    posx  = wintree_get_posx(selected);
+    posy  = wintree_get_posy(selected);
+    sizex = wintree_get_sizex(selected);
+    sizey = wintree_get_sizey(selected);
+
+    face_display_at(ui_window_border_selected_face, posx, posy + sizey - 1, sizex, 1);
+    face_display_at(ui_window_border_selected_face, posx + sizex - 1, posy, 1, sizey);
+}
+
+int ui_display_wintrees(void)
+{
+    int      borderattr;
+    wintree *curr;
+
+    borderattr = face_get_attr(ui_window_border_face);
+    curr       = wintree_iter_start();
+
+    attron(borderattr);
+
+    while (curr)
     {
-        ui_display_wintree(curr, ui_window_border_face);
+        ui_display_wintree(curr);
         curr = wintree_iter_next(curr);
-    } while (curr != selected);
+    }
+
+    attroff(borderattr);
+
+    ui_highlight_selected();
 
     return 0;
 }
@@ -201,11 +223,13 @@ int ui_killsys(void)
 int ui_resize(void)
 {
     size_t termy, termx;
+
     getmaxyx(stdscr, termy, termx);
 
-    fputs("Gonna set root size\n", stderr);
+    hook_call(ui_on_resize, &termy, &termx);
+
     wintree_set_root_size(termx, termy);
-    fputs("Set root size, gonna display wintrees\n", stderr);
+
     ui_display_wintrees();
 
     return 0;

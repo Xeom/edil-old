@@ -26,17 +26,27 @@ struct wintree_s
 
 wintree *wintree_root;
 
-static wintree *wintree_init(wincont *content);
+extern hook *wintree_on_resize;
+extern hook *wintree_on_delete;
+extern hook *wintree_on_create;
+
 static void wintree_free_norecurse(wintree *tree);
 static void wintree_free(wintree *tree);
 static void wintree_move_contents(wintree *dst, wintree *src);
+
+static wintree *wintree_init(wincont *content);
 static wintree *wintree_get_sister(wintree *tree);
+
 static int wintree_set_sizex(wintree *tree, size_t newsize);
 static int wintree_set_sizey(wintree *tree, size_t newsize);
 
 int wintree_initsys(void)
 {
     wintree_root = wintree_init(wincont_get_root());
+
+    wintree_on_resize = hook_init(3);
+    wintree_on_delete = hook_init(1);
+    wintree_on_create = hook_init(1);
 
     return 0;
 }
@@ -179,7 +189,7 @@ int wintree_swap_prev(wintree *tree)
 
     prev = wincont_prev(tree->content);
     TRACE_NULL(wintree_swap_prev, wincont_prev(tree->content), prev, -1);
-    
+
     tree->content = prev;
 
     return 0;
@@ -193,7 +203,7 @@ int wintree_swap_next(wintree *tree)
 
     next = wincont_next(tree->content);
     TRACE_NULL(wintree_swap_next, wincont_next(tree->content), next, -1);
-    
+
     tree->content = next;
 
     return 0;
@@ -239,7 +249,10 @@ wintree *wintree_get_selected(void)
 
     while (issplitter(tree))
     {
-        if      (tree->selected == 1)
+
+        if      (tree->selected == 0)
+                    return tree;
+        else if (tree->selected == 1)
             tree = tree->sub1;
         else if (tree->selected == 2)
             tree = tree->sub2;
@@ -376,16 +389,46 @@ wintree *wintree_iter_next(wintree *tree)
     else if (issub1(tree))
         next = parent->sub2;
 
-    /* Or if we're at the top, stop going up *
-     * This makes up (froot)loop             */
+    /* If the tree has no parent, the current tree is *
+     * sub2s all the way. This is the last tree.      */
     else
-        next = tree;
+        return NULL;
 
     /* Decend back down. sub1s all the way. */
     while (next->sub1)
         next = next->sub1;
 
     return next;
+}
+
+wintree *wintree_iter_start(void)
+{
+    wintree *tree;
+
+    tree = wintree_root;
+
+    /* Keep traversing down sub1s */
+    while (tree->sub1)
+        tree = tree->sub1;
+
+    return tree;
+}
+
+int wintree_select_up(wintree *tree)
+{
+    wintree *parent;
+
+    parent = tree->parent;
+
+    if (parent == NULL)
+    {
+        ERR_NEW(high, "wintree_select_up: Tried to go up from wintree root (or root with no parent)", NULL);
+        return -1;
+    }
+
+    parent->selected = 0;
+
+    return 0;
 }
 
 int wintree_select_next(wintree *tree)
@@ -427,13 +470,34 @@ int wintree_split(wintree *tree, windir dir)
     wincont *newcontent;
     size_t newsize;
 
-    newcontent = wincont_clone(wintree_get_selected()->content);
+    if (iscontent(tree))
+        newcontent = wincont_clone(wintree_get_selected()->content);
+    else
+        newcontent = NULL;
 
     /* We make two new subs to split into.                     *
      * this seems easier to implement than making a new        *
      * splitter and one new sub, after experimenting.          */
     sub1 = wintree_init(NULL);
     sub2 = wintree_init(NULL);
+
+
+    /* Move the previous contents into sub2 if we split up or   *
+     * left. This means that the new dir will be to the left or *
+     * above us, depending which we choose.                     */
+    if (dir == up || dir == left)
+    {
+        wintree_move_contents(sub2, tree);
+        sub1->content = newcontent;
+        tree->selected = 1;
+    }
+
+    if (dir == down || dir == right)
+    {
+        wintree_move_contents(sub1, tree);
+        sub2->content = newcontent;
+        tree->selected = 2;
+    }
 
     if (dir == left || dir == right)
     {
@@ -465,23 +529,6 @@ int wintree_split(wintree *tree, windir dir)
 
         newsize = tree->sizey - newsize;
         wintree_set_sizey(sub2, newsize);
-    }
-
-    /* Move the previous contents into sub2 if we split up or   *
-     * left. This means that the new dir will be to the left or *
-     * above us, depending which we choose.                     */
-    if (dir == up || dir == left)
-    {
-        tree->selected = 1;
-        wintree_move_contents(sub2, tree);
-        sub1->content = newcontent;
-    }
-
-    if (dir == down || dir == right)
-    {
-        tree->selected = 2;
-        wintree_move_contents(sub1, tree);
-        sub2->content = newcontent;
     }
 
     tree->content = NULL;

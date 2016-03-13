@@ -1,6 +1,7 @@
 #ifndef WINTREE_H
 # define WINTREE_H
 #include "wincont.h"
+#include "hook.h"
 
 typedef struct wintree_s wintree;
 
@@ -18,6 +19,10 @@ typedef enum
     ud,
     none
 } winsplitdir;
+
+extern hook *wintree_on_resize;
+extern hook *wintree_on_delete;
+extern hook *wintree_on_create;
 
 /*
  * Initialize the wintree system
@@ -76,13 +81,19 @@ size_t wintree_get_posx(wintree *tree);
 size_t wintree_get_posy(wintree *tree);
 
 /*
- * Gets the 'next' contenty wintree after one handed to it. If repeatedly fed back into itself, this function will 
- * loop, allowing things to loop over every contenty wintree.
+ * Get the next tree 'after' a particular one. This allows for iteration across all content
+ * (not splitter). The function returns NULL when tree is has no wintree 'after' it - It is
+ * the sub2 of all its ancestors.
  *
  * tree is the current tree.
  *
  */
 wintree *wintree_iter_next(wintree *tree);
+
+/*
+ *
+ */
+wintree *wintree_iter_start(void);
 
 /*
  * Get the currently selected wintree.
@@ -91,13 +102,21 @@ wintree *wintree_iter_next(wintree *tree);
 wintree *wintree_get_selected(void);
 
 /*
- * Selectes the next wintree, iterating in the same manner as wintree_iter_next. Can be handed other wintrees than the
+ * Selects the next wintree, iterating in the same manner as wintree_iter_next. Can be handed other wintrees than the
  * currently selected one, but acts oddly if it is. Maybe I'll come up with a reason to do that later.
  *
  * tree is generally the currently selected wintree.
  *
  */
 int wintree_select_next(wintree *tree);
+
+/*
+ * Ensures that the parent of tree is selected instead of tree or its sister
+ *
+ * tree is generally the currently selected wintree.
+ *
+ */
+int wintree_select_up(wintree *tree);
 
 /*
  * Splits the supplied wintree in a direction. A newly cloned copy of the currently selected content is placed in
