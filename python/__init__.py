@@ -3,6 +3,7 @@
 import systems.ui
 import systems.windows
 import systems.faces
+import systems.hook
 import c.lib
 import c.ui
 import time
@@ -42,6 +43,9 @@ while True:
 
     if char == ord('x'):
         break
+
+    if char == ord('u'):
+        systems.windows.select_up()
 
     systems.ui.refresh()
 

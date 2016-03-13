@@ -1,17 +1,18 @@
 import c.ui
 import c.lib
-import signal
+import ctypes
 
-from decorators.command import Command
+import systems.hook
+
+class hooks:
+    resize = None
 
 def initsys():
     c.ui.initsys()
     c.ui.resize()
 
-   # signal.signal(
-  #      signal.SIGWINCH,
- #       resize
-#    )
+    hooks.resize = systems.hook.Hook(c.ui.on_resize,
+                                     ctypes.c_size_t, ctypes.c_size_t)
 
 def resize():
     import sys
@@ -24,7 +25,9 @@ def refresh():
     c.ui.display_wintrees()
     c.lib.refresh()
 
-    
 def killsys():
     c.lib.endwin()
     c.ui.killsys()
+
+def resize_handle(x, y):
+    open("resizes.txt", "a").write("{} {}\n".format(x, y))

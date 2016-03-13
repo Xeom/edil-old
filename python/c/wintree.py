@@ -1,5 +1,7 @@
 import ctypes
 from shared import lib as so
+
+from c.hook    import hook_p
 from c.wincont import wincont_p
 
 class wintree_s(ctypes.Structure):
@@ -26,11 +28,6 @@ class splitdir:
 initsys = so.wintree_initsys
 initsys.argtypes = []
 initsys.restype  = ctypes.c_int
-
-#wintree *wintree_init(wincont *content)
-#init = so.wintree_init
-#init.argtypes = [c.wincont.wincont_p]
-#sinit.restype  = wintree_p
 
 #int wintree_set_root_size(size_t x, size_t y)
 set_root_size = so.wintree_set_root_size
@@ -82,6 +79,11 @@ select_next = so.wintree_select_next
 select_next.argtypes = [wintree_p]
 select_next.restype  = ctypes.c_int
 
+#int wintree_select_up(wintree *tree);
+select_up = so.wintree_select_up
+select_up.argtypes = [wintree_p]
+select_up.restype  = ctypes.c_int
+
 #int wintree_split(wintree *tree, windir dir);
 split = so.wintree_split
 split.argtypes = [wintree_p, ctypes.c_int]
@@ -106,3 +108,7 @@ get_sizex.restype  = ctypes.c_int
 get_sizey = so.wintree_get_sizey
 get_sizey.argtypes = [wintree_p]
 get_sizey.restype  = ctypes.c_int
+
+on_resize = ctypes.cast(so.wintree_on_resize, ctypes.POINTER(hook_p)).contents
+on_create = ctypes.cast(so.wintree_on_create, ctypes.POINTER(hook_p)).contents
+on_delete = ctypes.cast(so.wintree_on_delete, ctypes.POINTER(hook_p)).contents
