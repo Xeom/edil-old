@@ -17,6 +17,9 @@
 #define idgetbg(id)    (id / 8)
 #define idgetfg(id)    (7 - id % 8)
 
+#define f_getattr(f)   ( (f->under ? A_UNDERLINE : 0) | (f->bright ? A_BOLD : 0) )
+#define f_getpairid(f) ( pairid(f->fgid, f->bgid) )
+
 void face_initsys(void)
 {
     short id;
@@ -47,9 +50,7 @@ int face_get_attr(face *f)
 {
     CHECK_NULL_PRM(face_get_attr, f, 0);
 
-    return (f->under  ? A_UNDERLINE : 0)
-        |  (f->bright ? A_BOLD      : 0)
-        |  COLOR_PAIR(pairid(f->fgid, f->bgid));
+    return f_getattr(f) | COLOR_PAIR(f_getpairid(f));
 }
 
 int line_add_face(line *l, face *f, colno start, colno end)
@@ -92,3 +93,14 @@ int line_add_face(line *l, face *f, colno start, colno end)
     return 0;
 }
 
+int face_display_at(face *f, size_t x, size_t y, size_t sizex, size_t sizey)
+{
+    attr_t attr;
+    int    colorid;
+
+    attr    = f_getattr(f);
+    colorid = f_getpairid(f);
+
+    while (sizey--)
+        mvchgat(y + sizey, x, sizex, attr, colorid, NULL);
+}

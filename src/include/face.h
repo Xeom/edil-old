@@ -38,4 +38,6 @@ int face_get_attr(face *f);
 
 int line_add_face(line *l, face *f, colno start, colno end);
 
+int face_display_at(face *f, size_t x, size_t y, size_t sizex, size_t sizey);
+
 #endif /* FACE_H */
