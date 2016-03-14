@@ -1,8 +1,8 @@
 #include <curses.h>
 #include <signal.h>
-#include "include/wintree.h"
-#include "include/ui.h"
-#include "include/err.h"
+#include "wintree.h"
+#include "ui.h"
+#include "err.h"
 
 int main(void)
 {
