@@ -48,7 +48,7 @@ void err_initsys(void)
 
     while (i--)
     {
-        if (vec_push(err_queue, newv))
+        if (vec_insert(err_queue, vec_len(err_queue), 1, newv))
             FUCK_VEC_ERR("err_init: Could not push sub-vector into err_queue");
     }
     free(newv);
@@ -79,12 +79,12 @@ void err_new_norecurse(errlvl level, const char *title, const char *detail)
         level = high;
     }
 
-    subqueue = vec_get(err_queue, level);
+    subqueue = vec_item(err_queue, level);
 
     if (subqueue == NULL)
         FUCK_VEC_ERR("err_new_norecurse: Error getting error subqueue");
 
-    if (vec_insert(subqueue, 0, e))
+    if (vec_insert(subqueue, 0, 1, e))
         FUCK_VEC_ERR("err_new: Error pushing error to subqueue");
 }
 
@@ -115,7 +115,7 @@ void err_new(errlvl level, const char *title, const char *detail)
         level = high;
     }
 
-    subqueue = vec_get(err_queue, level);
+    subqueue = vec_item(err_queue, level);
 
     err_last_lvl = level;
 
@@ -123,46 +123,21 @@ void err_new(errlvl level, const char *title, const char *detail)
         err_new_norecurse(critical, "err_new: Error getting error subqueue",
                           vec_err_str());
 
-    if (vec_insert(subqueue, 0, e))
+    if (vec_insert(subqueue, 0, 1, e))
         err_new_norecurse(critical, "err_new: Error pushing error to subqueue",
                           vec_err_str());
-}
-
-err *err_get(errlvl level, size_t i)
-{
-    vec *subqueue;
-    err *rtn;
-
-    subqueue = vec_get(err_queue, level);
-
-    if (subqueue == NULL)
-    {
-        err_new(critical, "err_get: Could not fetch error subqueue",
-                vec_err_str());
-        return NULL;
-    }
-
-    if (i >= vec_len(subqueue))
-        return NULL;
-
-    rtn = vec_get(subqueue, vec_len(subqueue) - i - 1);
-
-    if (rtn == NULL)
-        err_new(critical, "err_get: Error getting err* from subqueue",
-                vec_err_str());
-
-    return rtn;
 }
 
 err *err_pop(void)
 {
     errlvl level;
     vec *subqueue;
+    err *rtn;
 
     level = errlvl_end;
     while (--level)
     {
-        subqueue = vec_get(err_queue, level);
+        subqueue = vec_item(err_queue, level);
 
         if (subqueue == NULL)
         {
@@ -172,7 +147,11 @@ err *err_pop(void)
         }
 
         if (vec_len(subqueue))
-            return vec_pop(subqueue);
+        {
+            rtn = vec_item(subqueue, vec_len(subqueue) - 1);
+            vec_delete(subqueue, vec_len(subqueue) - 1, 1);
+            return rtn;
+        }
     }
 
     return NULL;

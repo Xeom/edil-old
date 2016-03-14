@@ -62,10 +62,9 @@ int ui_display_wintree_line(wintree *tree, lineno ln)
 {
     wincont *cont;
     line    *l;
-    size_t   posx, posy, textstart, textend, facenum, maxposx;
+    size_t   posx, posy, textstart, textend, maxposx;
     const char *text;
     vec     *faces;
-    face    *face;
 
     posx    = wintree_get_posx(tree);
     posy    = wintree_get_posy(tree) + ln;
@@ -82,28 +81,31 @@ int ui_display_wintree_line(wintree *tree, lineno ln)
     faces = line_get_faces(l);
     text  = line_get_text(l);
 
-    facenum   = 0;
     textend   = 0;
     textstart = 0;
 
-    while (facenum < vec_len(faces))
-    {
-        face = vec_get(faces, facenum);
-        textstart = textend;
-        textend   = face->start;
-        if (ui_display_line_part(text + textstart, text + textend, maxposx, posy, &posx) == 0)
-            return 0;
+    vec_foreach(faces, face *, f,
+                textstart = textend;
+                textend   = f->start;
 
-        textstart = textend;
-        textend   = face->end;
-        attron(face_get_attr(face));
-        if (ui_display_line_part(text + textstart, text + textend, maxposx, posy, &posx) == 0)
-        {
-            attroff(face_get_attr(face));
-            return 0;
-        }
-        attroff(face_get_attr(face));
-    }
+                if (ui_display_line_part(text + textstart,
+                                         text + textend,
+                                         maxposx, posy, &posx) == 0)
+                    return 0;
+
+                textstart = textend;
+                textend   = f->end;
+                attron(face_get_attr(f));
+
+                if (ui_display_line_part(text + textstart,
+                                         text + textend,
+                                         maxposx, posy, &posx) == 0)
+                {
+                    attroff(face_get_attr(f));
+                    return 0;
+                }
+                attroff(face_get_attr(f));
+        )
 
     textstart = textend;
 

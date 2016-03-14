@@ -26,7 +26,18 @@ hook *hook_init(size_t numargs)
 
 int hook_mount(hook *h, callback_f f)
 {
-    vec_push(h->functs, &f);
+    vec_insert(h->functs, vec_len(h->functs), 1, &f);
+
+    return 0;
+}
+
+int hook_unmount(hook *h, callback_f f)
+{
+    size_t index;
+
+    index = vec_find(h->functs, &f);
+
+    vec_delete(h->functs, index, 1);
 
     return 0;
 }
@@ -35,7 +46,7 @@ int hook_call(hook *h, ...)
 {
     va_list args;
     vec    *argvec;
-    size_t  numargs, numfuncts;
+    size_t  numargs;
 
     va_start(args, h);
 
@@ -43,17 +54,16 @@ int hook_call(hook *h, ...)
     argvec  = vec_init(sizeof(void *));
 
     while (numargs--)
-        vec_push(argvec, va_arg(args, void *));
+        vec_insert(argvec, vec_len(argvec), 1, va_arg(args, void *));
 
-    numfuncts = vec_len(h->functs);
-
-    while (numfuncts--)
-        hook_call_funct(h, *(callback_f*)vec_get(h->functs, numfuncts), argvec);
+    vec_foreach(h->functs, callback_f, funct,
+                hook_call_funct(h, funct, argvec));
 
     va_end(args);
 
     return 0;
 }
+
 
 void hook_call_funct(hook *h, callback_f f, vec *args)
 {

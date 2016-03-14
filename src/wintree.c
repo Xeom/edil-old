@@ -26,9 +26,10 @@ struct wintree_s
 
 wintree *wintree_root;
 
-extern hook *wintree_on_resize;
-extern hook *wintree_on_delete;
-extern hook *wintree_on_create;
+hook *wintree_on_resizex;
+hook *wintree_on_resizey;
+hook *wintree_on_delete;
+hook *wintree_on_create;
 
 static void wintree_free_norecurse(wintree *tree);
 static void wintree_free(wintree *tree);
@@ -42,11 +43,13 @@ static int wintree_set_sizey(wintree *tree, size_t newsize);
 
 int wintree_initsys(void)
 {
-    wintree_root = wintree_init(wincont_get_root());
-
-    wintree_on_resize = hook_init(3);
+    wintree_on_resizex = hook_init(3);
+    wintree_on_resizey = hook_init(3);
     wintree_on_delete = hook_init(1);
     wintree_on_create = hook_init(1);
+
+    wintree_root = wintree_init(wincont_get_root());
+    hook_call(wintree_on_create, wintree_root);
 
     return 0;
 }
@@ -491,8 +494,7 @@ int wintree_split(wintree *tree, windir dir)
         sub1->content = newcontent;
         tree->selected = 1;
     }
-
-    if (dir == down || dir == right)
+    else if (dir == down || dir == right)
     {
         wintree_move_contents(sub1, tree);
         sub2->content = newcontent;
@@ -514,8 +516,7 @@ int wintree_split(wintree *tree, windir dir)
         newsize = tree->sizex - newsize;
         wintree_set_sizex(sub2, newsize);
     }
-
-    if (dir == up || dir == down)
+    else if (dir == up || dir == down)
     {
         tree->sdir = ud;
 
@@ -538,6 +539,14 @@ int wintree_split(wintree *tree, windir dir)
 
     sub1->parent = tree;
     sub2->parent = tree;
+
+    /* Since splitting is the only way to make trees, *
+     * we put wintree_on_create here                  */
+    if (tree->selected == 1)
+        hook_call(wintree_on_create, sub1);
+
+    else
+        hook_call(wintree_on_create, sub2);
 
     return 0;
 }

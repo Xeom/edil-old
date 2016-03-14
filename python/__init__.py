@@ -13,6 +13,7 @@ import signal
 
 #shared.lib.err_initsys()
 systems.windows.initsys()
+
 systems.ui.initsys()
 systems.faces.initsys()
 systems.ui.refresh()

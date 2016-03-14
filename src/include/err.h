@@ -172,19 +172,6 @@ void err_initsys(void);
 void err_new(errlvl level, const char *title, const char *details);
 
 /*
- * Gets the i-th error of the specified level. Lower values of i are more recent.
- *
- * Returns NULL in the case that the error could not be found (due to internal error or 
- * simply because it does not exist)
- *
- * level is the level of the error to get.
- *
- * i is the index of the error to get.
- *
- */
-err *err_get(errlvl level, size_t i);
-
-/*
  * Gets the most recent error and removes it from the error system. This function should be
  * used by something that is actively dealing with these errors, as they will not be recallable
  * from the error system in the future.

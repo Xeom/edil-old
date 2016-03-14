@@ -46,4 +46,32 @@ size_t vec_rfind(vec *v, const void *item);
 
 const char *vec_err_str(void);
 
+#define vec_foreach(vec, type, name, code)               \
+    {                                                    \
+        size_t _vec_len, _vec_index;                     \
+        _vec_len = vec_len(vec);                         \
+        _vec_index = 0;                                  \
+        while (_vec_index < _vec_len)                    \
+        {                                                \
+            type name;                                   \
+            name = *(type *)vec_item(vec, _vec_index);   \
+            {code;}                                      \
+            _vec_index++;                                \
+        }                                                \
+    }
+
+#define vec_rforeach(vec, type, name, code)              \
+    {                                                    \
+        size_t _vec_index;                               \
+        _vec_index = vec_len(vec);                       \
+        while (_vec_index--)                             \
+        {                                                \
+            type name;                                   \
+            name = *(type *)vec_item(vec, _vec_index);   \
+            {code;}                                      \
+            _vec_index++;                                \
+        }                                                \
+    }                                                    \
+
+
 #endif /* VEC_H */

@@ -13,6 +13,9 @@ static int vec_realloc(vec *v);
 static int vec_resize_bigger(vec *v);
 static int vec_resize_smaller(vec *v);
 
+#define addptr(ptr, n) (void *)((intptr_t)(ptr) + (ptrdiff_t)(n))
+#define subptr(ptr, n) (void *)((intptr_t)(ptr) - (ptrdiff_t)(n))
+
 static int vec_realloc(vec *v)
 {
     v->data = realloc(v->data, v->capacity);
@@ -72,6 +75,7 @@ vec *vec_init(size_t width)
     if (rtn == NULL)
         ERR(NO_MEMORY, NULL);
 
+    rtn->data     = NULL;
     rtn->width    = width;
     rtn->length   = 0;
     rtn->capacity = width;
@@ -103,10 +107,10 @@ void *vec_item(vec *v, size_t index)
     /* Calculate and copy to offset */
     offset = index * v->width;
 
-    if (offset + v->width > vec->length)
+    if (offset + v->width > v->length)
         ERR(INVALID_INDEX, NULL);
 
-    return v->data + offset;
+    return addptr(v->data, offset);
 }
 
 int vec_delete(vec *v, size_t index, size_t n)
@@ -119,11 +123,11 @@ int vec_delete(vec *v, size_t index, size_t n)
     offset = index * v->width;
     amount =     n * v->width;
 
-    if (offset + amount > vec->length)
+    if (offset + amount > v->length)
         ERR(INVALID_INDEX, -1);
 
-    memmove(v->data + offset,
-            v->data + offset + amount,
+    memmove(addptr(v->data, offset),
+            addptr(v->data, offset + amount),
             v->length - offset);
 
     v->length -= amount;
@@ -149,11 +153,11 @@ int vec_insert(vec *v, size_t index, size_t n, const void *new)
     if (vec_resize_bigger(v) == -1)
         return -1;
 
-    memmove(v->data + offset + amount,
-            v->data + offset,
+    memmove(addptr(v->data, offset + amount),
+            addptr(v->data, offset),
             v->length - offset);
 
-    memmove(v->data + offset,
+    memmove(addptr(v->data, offset),
             new, amount);
 
     ERR(OK, 0);
@@ -176,18 +180,19 @@ size_t vec_find(vec *v, const void *item)
         ERR(NULL_VEC, INVALID_INDEX);
 
     if (item == NULL)
-        ERR(NULL_VAULE, INVALID_INDEX);
+        ERR(NULL_VALUE, INVALID_INDEX);
 
     width  = v->width;
     cmp    = v->data;
-    last   = cmp + v->length;
+    last   = addptr(cmp, v->length);
 
     index  = 0;
     while (cmp != last)
     {
         if (memcmp(cmp, item, width) == 0)
-            ERR(OK, i);
-        cmp += width;
+            ERR(OK, index);
+
+        cmp = addptr(cmp, width);
         ++index;
     }
 
@@ -203,17 +208,17 @@ size_t vec_rfind(vec *v, const void *item)
         ERR(NULL_VEC, INVALID_INDEX);
 
     if (item == NULL)
-        ERR(NULL_VAULE, INVALID_INDEX);
+        ERR(NULL_VALUE, INVALID_INDEX);
 
     width  = v->width;
     first  = v->data;
-    cmp    = first + v->length;
+    cmp    = addptr(first, v->length);
 
     index  = vec_len(v);
     while (cmp > first)
     {
         index--;
-        cmp -= width;
+        cmp = subptr(cmp, width);
 
         if (memcmp(cmp, item, width) == 0)
             ERR(OK, index);

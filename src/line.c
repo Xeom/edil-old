@@ -18,9 +18,8 @@ void lines_set_chunk(vec *lines, chunk *newchunk);
 
 void lines_set_chunk(vec *lines, chunk *newchunk)
 {
-    size_t i = 0;
-    while (i < vec_len(lines))
-        (*(line**)vec_get(lines, i++))->chunk = newchunk;
+    vec_foreach(lines, line *, l,
+                l->chunk = newchunk);
 }
 
 

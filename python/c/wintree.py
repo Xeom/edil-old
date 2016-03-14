@@ -109,6 +109,7 @@ get_sizey = so.wintree_get_sizey
 get_sizey.argtypes = [wintree_p]
 get_sizey.restype  = ctypes.c_int
 
-on_resize = ctypes.cast(so.wintree_on_resize, ctypes.POINTER(hook_p)).contents
-on_create = ctypes.cast(so.wintree_on_create, ctypes.POINTER(hook_p)).contents
-on_delete = ctypes.cast(so.wintree_on_delete, ctypes.POINTER(hook_p)).contents
+on_resizex = ctypes.cast(so.wintree_on_resizex, ctypes.POINTER(hook_p)).contents
+on_resizey = ctypes.cast(so.wintree_on_resizey, ctypes.POINTER(hook_p)).contents
+on_create  = ctypes.cast(so.wintree_on_create,  ctypes.POINTER(hook_p)).contents
+on_delete  = ctypes.cast(so.wintree_on_delete,  ctypes.POINTER(hook_p)).contents

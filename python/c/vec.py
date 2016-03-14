@@ -45,53 +45,24 @@ free = so.vec_free
 free.argtypes = [vec_p]
 free.restype  = None
 
-# int vec_push(vec *v, const void *data)
-push = so.vec_push
-push.argtypes = [vec_p, ctypes.c_void_p]
-push.restype  = ctypes.c_int
-push.errcheck = check_nonzro_return
+item = so.vec_item
+item.argtypes = [vec_p, ctypes.c_size_t]
+item.restype  = ctypes.c_void_p
+item.errcheck = check_null_return
 
-# void *vec_pop(vec *v)
-pop = so.vec_pop
-pop.argtypes = [vec_p]
-pop.restype  = ctypes.c_void_p
-pop.errcheck = check_null_return
+delete = so.vec_delete
+delete.argtypes = [vec_p, ctypes.c_size_t, ctypes.c_size_t]
+delete.restype  = ctypes.c_int
+delete.errcheck = check_nonzro_return
 
-# void *vec_get(vec *v, size_t index)
-get = so.vec_get
-get.argtypes = [vec_p, ctypes.c_size_t]
-get.restype  = ctypes.c_void_p
-get.errcheck = check_null_return
+insert = so.vec_delete
+insert.argtypes = [vec_p, ctypes.c_size_t, ctypes.c_size_t, ctypes.c_void_p]
+insert.restype  = ctypes.c_int
+insert.errcheck = check_nonzro_return
 
-# int vec_set(vec *v, size_t index, const void *data)
-set = so.vec_set
-set.argtypes = [vec_p, ctypes.c_size_t, ctypes.c_void_p]
-set.restype  = ctypes.c_int
-set.errcheck = check_nonzro_return
-
-# int vec_trim(vec *v, size_t amount)
-trim = so.vec_trim
-trim.argtypes = [vec_p, ctypes.c_size_t]
-trim.restype  = ctypes.c_int
-trim.errcheck = check_nonzro_return
-
-# vec *vec_slice(vec *v, size_t start, size_t end)
-slice = so.vec_slice
-slice.argtypes = [vec_p, ctypes.c_size_t, ctypes.c_size_t]
-slice.restype  = vec_p
-slice.errcheck = check_null_return
-
-# int vec_append(vec *v, vec *other)
-append = so.vec_append
-append.argtypes = [vec_p, vec_p]
-append.restype  = ctypes.c_int
-append.errcheck = check_nonzro_return
-
-# size_t vec_len(vec *v)
 len = so.vec_len
 len.argtypes = [vec_p]
 len.restype  = ctypes.c_size_t
-len.errcheck = check_invalid_index
 
 # size_t vec_find(vec *v, const void *value)
 find = so.vec_find
@@ -104,23 +75,6 @@ rfind = so.vec_rfind
 rfind.argtypes = [vec_p, ctypes.c_void_p]
 rfind.restype  = ctypes.c_size_t
 rfind.errcheck = check_invalid_index
-
-# int vec_insert(vec *v, size_t i, const void *value)
-insert = so.vec_insert
-insert.argtypes = [vec_p, ctypes.c_size_t, ctypes.c_void_p]
-insert.restype  = ctypes.c_int
-insert.errcheck = check_nonzro_return
-
-# int vec_remove(vec *v, const void *value)
-remove = so.vec_remove
-remove.argtypes = [vec_p, ctypes.c_void_p]
-remove.restype  = ctypes.c_int
-remove.errcheck = check_nonzro_return
-
-# int vec_delete(vec *v, size_t i)
-delete = so.vec_delete
-delete.argtypes = [vec_p, ctypes.c_size_t]
-delete.errcheck = check_nonzro_return
 
 # const char *vec_err_str(void)
 err_str = so.vec_err_str
@@ -148,17 +102,8 @@ class Vec:
 
         return self.type_p(value)
 
-    def push(self, value):
-        ptr = self.getptr(value)
-        push(self.struct, ptr)
-
-    def pop(self):
-        ptr = pop(self.struct)
-        ptr = ctypes.cast(ptr, self.type_p)
-        return ptr.contents
-
     def get(self, index):
-        ptr = get(self.struct, index)
+        ptr = item(self.struct, index)
         ptr = ctypes.cast(ptr, self.type_p)
         return ptr.contents
 
@@ -166,20 +111,9 @@ class Vec:
         return len(self.struct)
 
     def set(self, index, value):
-        ptr = self.getptr(value)
+        ptr = ctypes.cast(item(self.struct, index), self.type_p)
+        ptr.contents = value
         set(self.struct, index, ptr)
-
-    def trim(self, size):
-        trim(self.struct, size)
-
-    def slice(self, start, end):
-        ptr = slice(self.struct, start, end)
-        newvec = Vec(self.type)
-        newvec.struct = ptr
-        return newvec
-
-    def append(self, other):
-        append(self.struct, other.struct)
 
     def find(self, value):
         ptr = self.getptr(value)
@@ -191,11 +125,7 @@ class Vec:
 
     def insert(self, index, value):
         ptr = self.getptr(value)
-        insert(self.struct, index, ptr)
+        insert(self.struct, index, 1, ptr)
 
-    def remove(self, value):
-        ptr = self.getptr(value)
-        remove(self.struct, ptr)
-
-    def delete(self, index):
-        delete(self.struct, index)
+    def delete(self, index, n):
+        delete(self.struct, index, n)

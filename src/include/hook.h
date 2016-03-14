@@ -9,6 +9,8 @@ hook *hook_init(size_t numargs);
 
 int hook_mount(hook *h, callback_f f);
 
+int hook_unmount(hook *h, callback_f f);
+
 int hook_call(hook *h, ...);
 
 #endif /* HOOK_H */

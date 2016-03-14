@@ -20,7 +20,8 @@ typedef enum
     none
 } winsplitdir;
 
-extern hook *wintree_on_resize;
+extern hook *wintree_on_resizex;
+extern hook *wintree_on_resizey;
 extern hook *wintree_on_delete;
 extern hook *wintree_on_create;
 

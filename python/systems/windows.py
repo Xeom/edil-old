@@ -1,6 +1,9 @@
 import c.wincont
 import c.wintree
 
+import systems.hook
+import ctypes
+
 class direction(c.wintree.dir):
     pass
 
@@ -13,9 +16,12 @@ def initsys():
     c.wincont.initsys()
     c.wintree.initsys()
 
-    hooks.resize = systems.hook.Hook(c.wintree.on_resize,
-                                     c.wintree.wintree_p, ctypes.c_size_t, ctypes.c_size_t)
+    hooks.resizex = systems.hook.Hook(c.wintree.on_resizex,
+                                      c.wintree.wintree_p, ctypes.c_size_t, ctypes.c_size_t)
 
+    hooks.resizey = systems.hook.Hook(c.wintree.on_resizey,
+                                      c.wintree.wintree_p, ctypes.c_size_t, ctypes.c_size_t)
+    
     hooks.delete = systems.hook.Hook(c.wintree.on_delete,
                                      c.wintree.wintree_p)
 
