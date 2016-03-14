@@ -11,14 +11,12 @@ AR=ar
 LN=ln
 
 SRC=src
-INC=src/include
+INC=include
 
 WARNINGS=all extra no-unused-parameter pedantic missing-prototypes fatal-errors format
 LINKS=ncurses
 
 SRC_NAMES=line vec err cursor ui wintree wincont face chunk textcont hook
-INC_NAMES=line vec err cursor ui wintree wincont face chunk textcont hook
-
 
 TEST_NAME=test
 

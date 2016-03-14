@@ -7,7 +7,6 @@ incify=$(addprefix $(INC)/, $(addsuffix .h, $(1))) # Change names into header pa
 srcify=$(addprefix $(SRC)/, $(addsuffix .c, $(1))) # Change names into .c paths
 objify=$(addprefix $(SRC)/, $(addsuffix .o, $(1))) # Change names into .cs' .o paths
 
-INC_PATHS=$(call incify, $(INC_NAMES)) # All the headers' paths
 SRC_PATHS=$(call srcify, $(SRC_NAMES)) # All the .c files' paths
 OBJ_PATHS=$(call objify, $(SRC_NAMES)) # All the .cs' .o files' paths
 TEST_PATH=$(call srcify, $(TEST_NAME)) # The path of the .c test file
@@ -15,8 +14,8 @@ TEST_PATH=$(call srcify, $(TEST_NAME)) # The path of the .c test file
 L_FLAGS=$(addprefix -l, $(LINKS)) #  # all the links... (-l*)
 W_FLAGS=$(addprefix -W, $(WARNINGS)) # all the warnings... (-W*)
 
-OBJ_FLAGS=-I$(INC) -g $(W_FLAGS) -fPIC # for compiling objects
-DEP_FLAGS=-I$(INC) -MM #               # for getting dependency rules
+OBJ_FLAGS=-I$(INC)/ -g $(W_FLAGS) -fPIC # for compiling objects
+DEP_FLAGS=-I$(INC)/ -MM #               # for getting dependency rules
 
 get_rule=$(SRC)/$(subst \ ,,$(shell $(CC) $(DEP_FLAGS) $(1) -o -)) # Get a dependency rule for a
                                                                    # file($(1)) from the compiler.
@@ -45,7 +44,7 @@ objs: $(OBJ_PATHS) # A proxy for compiling all objects
 # Rule to compile test.out. Main should be in TEST_PATH
 test.out: $(OBJ_PATHS) $(TEST_PATH)
 	@echo "Linking into ./test"
-	@$(CC) -g $^ $(L_FLAGS) -o $@
+	@$(CC) -g $^ $(L_FLAGS) -I$(INC) -o $@
 
 # Compile a shared object and copy into python directory
 lib.so: $(OBJ_PATHS)
