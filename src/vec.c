@@ -44,7 +44,7 @@ static int vec_resize_bigger(vec *v)
 
 static int vec_resize_smaller(vec *v)
 {
-    size_t length, width;
+    size_t width, length;
 
     length = v->length;
     width  = v->width;
@@ -137,7 +137,7 @@ int vec_delete(vec *v, size_t index, size_t n)
 
 int vec_insert(vec *v, size_t index, size_t n, const void *new)
 {
-    size_t offset, amount;
+    size_t offset, amount, displaced;
 
     if (v == NULL)
         ERR(NULL_VEC, -1);
@@ -147,15 +147,20 @@ int vec_insert(vec *v, size_t index, size_t n, const void *new)
 
     offset = index * v->width;
     amount =     n * v->width;
+    displaced = v->length - offset;
+
+    if (offset > v->length)
+        ERR(INVALID_INDEX, -1);
 
     v->length += amount;
 
     if (vec_resize_bigger(v) == -1)
         return -1;
 
-    memmove(addptr(v->data, offset + amount),
-            addptr(v->data, offset),
-            v->length - offset);
+    if (displaced)
+        memmove(addptr(v->data, offset + amount),
+                addptr(v->data, offset),
+                displaced);
 
     memmove(addptr(v->data, offset),
             new, amount);
