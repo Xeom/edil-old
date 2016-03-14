@@ -9,20 +9,12 @@
 
 vecerr_t vecerr;
 
-static int vec_resize(vec *v);
+static int vec_realloc(vec *v);
+static int vec_resize_bigger(vec *v);
+static int vec_resize_smaller(vec *v);
 
-static int vec_resize(vec *v)
+static int vec_realloc(vec *v)
 {
-    if (v->length > v->capacity)
-        v->capacity <<= 1;
-
-    else if (v->length <  v->capacity >> 2 &&
-           v->length >= v->width)
-        v->capacity >>= 1;
-
-    else
-        ERR(OK, 0);
-
     v->data = realloc(v->data, v->capacity);
 
     if (v->data == NULL)
@@ -31,28 +23,64 @@ static int vec_resize(vec *v)
     ERR(OK, 0);
 }
 
+static int vec_resize_bigger(vec *v)
+{
+    size_t length;
+
+    length = v->length;
+
+    if (v->capacity >= length)
+        ERR(OK, 0);
+
+    do
+        v->capacity <<= 1;
+    while (v->capacity < length);
+
+    return vec_realloc(v);
+}
+
+static int vec_resize_smaller(vec *v)
+{
+    size_t length, width;
+
+    length = v->length;
+    width  = v->width;
+
+    if (length <= v->capacity >> 2 ||
+        width  == v->capacity)
+        ERR(OK, 0);
+
+    do
+        v->capacity >>= 1;
+    while (length > v->capacity &&
+           width  < v->capacity);
+
+    return vec_realloc(v);
+}
+
 vec *vec_init(size_t width)
 {
     vec *rtn;
 
+    /* We cannot have zero width vectors */
     if (width == 0)
         ERR(INVALID_WIDTH, NULL);
 
     rtn = malloc(sizeof(vec));
 
+    /* Check allocated struct vec_s */
     if (rtn == NULL)
-        ERR(NO_MEMORY, NULL);
-
-    rtn->data     = malloc(width);
-
-    if (rtn->data == NULL)
         ERR(NO_MEMORY, NULL);
 
     rtn->width    = width;
     rtn->length   = 0;
     rtn->capacity = width;
 
-    if (vec_resize(rtn) != 0)
+    /* We set our capacity to the vector's     *
+     * width (one item) and allocate it.       *
+     * Vector's capacities are always at least *
+     * their width                             */
+    if (vec_realloc(rtn) != 0)
         return NULL;
 
     ERR(OK, rtn);
@@ -64,143 +92,69 @@ void vec_free(vec *v)
     free(v);
 }
 
-int vec_push(vec *v, const void *value)
-{
-    ptrdiff_t offset;
-
-    if (v == NULL)
-        ERR(NULL_VEC, -1);
-
-    if (value == NULL)
-        ERR(NULL_VALUE, -1);
-
-    v->length += v->width;
-
-    if (vec_resize(v) == -1)
-        return -1;
-
-    offset = v->length - v->width;
-
-    memcpy((void *)((intptr_t)v->data + offset), value, v->width);
-
-    ERR(OK, 0);
-}
-
-void *vec_pop(vec *v)
-{
-    void *rtn;
-    ptrdiff_t offset;
-
-    if (v == NULL)
-        ERR(NULL_VEC, NULL);
-
-    if (v->length == 0)
-        ERR(INVALID_INDEX, NULL);
-
-    rtn = malloc(v->width);
-
-    if (rtn == NULL)
-        ERR(NO_MEMORY, NULL);
-
-    offset = v->length - v->width;
-
-    memcpy(rtn, (void *)((intptr_t)v->data + offset), v->width);
-
-    v->length -= v->width;
-
-    if (vec_resize(v) != 0)
-        return NULL;
-
-    ERR(OK, rtn);
-}
-
-void *vec_get(vec *v, size_t index)
+void *vec_item(vec *v, size_t index)
 {
     size_t offset;
 
+    /* Check yo pointers */
     if (v == NULL)
         ERR(NULL_VEC, NULL);
 
-    offset = v->width * index;
+    /* Calculate and copy to offset */
+    offset = index * v->width;
 
-    if (offset >= v->length)
+    if (offset + v->width > vec->length)
         ERR(INVALID_INDEX, NULL);
 
-    ERR(OK, (void *)((intptr_t)v->data + (ptrdiff_t)offset));
+    return v->data + offset;
 }
 
-int vec_set(vec *v, size_t index, const void *data)
+int vec_delete(vec *v, size_t index, size_t n)
 {
-    size_t offset = v->width * index;
+    size_t offset, amount;
 
     if (v == NULL)
         ERR(NULL_VEC, -1);
 
-    if (offset >= v->length)
+    offset = index * v->width;
+    amount =     n * v->width;
+
+    if (offset + amount > vec->length)
         ERR(INVALID_INDEX, -1);
 
-    memcpy((void *)((intptr_t)v->data + (ptrdiff_t)offset),
-           data, v->width);
+    memmove(v->data + offset,
+            v->data + offset + amount,
+            v->length - offset);
 
-    ERR(OK, 0);
+    v->length -= amount;
+
+    return vec_resize_smaller(v);
 }
 
-int vec_trim(vec *v, size_t amount)
+int vec_insert(vec *v, size_t index, size_t n, const void *new)
 {
-    size_t newlength;
+    size_t offset, amount;
 
     if (v == NULL)
         ERR(NULL_VEC, -1);
 
-    newlength = amount * v->width;
+    if (new == NULL)
+        ERR(NULL_VALUE, -1);
 
-    if (newlength > v->length)
-        ERR(INVALID_INDEX, -1);
+    offset = index * v->width;
+    amount =     n * v->width;
 
-    v->length = newlength;
+    v->length += amount;
 
-    if (vec_resize(v) != 0)
+    if (vec_resize_bigger(v) == -1)
         return -1;
 
-    ERR(OK, 0);
-}
+    memmove(v->data + offset + amount,
+            v->data + offset,
+            v->length - offset);
 
-vec *vec_slice(vec *v, size_t start, size_t end)
-{
-    vec *rtn;
-
-    if (v == NULL)
-        ERR(NULL_VEC, NULL);
-
-    rtn = vec_init(v->width);
-
-    if (rtn == NULL)
-        ERR(NO_MEMORY, NULL);
-
-    for (;start < end && start < v->length; ++start)
-    {
-        if (vec_push(rtn, vec_get(v, start)) != 0)
-            return NULL;
-    }
-
-    ERR(OK, rtn);
-}
-
-int vec_append(vec *v, vec *other)
-{
-    size_t i;
-
-    if (v == NULL || other == NULL)
-        ERR(NULL_VEC, -1);
-
-    i = 0;
-
-    while (i < vec_len(other))
-    {
-        if (vec_push(v, vec_get(other, i)) != 0)
-            return -1;
-        ++i;
-    }
+    memmove(v->data + offset,
+            new, amount);
 
     ERR(OK, 0);
 }
@@ -213,119 +167,62 @@ size_t vec_len(vec *v)
     ERR(OK, v->length / v->width);
 }
 
-size_t vec_find(vec *v, const void *value)
+size_t vec_find(vec *v, const void *item)
 {
-    void *cmp;
-    size_t i;
+    void *cmp, *last;
+    size_t width, index;
 
     if (v == NULL)
         ERR(NULL_VEC, INVALID_INDEX);
 
-    i = 0;
+    if (item == NULL)
+        ERR(NULL_VAULE, INVALID_INDEX);
 
-    while (i < v->length)
+    width  = v->width;
+    cmp    = v->data;
+    last   = cmp + v->length;
+
+    index  = 0;
+    while (cmp != last)
     {
-        cmp = vec_get(v, i);
-
-        if (memcmp(cmp, value, v->width) == 0)
+        if (memcmp(cmp, item, width) == 0)
             ERR(OK, i);
-
-        ++i;
+        cmp += width;
+        ++index;
     }
 
     ERR(INVALID_VALUE, INVALID_INDEX);
 }
 
-size_t vec_rfind(vec *v, const void *value)
+size_t vec_rfind(vec *v, const void *item)
 {
-    size_t i;
-    void  *cmp;
+    void *cmp, *first;
+    size_t width, index;
 
     if (v == NULL)
         ERR(NULL_VEC, INVALID_INDEX);
 
-    i = vec_len(v);
+    if (item == NULL)
+        ERR(NULL_VAULE, INVALID_INDEX);
 
-    while (i--)
+    width  = v->width;
+    first  = v->data;
+    cmp    = first + v->length;
+
+    index  = vec_len(v);
+    while (cmp > first)
     {
-        cmp = vec_get(v, i);
+        index--;
+        cmp -= width;
 
-        if (cmp == NULL)
-            return INVALID_INDEX;
-
-        if (memcmp(cmp, value, v->width) == 0)
-            ERR(OK, i);
+        if (memcmp(cmp, item, width) == 0)
+            ERR(OK, index);
     }
 
     ERR(INVALID_VALUE, INVALID_INDEX);
 }
 
-int vec_insert(vec *v, size_t i, const void *value)
-{
-    ptrdiff_t offset;
-    intptr_t  ptr;
-
-    if (v == NULL)
-        ERR(NULL_VEC, -1);
-
-    if (i > v->length)
-        ERR(INVALID_INDEX, -1);
-
-    if (value == NULL)
-        ERR(NULL_VALUE, -1);
-
-    offset = i * v->width;
-    ptr    = (intptr_t)v->data;
-
-    v->length += v->width;
-
-    if (vec_resize(v) == -1)
-        return -1;
-
-    memmove((void*)(ptr + offset + v->width),
-            (void*)(ptr + offset), (v->length - offset));
-
-    if (vec_set(v, i, value) == -1)
-        return -1;
-
-    ERR(OK, 0);
-}
-
-int vec_remove(vec *v, const void *value)
-{
-    size_t index;
-
-    index = vec_find(v, value);
-
-    if (index == INVALID_INDEX)
-        return -1;
-
-    return vec_delete(v, index);
-}
-
-int vec_delete(vec *v, size_t i)
-{
-    ptrdiff_t offset;
-    intptr_t  ptr;
-
-    if (i > vec_len(v))
-        ERR(INVALID_INDEX, -1);
-
-    offset = i * v->width;
-    ptr    = (intptr_t)v->data;
-
-    memmove((void*)(ptr + offset),
-            (void*)(ptr + offset + v->width), (v->length - offset - 1));
-
-    v->length -= v->width;
-
-    if (vec_resize(v) == -1)
-        return -1;
-
-    ERR(OK, 0);
-}
-
-const char *vec_err_str()
+const char *vec_err_str(void)
 {
     if (vecerr == E_VEC_NULL_VALUE)
         return "E_VEC_NULL_VALUE";

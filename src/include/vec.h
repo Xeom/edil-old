@@ -32,28 +32,17 @@ vec *vec_init(size_t width);
 
 void vec_free(vec *v);
 
-int vec_push(vec *v, const void *data);
+void *vec_item(vec *v, size_t index);
 
-void *vec_pop(vec *v);
+int vec_delete(vec *v, size_t index, size_t n);
 
-void *vec_get(vec *v, size_t index);
-int   vec_set(vec *v, size_t index, const void *data);
-
-int vec_trim(vec *v, size_t amount);
-
-vec *vec_slice(vec *v, size_t start, size_t end);
-
-int vec_append(vec *v, vec *other);
+int vec_insert(vec *v, size_t index, size_t n, const void *new);
 
 size_t vec_len(vec *v);
 
-size_t vec_find(vec *v,  const void *value);
-size_t vec_rfind(vec *v, const void *value);
+size_t vec_find(vec *v, const void *item);
 
-int vec_insert(vec *v, size_t i, const void *value);
-int vec_delete(vec *v, size_t i);
-
-int vec_remove(vec *v, const void *value);
+size_t vec_rfind(vec *v, const void *item);
 
 const char *vec_err_str(void);
 
