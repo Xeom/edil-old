@@ -44,6 +44,8 @@ size_t vec_find(vec *v, const void *item);
 
 size_t vec_rfind(vec *v, const void *item);
 
+vec *vec_cut(vec *v, size_t index, size_t n);
+
 const char *vec_err_str(void);
 
 #define vec_foreach(vec, type, name, code)               \
@@ -72,6 +74,11 @@ const char *vec_err_str(void);
             _vec_index++;                                \
         }                                                \
     }                                                    \
+
+#define vec_insert_end(vec, n, item) vec_insert(vec, vec_len(vec), n, item)
+
+#define vec_insert_start(vec, n, item) vec_insert(vec, 0, n, item)
+
 
 
 #endif /* VEC_H */

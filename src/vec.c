@@ -51,9 +51,8 @@ static int vec_resize_bigger(vec *v)
 
     /* If we don't have capacity, double it, and if  *
      * that STILL isn't enough, keep doing it.       */
-    do
-        v->capacity <<= 1;
     while (v->capacity < length);
+        v->capacity <<= 1;
 
     /* Now that we've changed v->capacity, we gotta realloc */
     return vec_realloc(v);
@@ -83,7 +82,7 @@ static int vec_resize_smaller(vec *v)
     return vec_realloc(v);
 }
 
-vec *vec_init(size_t width)
+static vec_init_raw(size_t width)
 {
     vec *rtn;
 
@@ -97,19 +96,34 @@ vec *vec_init(size_t width)
     if (rtn == NULL)
         ERR(NO_MEMORY, NULL);
 
+
     /* Data must be null so realloc will malloc */
-    rtn->data     = NULL;
-    rtn->width    = width;
-    rtn->length   = 0;
-    /* Minium capacity is one width */
-    rtn->capacity = width;
+    rtn->data = NULL;
+    rtn->width = width;
+    rtn->length = length;
+    rtn->capacity = 0;
+
+    ERR(OK, rtn);
+}
+
+vec *vec_init(size_t width)
+{
+    vec *rtn;
+
+    rtn = vec_init_raw(width);
+
+    if (rtn == NULL)
+        return NULL;
 
     /* We set our capacity to the vector's     *
      * width (one item) and allocate it.       *
      * Vector's capacities are always at least *
      * their width                             */
-    if (vec_realloc(rtn) != 0)
+    if (vec_resize_bigger(rtn) != 0)
+    {
+        free(rtn);
         return NULL;
+    }
 
     ERR(OK, rtn);
 }
@@ -283,6 +297,42 @@ size_t vec_rfind(vec *v, const void *item)
     /* No match */
     ERR(INVALID_VALUE, INVALID_INDEX);
 }
+
+/* Yes I can make this from the others, but fuck it, *
+ * this is way faster...                             */
+vec *vec_cut(vec *v, size_t index, size_t n)
+{
+    void  *slice;
+    vec   *rtn;
+    size_t width, offset, amount;
+
+    if (vec == NULL)
+        ERR(NULL_VEC, NULL);
+
+    width = vec->width;
+
+    offset = index * width;
+    amount = index * n;
+
+    if (offset + amount > v->length)
+        ERR(INVALID_INDEX, NULL);
+
+    slice = addptr(v->data, offset);
+
+    rtn = vec_init_raw(width);
+    rtn->length = n;
+
+    if (vec_resize_bigger(rtn) != 0)
+    {
+        vec_free(rtn);
+        return NULL;
+    }
+
+    memcpy(rtn->data, slice, amount);
+
+    return rtn;
+}
+
 
 const char *vec_err_str(void)
 {
