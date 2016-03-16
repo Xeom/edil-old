@@ -46,12 +46,13 @@ static int vec_resize_bigger(vec *v)
 
     /* If due to errors, we get a capacity of 0, *
      * set it to the minimum allowable value     */
-    if (v->capacity == 0)
+    if (v->capacity < v->width)
         v->capacity = v->width;
+
 
     /* If we don't have capacity, double it, and if  *
      * that STILL isn't enough, keep doing it.       */
-    while (v->capacity < length);
+    while (v->capacity < length)
         v->capacity <<= 1;
 
     /* Now that we've changed v->capacity, we gotta realloc */
