@@ -207,13 +207,16 @@ int chunk_resize(chunk *c)
 
     if (vec_len(c->items) > CHUNK_MAX)
     {
-        overflow = vec_init(sizeof(void *));
-        TRACE_NONZRO_CALL(chunk_resize,
-                          vec_insert(overflow, 0, vec_len(c->items) - CHUNK_DEFAULT,
-                                     vec_item(c->items, CHUNK_DEFAULT)), -1);
+        size_t slice_i, slice_n;
+        slice_i = CHUNK_DEFAULT;
+        slice_n = vec_len(c->items) - CHUNK_DEFAULT;
+
+        overflow = vec_cut(c->items, slice_i, slice_n);
+
+        TRACE_NULL(chunk_resize, vec_cute, overflow, -1);
 
         TRACE_NONZRO_CALL(chunk_resize,
-                          vec_delete(c->items, CHUNK_DEFAULT, vec_len(c->items) - CHUNK_DEFAULT), -1);
+                          vec_delete(c->items, slice_i, slice_n), -1);
 
         if (c->next)
             dump = c->next;
@@ -234,7 +237,7 @@ int chunk_resize(chunk *c)
         chunk_items_set_chunk(dump, overflow);
 
         TRACE_NONZRO_CALL(chunk_resize,
-                          vec_insert(dump->items, 0, vec_len(overflow), vec_item(overflow, 0)), -1);
+                          vec_insert_vec(dump->items, 0, overflow), -1);
 
         vec_free(overflow);
 
@@ -251,7 +254,7 @@ int chunk_resize(chunk *c)
         chunk_items_set_chunk(dump, overflow);
 
         TRACE_NONZRO_CALL(chunk_resize,
-                          vec_insert(dump->items, 0, vec_len(overflow), vec_item(overflow, 0)), -1);
+                          vec_insert_vec(dump->items, 0, overflow), -1);
 
         chunk_free(c);
 
