@@ -3,6 +3,32 @@ import c.vec
 
 import ctypes
 
+class HookFunct:
+    def __init__(self, funct, priority):
+        self.pyfunct = funct
+        self.cfunct  = c.hook.hook_f(self.call, priority)
+
+        c.hook.mount(self.struct, self.cfunct)
+
+    def call(self, args, hook):
+        cargs = c.vec.Vec(args, ctypes.c_void_p)
+        pyargs = []
+
+        for type, arg in zip(self.types, cargs):
+            value = ctypes.POINTER(type)(arg).contents
+            pyargs.append(value)
+
+        try:
+            self.pyfunct(*pyargs)
+        except:
+            pass # TODO: Something
+
+    def free(self):
+        c.hook.unmount(self.struct, self.cfunct);
+
+    def __del__(self):
+        self.free()
+
 class Hook:
     def __init__(self, struct, *types):
         self.types   = types
@@ -11,22 +37,9 @@ class Hook:
 
     def free(self):pass
 
-    def __call__(self):
-        self.mount(function)
+    def __call__(self, priority=0):
+        return lambda funct:self.mount(funct)
 
-    def mount(self, function):
-        def f(args, hook):
-            import sys
+    def mount(self, funct, priority):
+        self.functs.append(HookFunction(funct))
 
-            cargs = c.vec.Vec(args, ctypes.c_void_p)
-            print([i for i in iter(cargs)], file=sys.stderr)
-            pyargs = []
-
-            for type, arg in zip(self.types, cargs):
-                value = ctypes.POINTER(type)(arg).contents
-                pyargs.append(value)
-
-            function(*pyargs)
-
-        c.hook.mount(self.struct, c.hook.callback_f(f))
-        self.functs.append(f)
