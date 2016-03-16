@@ -79,6 +79,6 @@ const char *vec_err_str(void);
 
 #define vec_insert_start(vec, n, item) vec_insert(vec, 0, n, item)
 
-
+#define vec_insert_vec(vec, index, other) vec_insert(vec, index, vec_len(other), vec_item(other, 0))
 
 #endif /* VEC_H */

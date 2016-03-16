@@ -82,7 +82,7 @@ static int vec_resize_smaller(vec *v)
     return vec_realloc(v);
 }
 
-static vec_init_raw(size_t width)
+static vec *vec_init_raw(size_t width)
 {
     vec *rtn;
 
@@ -96,11 +96,10 @@ static vec_init_raw(size_t width)
     if (rtn == NULL)
         ERR(NO_MEMORY, NULL);
 
-
     /* Data must be null so realloc will malloc */
-    rtn->data = NULL;
-    rtn->width = width;
-    rtn->length = length;
+    rtn->data     = NULL;
+    rtn->width    = width;
+    rtn->length   = 0;
     rtn->capacity = 0;
 
     ERR(OK, rtn);
@@ -306,10 +305,10 @@ vec *vec_cut(vec *v, size_t index, size_t n)
     vec   *rtn;
     size_t width, offset, amount;
 
-    if (vec == NULL)
+    if (v == NULL)
         ERR(NULL_VEC, NULL);
 
-    width = vec->width;
+    width = v->width;
 
     offset = index * width;
     amount = index * n;
@@ -332,7 +331,6 @@ vec *vec_cut(vec *v, size_t index, size_t n)
 
     return rtn;
 }
-
 
 const char *vec_err_str(void)
 {
