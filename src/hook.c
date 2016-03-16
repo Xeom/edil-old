@@ -37,6 +37,7 @@ hook *hook_init(size_t numargs)
     return rtn;
 }
 
+#include <stdio.h>
 int hook_mount(hook *h, hook_f f, priority pri)
 {
     size_t     index;
@@ -50,8 +51,17 @@ int hook_mount(hook *h, hook_f f, priority pri)
     index  = vec_len(functs);
 
     /* In today's episode of "I really can't be fucked to bi-search..." */
-    while (index && ((hook_fcont *)vec_item(functs, index))->pri >= pri)
-        --index;
+    while (index--)
+    {
+        hook_fcont *curr;
+
+        curr = vec_item(functs, index);
+
+        if (curr->pri <= pri)
+            break;
+    }
+
+    ++index;
 
     vec_insert(functs, index, 1, &cont);
 
@@ -93,7 +103,6 @@ int hook_call(hook *h, ...)
 
     return 0;
 }
-
 
 void hook_call_funct(hook *h, hook_fcont f, vec *args)
 {
