@@ -18,6 +18,34 @@ systems.ui.initsys()
 systems.faces.initsys()
 systems.ui.refresh()
 
+open("textlog.txt", "w").write("")
+
+
+@systems.ui.hooks.resize(2)
+def handle_resize(x, y):
+    open("testlog.txt", "a").write("{}x{} Resized window, priority 2b\n".format(x, y))
+
+@systems.ui.hooks.resize(1)
+def handle_resize(x, y):
+    open("testlog.txt", "a").write("{}x{} Resized window, priority 1a\n".format(x, y))
+
+@systems.ui.hooks.resize(1)
+def handle_resize(x, y):
+    open("testlog.txt", "a").write("{}x{} Resized window, priority 1c\n".format(x, y))
+
+@systems.ui.hooks.resize(3)
+def handle_resize(x, y):
+    open("testlog.txt", "a").write("{}x{} Resized window, priority 3a\n".format(x, y))
+
+@systems.ui.hooks.resize(2)
+def handle_resize(x, y):
+    open("testlog.txt", "a").write("{}x{} Resized window, priority 2a\n".format(x, y))
+
+@systems.ui.hooks.resize(1)
+def handle_resize(x, y):
+    open("testlog.txt", "a").write("{}x{} Resized window, priority 1b\n".format(x, y))
+
+
 while True:
     char = c.lib.getch()
 
