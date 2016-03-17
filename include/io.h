@@ -1,0 +1,10 @@
+#ifndef IO_H
+#define IO_H
+
+typedef struct io_key_s io_key;
+
+char *io_key_str(io_key key);
+
+int io_handle_chr(int chr);
+
+#endif /* IO_H */
