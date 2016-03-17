@@ -1,17 +1,17 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <stddef.h>
 #include <stdint.h>
-#include "vec.h"
 
-#define ERR(err, rtn) {vecerr = E_VEC_ ## err; return rtn;}
+#include "vec.h"
 
 vecerr_t vecerr;
 
 static int vec_realloc(vec *v);
 static int vec_resize_bigger(vec *v);
 static int vec_resize_smaller(vec *v);
+
+#define ERR(err, rtn) {vecerr = E_VEC_ ## err; return rtn;}
 
 #define addptr(ptr, n) (void *)((intptr_t)(ptr) + (ptrdiff_t)(n))
 #define subptr(ptr, n) (void *)((intptr_t)(ptr) - (ptrdiff_t)(n))

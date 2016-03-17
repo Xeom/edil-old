@@ -1,19 +1,13 @@
-#include "wintree.h"
-#include "line.h"
-#include "err.h"
-
 #include <string.h>
 #include <stdlib.h>
 #include <stddef.h>
 
-#include <stdio.h>
+#include "line.h"
+#include "err.h"
+
+#include "wintree.h"
 
 #define WINTREE_MIN_SIZE 3
-
-#define issplitter(tree) (tree->sub1 && tree->sub2)
-#define iscontent(tree) (tree->content)
-#define issub1(tree) (tree->parent && (tree->parent->sub1 == tree))
-#define issub2(tree) (tree->parent && (tree->parent->sub2 == tree))
 
 struct wintree_s
 {
@@ -40,6 +34,11 @@ static wintree *wintree_get_sister(wintree *tree);
 
 static int wintree_set_sizex(wintree *tree, size_t newsize);
 static int wintree_set_sizey(wintree *tree, size_t newsize);
+
+#define issplitter(tree) (tree->sub1 && tree->sub2)
+#define iscontent(tree) (tree->content)
+#define issub1(tree) (tree->parent && (tree->parent->sub1 == tree))
+#define issub2(tree) (tree->parent && (tree->parent->sub2 == tree))
 
 int wintree_initsys(void)
 {

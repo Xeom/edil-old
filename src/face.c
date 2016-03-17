@@ -13,10 +13,12 @@
  * It's a bit odd since id 0 must be white fg, black bg
  */
 #define pairid(fg, bg) (7 - (fg % 8) + (bg % 8) * 8)
+
 /* These macros just get the original fg and bg from a pairid */
 #define idgetbg(id)    (id / 8)
 #define idgetfg(id)    (7 - id % 8)
 
+/* These get attributes and pairids from a face * */
 #define f_getattr(f)   ( (f->under ? A_UNDERLINE : 0) | (f->bright ? A_BOLD : 0) )
 #define f_getpairid(f) ( pairid(f->fgid, f->bgid) )
 
@@ -25,6 +27,7 @@ void face_initsys(void)
     short id;
     id = 0;
 
+    /* 0 is white on black. We set up colour pairs from 1 to 63 (black on white) */
     while (++id < 64)
         init_pair(id, idgetfg(id), idgetbg(id));
 }

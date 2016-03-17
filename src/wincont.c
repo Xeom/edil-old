@@ -1,10 +1,9 @@
-/* YES */
-#include "wincont.h"
-#include "err.h"
 #include <stdlib.h>
 #include <string.h>
 
-#include <stdio.h>
+#include "err.h"
+
+#include "wincont.h"
 
 struct wincont_s
 {

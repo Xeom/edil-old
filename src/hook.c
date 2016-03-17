@@ -1,12 +1,10 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdio.h>
+
 #include "vec.h"
+
 #include "hook.h"
-
-
-
-
 
 typedef struct hook_fcont_s hook_fcont;
 

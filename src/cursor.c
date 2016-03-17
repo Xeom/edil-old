@@ -1,8 +1,10 @@
 #include <string.h>
 #include <stdlib.h>
-#include "cursor.h"
+
 #include "err.h"
 #include "textcont.h"
+
+#include "cursor.h"
 
 struct cursor_s
 {
@@ -16,7 +18,6 @@ struct cursor_s
 void cursor_set_heuristics(cursor *cur, lineno n);
 line *cursor_next_line(cursor *cur);
 line *cursor_prev_line(cursor *cur);
-
 
 void cursor_set_heuristics(cursor *cur, lineno n)
 {

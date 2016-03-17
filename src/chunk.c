@@ -1,6 +1,12 @@
 #include <stdlib.h>
-#include "chunk.h"
+
 #include "err.h"
+
+#include "chunk.h"
+
+#define CHUNK_DEFAULT  128
+#define CHUNK_MIN      (CHUNK_DEFAULT << 2)
+#define CHUNK_MAX      (CHUNK_DEFAULT + (128 << 2))
 
 struct chunk_s
 {
@@ -9,10 +15,6 @@ struct chunk_s
     chunk *prev;
     vec   *items;
 };
-
-#define CHUNK_DEFAULT  128
-#define CHUNK_MIN      (CHUNK_DEFAULT << 2)
-#define CHUNK_MAX      (CHUNK_DEFAULT + (128 << 2))
 
 int chunk_items_set_chunk(chunk *c, vec *items);
 
@@ -172,7 +174,7 @@ chunk *chunk_init(void)
         free(rtn);
         TRACE(chunk_init, vec_init(sizeof(void*)), NULL);
     }
-    
+
     return rtn;
 }
 

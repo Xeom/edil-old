@@ -1,11 +1,13 @@
 #include <curses.h>
-#include "err.h"
-#include "line.h"
-#include "ui.h"
-#include "wincont.h"
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#include "err.h"
+#include "line.h"
+#include "wincont.h"
+
+#include "ui.h"
 
 wintree *ui_rootwin;
 
