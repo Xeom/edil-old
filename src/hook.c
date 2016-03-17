@@ -19,7 +19,6 @@ struct hook_fcont_s
 struct hook_s
 {
     vec   *functs;
-    vec   *priorities;
     size_t numargs;
 };
 
@@ -37,7 +36,12 @@ hook *hook_init(size_t numargs)
     return rtn;
 }
 
-#include <stdio.h>
+void hook_free(hook *h)
+{
+    vec_free(h->functs);
+    free(h);
+}
+
 int hook_mount(hook *h, hook_f f, priority pri)
 {
     size_t     index;

@@ -5,8 +5,11 @@
 
 typedef struct wincont_s wincont;
 
-/* Initializes the window container system */
+/* Initialize the window container system */
 int wincont_initsys(void);
+
+/* Kill the window container system */
+int wincont_killsys(void);
 
 /*
  * Initializes and returns a new window content container.

@@ -157,6 +157,9 @@ errlvl err_last_lvl;
 /* Initialize the error system */
 void err_initsys(void);
 
+/* Kill the error system */
+int err_killsys(void);
+
 /*
  * Raises a new error to the error system
  *

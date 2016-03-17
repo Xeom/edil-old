@@ -28,6 +28,20 @@ int wincont_initsys(void)
     return 0;
 }
 
+int wincont_killsys(void)
+{
+    wincont *cont;
+
+    cont = wincont_root;
+    do
+    {
+        free(cont);/* Implement real free */
+        cont = cont->next;
+    }
+    while (cont != wincont_root);
+
+    return 0;
+}
 wincont *wincont_init(textcont *text)
 {
     wincont *rtn;

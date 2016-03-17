@@ -54,6 +54,18 @@ int wintree_initsys(void)
     return 0;
 }
 
+int wintree_killsys(void)
+{
+    hook_free(wintree_on_resizex);
+    hook_free(wintree_on_resizey);
+    hook_free(wintree_on_create);
+    hook_free(wintree_on_delete);
+
+    wintree_free(wintree_root);
+
+    return 0;
+}
+
 int wintree_set_root_size(size_t x, size_t y)
 {
     wintree_set_sizex(wintree_root, x);

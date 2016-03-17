@@ -45,6 +45,15 @@ int ui_initsys(void)
     return 0;
 }
 
+int ui_killsys(void)
+{
+    endwin();
+
+    hook_free(ui_on_resize);
+
+    return 0;
+}
+
 void ui_set_defaults(void)
 {
     ui_more_left_char         = '\253';
@@ -213,12 +222,6 @@ int ui_display_wintrees(void)
 
     ui_highlight_selected();
 
-    return 0;
-}
-
-int ui_killsys(void)
-{
-    endwin();
     return 0;
 }
 

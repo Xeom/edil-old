@@ -10,6 +10,8 @@ typedef void (*hook_f)(vec *, hook *);
 
 hook *hook_init(size_t numargs);
 
+void hook_free(hook *h);
+
 int hook_mount(hook *h, hook_f f, priority pri);
 
 int hook_unmount(hook *h, hook_f f);

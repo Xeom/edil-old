@@ -29,6 +29,11 @@ void face_initsys(void)
         init_pair(id, idgetfg(id), idgetbg(id));
 }
 
+int face_killsys(void)
+{
+    return 0;
+}
+
 face *face_init(short fgid, short bgid)
 {
     face *rtn;

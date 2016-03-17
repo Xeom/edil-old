@@ -31,6 +31,9 @@ extern hook *wintree_on_create;
  */
 int wintree_initsys(void);
 
+/*
+ */
+int wintree_killsys(void);
 
 /*
  * Set the size of the root window of the wintree system (To be used on startup, SIGWINCH...)

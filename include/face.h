@@ -32,6 +32,8 @@ struct face_s
 
 void face_initsys(void);
 
+int face_killsys(void);
+
 face *face_init(short fgid, short bgid);
 
 int face_get_attr(face *f);
