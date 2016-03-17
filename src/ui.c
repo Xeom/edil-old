@@ -22,14 +22,13 @@ face *ui_window_border_selected_face;
 
 hook *ui_on_resize;
 
-int ui_display_line_part(const char *text, const char *end, size_t maxposx, size_t posy, size_t *posx);
-int ui_display_wintree_border(wintree *tree);
-int ui_display_wintree_line(wintree *tree, lineno ln);
-int ui_display_wintree(wintree *tree);
+static int ui_display_line_part(const char *text, const char *end, size_t maxposx, size_t posy, size_t *posx);
+static int ui_display_wintree_border(wintree *tree);
+static int ui_display_wintree_line(wintree *tree, lineno ln);
+static int ui_display_wintree(wintree *tree);
 
-void ui_set_defaults(void);
-void ui_set_char_defaults(void);
-void ui_highlight_selected(void);
+static void ui_set_defaults(void);
+static void ui_highlight_selected(void);
 
 int ui_initsys(void)
 {
@@ -54,7 +53,7 @@ int ui_killsys(void)
     return 0;
 }
 
-void ui_set_defaults(void)
+static void ui_set_defaults(void)
 {
     ui_more_left_char         = '\253';
     ui_more_right_char        = '\273';
@@ -67,7 +66,7 @@ void ui_set_defaults(void)
     ui_window_border_face->bright  = 1;
 }
 
-int ui_display_wintree_line(wintree *tree, lineno ln)
+static int ui_display_wintree_line(wintree *tree, lineno ln)
 {
     wincont *cont;
     line    *l;
@@ -125,7 +124,7 @@ int ui_display_wintree_line(wintree *tree, lineno ln)
     return 0;
 }
 
-int ui_display_line_part(const char *text, const char *end, size_t maxposx, size_t posy, size_t *posx)
+static int ui_display_line_part(const char *text, const char *end, size_t maxposx, size_t posy, size_t *posx)
 {
     while (*posx <= maxposx)
     {
@@ -139,7 +138,7 @@ int ui_display_line_part(const char *text, const char *end, size_t maxposx, size
     return 0;
 }
 
-int ui_display_wintree_border(wintree *tree)
+static int ui_display_wintree_border(wintree *tree)
 {
     size_t posx, posy, lastposx, lastposy;
 
@@ -169,7 +168,7 @@ int ui_display_wintree_border(wintree *tree)
     return 0;
 }
 
-int ui_display_wintree(wintree *tree)
+static int ui_display_wintree(wintree *tree)
 {
     size_t ln;
 
@@ -183,7 +182,7 @@ int ui_display_wintree(wintree *tree)
     return 0;
 }
 
-void ui_highlight_selected(void)
+static void ui_highlight_selected(void)
 {
     size_t   posx, posy, sizex, sizey;
     wintree *selected;
