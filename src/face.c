@@ -64,17 +64,17 @@ int line_add_face(line *l, face *f, colno start, colno end)
 
     CHECK_NULL_PRM(line_add_face, l, -1);
 
-    faces = line_get_faces(l);
-
-    TRACE_NULL(line_add_face, line_get_faces(l), l, -1);
+    TRACE_PTR(faces = line_get_faces(l), return -1);
 
     vec_rforeach(faces, face *, curr,
                  if (curr->start < end)
-                     TRACE_NONZRO_CALL(line_add_face, vec_delete(faces, _vec_index, 1), -1);
+                     TRACE_INT(vec_delete(faces, _vec_index, 1),
+                               return -1);
 
                  if (curr->end < start)
                  {
-                     TRACE_NONZRO_CALL(line_add_face, vec_insert(faces, _vec_index + 1, 1, f), -1);
+                     TRACE_INT(vec_insert(faces, _vec_index + 1, 1, f),
+                               return -1);
                      return 0;
                  }
         );

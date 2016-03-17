@@ -64,10 +64,10 @@ int err_killsys(void)
     return 0;
 }
 
-void err_new_norecurse(errlvl level, const char *title, const char *detail)
+void err_new(errlvl level, const char *title, const char *detail)
 {
-    vec *subqueue;
-    err *e;
+    vec **subptr, *subqueue;
+    err  *e;
 
     e = malloc(sizeof(err));
 
@@ -89,53 +89,19 @@ void err_new_norecurse(errlvl level, const char *title, const char *detail)
         level = high;
     }
 
-    subqueue = *(vec **)vec_item(err_queue, level);
 
+    subptr = (vec **)vec_item(err_queue, level);
+
+    if (subptr == NULL)
+        FUCK_VEC_ERR("Error getting pointer to subqueue");
+
+    subqueue = *subptr;
+    
     if (subqueue == NULL)
         FUCK_VEC_ERR("err_new_norecurse: Error getting error subqueue");
 
     if (vec_insert(subqueue, 0, 1, e))
         FUCK_VEC_ERR("err_new: Error pushing error to subqueue");
-}
-
-void err_new(errlvl level, const char *title, const char *detail)
-{
-    vec *subqueue;
-    err *e;
-
-    e = malloc(sizeof(err));
-
-    if (e == NULL)
-        FUCK_IT("err_new: Could not allocate memory for error");
-
-    if (title == NULL)
-        title = "Unknown error";
-
-    e->title = title;
-
-    if (detail == NULL)
-        detail = "";
-
-    e->detail = detail;
-
-    if (level >= errlvl_end)
-    {
-        err_new_norecurse(high, "err_new: Invalid error level",
-                          "handed unknown (too high) error level");
-        level = high;
-    }
-
-    subqueue = *(vec **)vec_item(err_queue, level);
-
-    err_last_lvl = level;
-
-    if (subqueue == NULL)
-        err_new_norecurse(critical, "err_new: Error getting error subqueue",
-                          vec_err_str());
-
-    if (vec_insert(subqueue, 0, 1, e))
-        err_new_norecurse(critical, "err_new: Error pushing error to subqueue",
-                          vec_err_str());
 }
 
 err *err_pop(void)

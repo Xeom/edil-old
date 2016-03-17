@@ -14,6 +14,42 @@ typedef enum
 
 #define ERRLOC Line: __LINE__ File: __FILE__
 
+#define ASSERT_PTR(code, level, fail)                   \
+    {                                                   \
+        if ( (code) == NULL )                           \
+        {                                               \
+            err_new(level, "Expected Non-NULL pointer", \
+                    #code " returned NULL");            \
+            {fail;}                                     \
+        }                                               \
+    }
+
+
+#define ASSERT_INT(code, level, fail)                   \
+    {                                                   \
+        if ( (code) != 0 )                              \
+        {                                               \
+            err_new(level, "Expected 0 Return",         \
+                    #code " returned non-zero");        \
+            {fail;}                                     \
+        }                                               \
+    }
+
+#define ASSERT_IND(code, level, fail)                   \
+    {                                                   \
+        if ( (code) == INVALID_INDEX )                  \
+        {                                               \
+            err_new(level, "Invalid Index",             \
+                    #code " returned Invalid Index");   \
+            {fail;}                                     \
+        }                                               \
+    }
+
+
+#define TRACE_PTR(code, fail) ASSERT_PTR(code, err_last_lvl, fail)
+#define TRACE_INT(code, fail) ASSERT_INT(code, err_last_lvl, fail)
+#define TRACE_IND(code, fail) ASSERT_IND(code, err_last_lvl, fail)
+
 #define ERR_NEW_STRIFY(level, title, details) err_new(level, #title, #details)
 
 /*
