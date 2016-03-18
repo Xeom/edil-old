@@ -4,6 +4,7 @@ import systems.ui
 import systems.windows
 import systems.faces
 import systems.hook
+import systems.io
 import c.lib
 import c.ui
 import time
@@ -13,38 +14,19 @@ import signal
 
 #shared.lib.err_initsys()
 systems.windows.initsys()
-
 systems.ui.initsys()
 systems.faces.initsys()
+systems.io.initsys()
+
 systems.ui.refresh()
 
 open("textlog.txt", "w").write("")
 
-
-@systems.ui.hooks.resize(2)
-def handle_resize(x, y):
-    open("testlog.txt", "a").write("{}x{} Resized window, priority 2b\n".format(x, y))
-
-@systems.ui.hooks.resize(1)
-def handle_resize(x, y):
-    open("testlog.txt", "a").write("{}x{} Resized window, priority 1a\n".format(x, y))
-
-@systems.ui.hooks.resize(1)
-def handle_resize(x, y):
-    open("testlog.txt", "a").write("{}x{} Resized window, priority 1c\n".format(x, y))
-
-@systems.ui.hooks.resize(3)
-def handle_resize(x, y):
-    open("testlog.txt", "a").write("{}x{} Resized window, priority 3a\n".format(x, y))
-
-@systems.ui.hooks.resize(2)
-def handle_resize(x, y):
-    open("testlog.txt", "a").write("{}x{} Resized window, priority 2a\n".format(x, y))
-
-@systems.ui.hooks.resize(1)
-def handle_resize(x, y):
-    open("testlog.txt", "a").write("{}x{} Resized window, priority 1b\n".format(x, y))
-
+@systems.io.hooks.keypress(1)
+def handle_hook(k):
+    s = c.io.key_str(k)
+    c.ui.set_statusbar(s)
+    c.lib.refresh()
 
 while True:
     char = c.lib.getch()
@@ -76,6 +58,8 @@ while True:
     if char == ord('u'):
         systems.windows.select_up()
 
+    else:
+        c.io.handle_chr(char)
     systems.ui.refresh()
 
 sizex, sizey = c.wintree.get_sizex(c.wintree.get_selected()), c.wintree.get_sizey(c.wintree.get_selected())
