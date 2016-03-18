@@ -1,6 +1,8 @@
 #ifndef HOOK_H
 # define HOOK_H
 
+#include "vec.h"
+
 #define HOOK_PRIORITY_MAX 1000
 
 typedef unsigned short priority;
