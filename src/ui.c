@@ -24,6 +24,8 @@ face *ui_window_border_selected_face;
 
 hook *ui_on_resize;
 
+char *ui_statusbar_content;
+
 static int ui_display_line_part(const char *text, const char *end, size_t maxposx, size_t posy, size_t *posx);
 static int ui_display_wintree_border(wintree *tree);
 static int ui_display_wintree_line(wintree *tree, lineno ln);
@@ -42,7 +44,7 @@ int ui_initsys(void)
     ui_set_defaults();
 
     ui_on_resize = hook_init(2);
-
+    ui_statusbar_content = NULL;
     return 0;
 }
 
@@ -51,6 +53,7 @@ int ui_killsys(void)
     endwin();
 
     hook_free(ui_on_resize);
+    free(ui_statusbar_content);
 
     return 0;
 }
@@ -223,6 +226,31 @@ int ui_display_wintrees(void)
 
     ui_highlight_selected();
 
+    refresh();
+
+    return 0;
+}
+
+int ui_display_statusbar(void)
+{
+    move(getmaxy(stdscr) - 1, 0);
+
+    if (ui_statusbar_content)
+        printw(ui_statusbar_content);
+
+    clrtoeol();
+
+    refresh();
+
+    return 0;
+}
+
+int ui_set_statusbar(const char *content)
+{
+    ui_statusbar_content = realloc(ui_statusbar_content, strlen(content));
+    strcpy(ui_statusbar_content, content);
+    ui_display_statusbar();
+
     return 0;
 }
 
@@ -234,7 +262,7 @@ int ui_resize(void)
 
     hook_call(ui_on_resize, &termy, &termx);
 
-    wintree_set_root_size(termx, termy);
+    wintree_set_root_size(termx, termy - 1);
 
     ui_display_wintrees();
 

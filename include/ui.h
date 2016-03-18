@@ -25,4 +25,8 @@ int ui_killsys(void);
 
 int ui_resize(void);
 
+int ui_display_statusbar(void);
+
+int ui_set_statusbar(const char *content);
+
 #endif /* UI_H */

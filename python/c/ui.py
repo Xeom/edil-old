@@ -19,9 +19,16 @@ killsys = so.ui_killsys
 killsys.argtypes = []
 killsys.restype  = ctypes.c_int
 
+set_statusbar = so.ui_set_statusbar
+set_statusbar.argtypes = [ctypes.c_char_p]
+set_statusbar.restype  = ctypes.c_int
+
+display_statusbar = so.ui_display_statusbar
+display_statusbar.argtypes = []
+display_statusbar.restype  = ctypes.c_int
+
 key_resize = ctypes.cast(so.ui_key_resize, ctypes.POINTER(ctypes.c_int)).contents.value
 on_resize  = ctypes.cast(so.ui_on_resize,  ctypes.POINTER(hook_p)).contents
-
 
 def set_more_left(char):
     so.ui_more_left_char         = ctypes.c_char_p(ctypes.c_char(char))
