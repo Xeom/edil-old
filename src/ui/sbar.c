@@ -1,3 +1,9 @@
+#include <stdlib.h>
+#include <string.h>
+#include <curses.h>
+
+#include "ui/sbar.h"
+
 char *ui_sbar_content;
 
 int ui_sbar_initsys(void)
@@ -14,7 +20,7 @@ int ui_sbar_killsys(void)
     return 0;
 }
 
-int ui_sbar_refresh(void)
+int ui_sbar_draw(void)
 {
     char  *content;
     size_t maxx, maxy;
@@ -22,14 +28,14 @@ int ui_sbar_refresh(void)
     getmaxyx(stdscr, maxy, maxx);
     move(maxy - 1, 0);
 
-    content = ui_statusbar_content;
+    content = ui_sbar_content;
 
     while (maxx-- > 4)
     {
         addch(*content);
         ++content;
 
-        if (content == '\0')
+        if (*content == '\0')
         {
             clrtoeol();
             return 0;
@@ -44,9 +50,10 @@ int ui_sbar_refresh(void)
 
 int ui_sbar_set(const char *content)
 {
-    ui_sbar_content = realloc(ui_statusbar_content, strlen(content));
-    strcpy(ui_statusbar_content, content);
-    ui_display_statusbar();
+    ui_sbar_content = realloc(ui_sbar_content, strlen(content));
+    strcpy(ui_sbar_content, content);
+    ui_sbar_draw();
+    refresh();
 
     return 0;
 }

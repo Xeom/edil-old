@@ -1,3 +1,13 @@
+#include <curses.h>
+
+#include "hook.h"
+#include "wintree.h"
+#include "ui/sbar.h"
+#include "ui/face.h"
+#include "ui/win.h"
+
+#include "ui/core.h"
+
 hook *ui_on_resize;
 
 int ui_initsys(void)
@@ -12,6 +22,7 @@ int ui_initsys(void)
 
     ui_win_initsys();
     ui_sbar_initsys();
+    ui_face_initsys();
 
     return 0;
 }
@@ -24,14 +35,23 @@ int ui_killsys(void)
 
     ui_win_killsys();
     ui_sbar_killsys();
+    ui_face_killsys();
 
     return 0;
 }
 
 int ui_refresh(void)
 {
-    ui_win_refresh();
-    ui_sbar_refresh();
+    ui_draw();
+    refresh();
+
+    return 0;
+}
+
+int ui_draw(void)
+{
+    ui_win_draw();
+    ui_sbar_draw();
 
     return 0;
 }
