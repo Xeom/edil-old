@@ -3,6 +3,10 @@
 
 typedef struct io_key_s io_key;
 
+int io_initsys(void);
+
+int io_killsys(void);
+
 char *io_key_str(io_key key);
 
 int io_handle_chr(int chr);
