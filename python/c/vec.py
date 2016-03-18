@@ -76,6 +76,12 @@ rfind.argtypes = [vec_p, ctypes.c_void_p]
 rfind.restype  = ctypes.c_size_t
 rfind.errcheck = check_invalid_index
 
+#vec *vec_cut(vec *v, size_t index, size_t n)
+cut = so.vec_cut
+cut.argtypes = [vec_p, ctypes.c_size_t, ctypes.c_size_t]
+cut.restype  = vec_p
+cut.errcheck = check_null_return
+
 # const char *vec_err_str(void)
 err_str = so.vec_err_str
 err_str.argtypes = []

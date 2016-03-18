@@ -29,6 +29,11 @@ initsys = so.wintree_initsys
 initsys.argtypes = []
 initsys.restype  = ctypes.c_int
 
+#int wintree_killsys(void)
+killsys = so.wintree_killsys
+killsys.argtypes = []
+killsys.restype  = ctypes.c_int
+
 #int wintree_set_root_size(size_t x, size_t y)
 set_root_size = so.wintree_set_root_size
 set_root_size.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
@@ -68,6 +73,11 @@ get_posy.restype  = ctypes.c_int
 iter_next = so.wintree_iter_next
 iter_next.argtypes = [wintree_p]
 iter_next.restype  = wintree_p
+
+#wintree *wintree_iter_start(void)
+iter_start = so.wintree_iter_start
+iter_start.argtypes = []
+iter_start.restype  = wintree_p
 
 #wintree *wintree_get_selected(void);
 get_selected = so.wintree_get_selected

@@ -14,6 +14,11 @@ initsys = so.wincont_initsys
 initsys.argtypes = []
 initsys.restype  = ctypes.c_int
 
+#int wintree_killsys(void)
+killsys = so.wincont_killsys
+killsys.argtypes = []
+killsys.restype  = ctypes.c_int
+
 # wincont *wincont_init(textcont *text)
 init = so.wincont_init
 init.argtypes = [textcont_p]
