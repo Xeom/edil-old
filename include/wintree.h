@@ -76,7 +76,7 @@ int wintree_move_border(wintree *tree, int n);
 
 /*
  * Get the absolute (recursive sum of relative) positions of the top, left corner of wintrees
- * (measured with top left as (0, 0)) 
+ * (measured with top left as (0, 0))
  *
  * tree is the wintree whose position we want to obtain
  *
