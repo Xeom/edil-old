@@ -24,3 +24,5 @@ handle_chr.argtypes = [ctypes.c_int]
 handle_chr.restype  = ctypes.c_int
 
 on_keypress  = ctypes.cast(so.io_on_keypress,  ctypes.POINTER(hook_p)).contents
+
+key_resize = ctypes.cast(so.io_key_resize, ctypes.POINTER(ctypes.c_int)).contents.value

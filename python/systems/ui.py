@@ -20,11 +20,7 @@ def resize():
 
 def refresh():
     c.lib.clear()
-    c.ui.display_wintrees()
-    c.ui.display_statusbar()
-    c.lib.refresh()
+    c.ui.refresh()
 
 def killsys():
-    c.lib.endwin()
     c.ui.killsys()
-
