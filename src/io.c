@@ -1,10 +1,10 @@
+#include <curses.h>
 #include <string.h>
 #include <stdlib.h>
 
 #include "hook.h"
 
 #include "io.h"
-
 
 #define  MOD_STR "E-"
 #define CTRL_STR "^"
@@ -26,6 +26,8 @@ struct io_key_s
 io_key io_incomplete_key;
 
 hook *io_on_keypress;
+
+const int io_key_resize = KEY_RESIZE;
 
 static void io_clear_incomplete_key(void);
 static int io_handle_completed_key(void);
