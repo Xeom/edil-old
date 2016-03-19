@@ -2,6 +2,8 @@
 #include <string.h>
 #include <curses.h>
 
+#include "ui/util.h"
+
 #include "ui/sbar.h"
 
 char *ui_sbar_content;
@@ -22,35 +24,22 @@ int ui_sbar_killsys(void)
 
 int ui_sbar_draw(void)
 {
-    char  *content;
-    size_t maxx, maxy;
+    size_t maxy, maxx;
 
     getmaxyx(stdscr, maxy, maxx);
     move(maxy - 1, 0);
-
-    content = ui_sbar_content;
-
-    while (maxx-- > 4)
-    {
-        addch(*content);
-        ++content;
-
-        if (*content == '\0')
-        {
-            clrtoeol();
-            return 0;
-        }
-    }
-
-    while (maxx--)
-        addch('.');
-
+    fputs("HI\n", stderr);
+    if (ui_sbar_content == NULL)
+        clrtoeol();
+    else
+        ui_util_draw_text_limited(maxx, ui_sbar_content);
+    fputs("HO\n", stderr);
     return 0;
 }
 
 int ui_sbar_set(const char *content)
 {
-    ui_sbar_content = realloc(ui_sbar_content, strlen(content));
+    ui_sbar_content = realloc(ui_sbar_content, strlen(content) + 1);
     strcpy(ui_sbar_content, content);
     ui_sbar_draw();
     refresh();

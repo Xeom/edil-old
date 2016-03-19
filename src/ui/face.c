@@ -7,9 +7,9 @@
 
 #include "ui/face.h"
 
-  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * If I ever meet whatever idiotic arseholes designed ncurses' color system... *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /* This translates an fg and bg into the pairid it should be allocated 
  * It's a bit odd since id 0 must be white fg, black bg
