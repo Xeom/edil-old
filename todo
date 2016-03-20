@@ -6,3 +6,6 @@
 - Add ways in ui of updating individual lines/windows
 - Keytrees
 - MANY ERRORS
+- Add functions to python/c
+- Hashtable
+- Move vec into containers/ directory

@@ -1,6 +1,6 @@
 struct table_item_s
 {
-    hash  fullhash;
+    hash  hash;
     void *key;
     void *data;
 }
@@ -85,19 +85,32 @@ int table_insert(table *t, void *key, void *value)
 
     ind = table_get_item_index(t, key);
 
-    new.fullhash = hsh;
-    new.key      = key;
+    new.hash = hsh;
+    new.key  = key;
     t->data[ind] = new;
 }
 
 int table_delete(table *t, void *key)
 {
-    size_t ind;
-    table_item curr;
+    size_t ind, n, prevn;
+    table_item curr, previtem;
 
-    ind = table_get_item_index(t, key);
+    ind = table_get_item_index_used_only(t, key);
 
-    if (table->data[ind]
+    if (ind == INVALID_INDEX)
+        return -1;
+
+    n     = 0;
+    prevn = 0;
+
+    while (t->data[ind + ++n].key)
+        if (t->data[ind + n].hash % t->capacity == ind)
+        {
+            memcpy(t->data + ind + prevn, t->data + ind + n, sizeof(table_item));
+            prevn = n;
+        }
+
+    memset(t->data + prevn, 0, sizeof(table_item));
 }
 
 void *table_get(table *t, void *h)
