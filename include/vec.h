@@ -71,7 +71,6 @@ const char *vec_err_str(void);
             type name;                                   \
             name = *(type *)vec_item(vec, _vec_index);   \
             {code;}                                      \
-            _vec_index++;                                \
         }                                                \
     }                                                    \
 
