@@ -9,7 +9,6 @@ objify=$(addprefix $(SRC)/, $(addsuffix .o, $(1))) # Change names into .cs' .o p
 
 SRC_PATHS=$(call srcify, $(SRC_NAMES)) # All the .c files' paths
 OBJ_PATHS=$(call objify, $(SRC_NAMES)) # All the .cs' .o files' paths
-TEST_PATH=$(call srcify, $(TEST_NAME)) # The path of the .c test file
 
 L_FLAGS=$(addprefix -l, $(LINKS)) #  # all the links... (-l*)
 W_FLAGS=$(addprefix -W, $(WARNINGS)) # all the warnings... (-W*)
@@ -26,7 +25,6 @@ add_deps=$(call append_rule,$(call get_rule, $(1))) # Add the dependency rule to
 
 $(shell rm -f $(DEPS_FILE))                        # Remove the old deps file
 $(foreach F, $(SRC_PATHS), $(call add_deps, $(F))) # For every .c file, add dependencies,
-$(call add_deps, $(TEST_PATH))                     # including the test file.
 
 #########
 # RULES #
@@ -42,9 +40,9 @@ include $(DEPS_FILE) # Include dynamic dependencies
 objs: $(OBJ_PATHS) # A proxy for compiling all objects
 
 # Rule to compile test.out. Main should be in TEST_PATH
-test.out: $(OBJ_PATHS) $(TEST_PATH)
-	@echo "Linking into ./test"
-	@$(CC) -g $^ $(L_FLAGS) -I$(INC) -o $@
+test/%: $(OBJ_PATHS) test/%.c test/test.h
+	@echo "Linking into %"
+	$(CC) -g $^ $(L_FLAGS) -I$(INC) -o $@
 
 # Compile a shared object and copy into python directory
 lib.so: $(OBJ_PATHS)
