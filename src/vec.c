@@ -68,7 +68,7 @@ static int vec_resize_smaller(vec *v)
 
     /* If we are using over one quarter capacity, or *
      * our capacity is at minimum already, return    */
-    if (length <= v->capacity >> 2 ||
+    if (length >= v->capacity >> 2 ||
         width  == v->capacity)
         ERR(OK, 0);
 
@@ -76,7 +76,7 @@ static int vec_resize_smaller(vec *v)
      * we still need shrink, keep doing it              */
     do
         v->capacity >>= 1;
-    while (length > v->capacity &&
+    while (length < v->capacity >> 2  &&
            width  < v->capacity);
 
     /* Now that we've changed v->capacity, we gotta realloc */
@@ -171,7 +171,7 @@ int vec_delete(vec *v, size_t index, size_t n)
     /* Move memory beyond offset backwards by amount. */
     memmove(addptr(v->data, offset),
             addptr(v->data, offset + amount),
-            v->length - offset);
+            v->length - offset - amount);
 
     /* Modify length and resize */
     v->length -= amount;

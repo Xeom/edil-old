@@ -34,7 +34,7 @@ int test_insert_start(void)
         vec_insert_start(v, 1, &i);
 
     TEST_VEC_RELATIONSHIP(v, 500 - i);
-    
+
     fputs("insert_start Sucessful\n", stderr);
     vec_free(v);
     return 0;
@@ -59,34 +59,30 @@ int test_insert_end(void)
     return 0;
 }
 
-/*int test_delete(void)
+int test_delete(void)
 {
-    INSERT_500
+    int *value, i;
+    vec *v;
+
+    v = vec_init(sizeof(int));
+    i = 0;
+
+    while (i++ < 500)
+        vec_insert_end(v, 1, &i);
 
     i = 0;
     while (i++ < 250)
         vec_delete(v, 0, 1);
 
-    i = 0;
-    while (i < 0)
-    {
-        value = (int *)vec_item(v, i);
+    TEST_VEC_RELATIONSHIP(v, i + 250);
 
-        if (value == NULL)
-        {
-            fputs(vec_err_str(), stderr);
-            return -1;
-        }
+    fputs("delete Sucessful\n", stderr);
+    vec_free(v);
 
-        TEST_ASSERT(*value == 500 - i,
-                    "insert_start: Item %d is %d. Should be %d",
-                    i, *value, 500 - i);
+    return 0;
+}
 
-         i++;
-    }
-
-*/
-        main()
+main()
 {
     test_count = 0;
     test_insert_start();
@@ -94,5 +90,7 @@ int test_insert_end(void)
     test_count = 0;
     test_insert_end();
     fprintf(stderr, "Performed %d tests\n", test_count);
-
+    test_count = 0;
+    test_delete();
+    fprintf(stderr, "Performed %d tests\n", test_count);
 }
