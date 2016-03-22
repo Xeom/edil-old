@@ -1,7 +1,9 @@
 #ifndef CHUNK_H
 # define CHUNK_H
+
 #include <stddef.h>
-#include "vec.h"
+
+#include "container/vec.h"
 
 typedef struct chunk_s chunk;
 

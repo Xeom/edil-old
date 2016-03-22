@@ -1,9 +1,10 @@
 #include <stdlib.h>
-#include "textcont.h"
 
 #include "line.h"
-#include "vec.h"
+#include "container/vec.h"
 #include "err.h"
+
+#include "textcont.h"
 
 textcont *textcont_init(void)
 {

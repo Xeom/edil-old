@@ -1,7 +1,7 @@
 #ifndef HOOK_H
 # define HOOK_H
 
-#include "vec.h"
+#include "container/vec.h"
 
 #define HOOK_PRIORITY_MAX 1000
 

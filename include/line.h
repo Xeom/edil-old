@@ -1,8 +1,10 @@
 #ifndef LINE_H
 #define LINE_H
+
 #include <stddef.h>
 #include <stdint.h>
-#include "vec.h"
+
+#include "container/vec.h"
 #include "chunk.h"
 
 typedef size_t lineno;

@@ -1,5 +1,6 @@
-#ifndef VEC_H
-#define VEC_H
+#ifndef CONTAINER_VEC_H
+#define CONTAINER_VEC_H
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -80,4 +81,4 @@ const char *vec_err_str(void);
 
 #define vec_insert_vec(vec, index, other) vec_insert(vec, index, vec_len(other), vec_item(other, 0))
 
-#endif /* VEC_H */
+#endif /* CONTAINER_VEC_H */

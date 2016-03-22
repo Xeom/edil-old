@@ -1,10 +1,11 @@
-#include "line.h"
-#include "vec.h"
+#include <stdlib.h>
+#include <string.h>
+
+#include "container/vec.h"
 #include "err.h"
 #include "face.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include "line.h"
 
 struct line_s
 {

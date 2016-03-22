@@ -1,7 +1,10 @@
-#include "err.h"
-#include "vec.h"
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "container/vec.h"
+
+#include "err.h"
+
 
 struct err_s
 {

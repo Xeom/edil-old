@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "vec.h"
+#include "container/vec.h"
 
 vecerr_t vecerr;
 
