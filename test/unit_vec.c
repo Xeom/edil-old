@@ -14,9 +14,9 @@
             fputs(vec_err_str(), stderr);       \
             return -1;                          \
         }                                       \
-        TEST_ASSERT(*value == lambda,                               \
+        TEST_ASSERT(*value == (lambda),                             \
                     "insert_start: Item %d is %d. Should be %d",    \
-                    i, *value, lambda);                             \
+                    i, *value, (lambda));                           \
         ++i;                                                        \
     }                                                               \
 }
@@ -35,8 +35,8 @@ int test_insert_start(void)
 
     TEST_VEC_RELATIONSHIP(v, 500 - i);
 
-    fputs("insert_start Sucessful\n", stderr);
     vec_free(v);
+
     return 0;
 }
 
@@ -53,7 +53,6 @@ int test_insert_end(void)
 
     TEST_VEC_RELATIONSHIP(v, i + 1);
 
-    fputs("insert_end Sucessful\n", stderr);
     vec_free(v);
 
     return 0;
@@ -76,21 +75,60 @@ int test_delete(void)
 
     TEST_VEC_RELATIONSHIP(v, i + 250);
 
-    fputs("delete Sucessful\n", stderr);
     vec_free(v);
 
     return 0;
 }
 
+int test_find(void)
+{
+    int *value, i;
+    vec *v;
+
+    v = vec_init(sizeof(int));
+    i = 0;
+
+    do
+        vec_insert_end(v, 1, &i);
+    while (i++ < 499);
+
+    TEST_VEC_RELATIONSHIP(v, vec_find(v, &i));
+
+    vec_free(v);
+
+    return 0;
+}
+
+int test_rfind(void)
+{
+    int *value, i;
+    vec *v;
+
+    v = vec_init(sizeof(int));
+    i = 0;
+
+    do
+        vec_insert_end(v, 1, &i);
+    while (i++ < 499);
+
+    TEST_VEC_RELATIONSHIP(v, vec_rfind(v, &i));
+
+    vec_free(v);
+
+    return 0;
+}
+
+int test_cut_start(void);
+
+int test_cut_end(void);
+
+int test_cut_middle(void);
+
 main()
 {
-    test_count = 0;
-    test_insert_start();
-    fprintf(stderr, "Performed %d tests\n", test_count);
-    test_count = 0;
-    test_insert_end();
-    fprintf(stderr, "Performed %d tests\n", test_count);
-    test_count = 0;
-    test_delete();
-    fprintf(stderr, "Performed %d tests\n", test_count);
+    TEST_DO(insert_start);
+    TEST_DO(insert_end);
+    TEST_DO(delete);
+    TEST_DO(find);
+    TEST_DO(rfind);
 }

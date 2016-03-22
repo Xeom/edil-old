@@ -18,7 +18,5 @@ LINKS=ncurses
 
 SRC_NAMES=line vec err cursor wintree wincont chunk textcont hook io ui/core ui/sbar ui/win ui/face ui/util
 
-TEST_NAME=test
-
 DEPS_FILE=deps.mk
 
