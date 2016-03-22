@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "vec.h"
+#include "container/vec.h"
 #include "test.h"
 
 #define TEST_VEC_RELATIONSHIP(vec, lambda)      \
