@@ -1,7 +1,9 @@
 #include <curses.h>
 
 #include "ui/face.h"
+#include "ui/util.h"
 #include "wintree.h"
+#include "callback.h"
 
 #include "ui/win.h"
 
@@ -55,7 +57,6 @@ int ui_win_draw(void)
     return 0;
 }
 
-
 static int ui_win_draw_wintree(wintree *tree)
 {
     size_t ln;
@@ -72,7 +73,8 @@ static int ui_win_draw_wintree(wintree *tree)
 
 static int ui_win_draw_wintree_frame(wintree *tree)
 {
-    size_t posx, posy, lastposx, lastposy;
+    size_t posx, posy, lastposx, lastposy, sizex, sizey;
+    char *caption;
 
     posx = wintree_get_posx(tree);
     posy = wintree_get_posy(tree);
@@ -80,26 +82,24 @@ static int ui_win_draw_wintree_frame(wintree *tree)
     if (wintree_get_sizey(tree) == 0 || wintree_get_sizex(tree) == 0)
         return -1;
 
-    lastposy = posy + wintree_get_sizey(tree) - 1;
-    lastposx = posx + wintree_get_sizex(tree) - 1;
+    sizex = wintree_get_sizex(tree);
+    sizey = wintree_get_sizey(tree);
 
-    while (posx < lastposx)
-    {
-        mvaddch(lastposy, posx, ui_win_horizontal_char);
-        ++posx;
-    }
+    lastposy = posy + sizey - 1;
+    lastposx = posx + sizex - 1;
+
+    caption = wintree_get_caption(tree);
+
+    move(lastposy, posx);
+    ui_util_draw_text_limited(sizex, caption, ui_win_horizontal_char);
 
     while (posy < lastposy)
-    {
-        mvaddch(posy, lastposx, ui_win_vertical_char);
-        ++posy;
-    }
+        mvaddch(posy++, lastposx, ui_win_vertical_char);
 
     mvaddch(lastposy, lastposx, ui_win_corner_char);
 
     return 0;
 }
-
 
 static void ui_win_draw_highlight(void)
 {

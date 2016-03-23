@@ -2,7 +2,7 @@
 
 #include "ui/util.h"
 
-int ui_util_draw_text_limited(size_t n, char *text)
+int ui_util_draw_text_limited(size_t n, char *text, char filler)
 {
     while (*text)
     {
@@ -18,7 +18,7 @@ int ui_util_draw_text_limited(size_t n, char *text)
     }
 
     while (n--)
-        addch(' ');
+        addch(filler);
 
     return 0;
 }

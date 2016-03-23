@@ -28,12 +28,12 @@ int ui_sbar_draw(void)
 
     getmaxyx(stdscr, maxy, maxx);
     move(maxy - 1, 0);
-    fputs("HI\n", stderr);
+
     if (ui_sbar_content == NULL)
         clrtoeol();
     else
-        ui_util_draw_text_limited(maxx, ui_sbar_content);
-    fputs("HO\n", stderr);
+        ui_util_draw_text_limited(maxx, ui_sbar_content, ' ');
+
     return 0;
 }
 

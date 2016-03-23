@@ -8,7 +8,7 @@
 
 #include "ui/core.h"
 
-hook *ui_on_resize;
+hook_add(ui_on_resize, 2);
 
 int ui_initsys(void)
 {
@@ -17,8 +17,6 @@ int ui_initsys(void)
     noecho();
     cbreak();
     keypad(stdscr, TRUE);
-
-    ui_on_resize = hook_init(2);
 
     ui_win_initsys();
     ui_sbar_initsys();
