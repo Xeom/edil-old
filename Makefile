@@ -16,7 +16,7 @@ W_FLAGS=$(addprefix -W, $(WARNINGS)) # all the warnings... (-W*)
 OBJ_FLAGS=-I$(INC)/ -g $(W_FLAGS) -fPIC # for compiling objects
 DEP_FLAGS=-I$(INC)/ -MM #               # for getting dependency rules
 
-get_rule=$(SRC)/$(subst \ ,,$(shell $(CC) $(DEP_FLAGS) $(1) -o -)) # Get a dependency rule for a
+get_rule=$(dir $(1))$(subst \ ,,$(shell $(CC) $(DEP_FLAGS) $(1) -o -)) # Get a dependency rule for a
                                                                    # file($(1)) from the compiler.
 
 append_rule=$(file >>$(DEPS_FILE),$(1)) # Append a rule ($(1)) to the dependecies file.
