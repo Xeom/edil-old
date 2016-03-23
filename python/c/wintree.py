@@ -84,15 +84,10 @@ get_selected = so.wintree_get_selected
 get_selected.argtypes = []
 get_selected.restype  = wintree_p
 
-#int wintree_select_next(wintree *tree)
-select_next = so.wintree_select_next
-select_next.argtypes = [wintree_p]
-select_next.restype  = ctypes.c_int
-
-#int wintree_select_up(wintree *tree);
-select_up = so.wintree_select_up
-select_up.argtypes = [wintree_p]
-select_up.restype  = ctypes.c_int
+#int wintree_select(wintree *tree)
+select = so.wintree_select
+select.argtypes = [wintree_p]
+select.restype  = ctypes.c_int
 
 #int wintree_split(wintree *tree, windir dir);
 split = so.wintree_split
@@ -102,24 +97,34 @@ split.restype  = ctypes.c_int
 #wincont *wintree_get_content(wintree *tree);
 get_content = so.wintree_get_content
 get_content.argtypes = [wintree_p]
-get_content.restype  = ctypes.c_int
+get_content.restype  = wincont_p
 
 #wintree *wintree_get_parent(wintree *tree);
 get_parent = so.wintree_get_parent
 get_parent.argtypes = [wintree_p]
-get_parent.restype  = ctypes.c_int
+get_parent.restype  = wintree_p
 
 #size_t wintree_get_sizex(wintree *tree);
 get_sizex = so.wintree_get_sizex
 get_sizex.argtypes = [wintree_p]
-get_sizex.restype  = ctypes.c_int
+get_sizex.restype  = ctypes.c_size_t
 
 #size_t wintree_get_sizey(wintree *tree);
 get_sizey = so.wintree_get_sizey
 get_sizey.argtypes = [wintree_p]
-get_sizey.restype  = ctypes.c_int
+get_sizey.restype  = ctypes.c_size_t
 
-on_resizex = ctypes.cast(so.wintree_on_resizex, ctypes.POINTER(hook_p)).contents
-on_resizey = ctypes.cast(so.wintree_on_resizey, ctypes.POINTER(hook_p)).contents
-on_create  = ctypes.cast(so.wintree_on_create,  ctypes.POINTER(hook_p)).contents
-on_delete  = ctypes.cast(so.wintree_on_delete,  ctypes.POINTER(hook_p)).contents
+#char *wintree_get_caption(wintree *tree);
+get_caption = so.wintree_get_caption
+get_caption.argtypes = [wintree_p]
+get_caption.restype  = ctypes.c_char_p
+
+#int wintree_set_caption(wintree *tree, const char *caption);
+set_caption = so.wintree_set_caption
+set_caption.argtypes = [wintree_p, ctypes.c_char_p]
+set_caption.restypes = ctypes.c_int
+
+on_resizex = ctypes.cast(so.wintree_on_resizex, hook_p)
+on_resizey = ctypes.cast(so.wintree_on_resizey, hook_p)
+on_create  = ctypes.cast(so.wintree_on_create,  hook_p)
+on_delete  = ctypes.cast(so.wintree_on_delete,  hook_p)

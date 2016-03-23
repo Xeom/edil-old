@@ -2,7 +2,7 @@ import ctypes
 from shared import lib as so
 
 from c.hook import hook_p
-
+from c.callback import callback_p
 
 initsys = so.ui_initsys
 initsys.argtypes = []
@@ -41,8 +41,7 @@ class sbar:
     set.argtypes = [ctypes.c_char_p]
     set.restype  = ctypes.c_int
 
-
-on_resize  = ctypes.cast(so.ui_on_resize,  ctypes.POINTER(hook_p)).contents
+on_resize  = ctypes.cast(so.ui_on_resize,  hook_p)
 
 def set_more_left(char):
     so.ui_more_left_char         = ctypes.c_char_p(ctypes.c_char(char))
