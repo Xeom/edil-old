@@ -12,18 +12,18 @@
 struct wintree_s
 {
     winsplitdir sdir;
-    char        selected;
+    char        selected, *caption;
     size_t      sizex, sizey, relposx, relposy;
     wintree    *parent, *sub1, *sub2;
     wincont    *content;
 };
 
-wintree *wintree_root;
+static wintree *wintree_root;
 
-hook *wintree_on_resizex;
-hook *wintree_on_resizey;
-hook *wintree_on_delete;
-hook *wintree_on_create;
+hook_add(wintree_on_resizex, 3);
+hook_add(wintree_on_resizey, 3);
+hook_add(wintree_on_delete,  1);
+hook_add(wintree_on_create,  1);
 
 static void wintree_free_norecurse(wintree *tree);
 static void wintree_free(wintree *tree);
@@ -42,11 +42,6 @@ static int wintree_set_sizey(wintree *tree, size_t newsize);
 
 int wintree_initsys(void)
 {
-    wintree_on_resizex = hook_init(3);
-    wintree_on_resizey = hook_init(3);
-    wintree_on_delete = hook_init(1);
-    wintree_on_create = hook_init(1);
-
     wintree_root = wintree_init(wincont_get_root());
     hook_call(wintree_on_create, wintree_root);
 
@@ -69,6 +64,15 @@ int wintree_set_root_size(size_t x, size_t y)
 {
     wintree_set_sizex(wintree_root, x);
     wintree_set_sizey(wintree_root, y);
+
+    return 0;
+}
+
+int wintree_set_caption(wintree *tree, const char *caption)
+{
+    tree->caption = malloc(strlen(caption));
+
+    strcpy(tree->caption, caption);
 
     return 0;
 }
@@ -318,6 +322,7 @@ static int wintree_set_sizey(wintree *tree, size_t newsize)
     size_t oldsize;
     int delta;
 
+    hook_call(wintree_on_resizey, &tree, &(tree->sizex), &newsize);
     /* Kill the tree if it's too small *
      * Just like kittens.              */
 /*    if (newsize < WINTREE_MIN_SIZE)
@@ -326,9 +331,9 @@ static int wintree_set_sizey(wintree *tree, size_t newsize)
     oldsize = tree->sizey;
     delta   = newsize - oldsize;
 
-/*    if (oldsize == newsize)
+    if (oldsize == newsize)
         return 0;
-*/
+
     tree->sizey = newsize;
 
     /* Content needs no further action */
@@ -359,15 +364,16 @@ static int wintree_set_sizex(wintree *tree, size_t newsize)
     size_t oldsize;
     int    delta;
 
+    hook_call(wintree_on_resizex, &tree, &newsize, &(tree->sizey));
 /*    if (newsize < WINTREE_MIN_SIZE)
         wintree_delete(tree);
 */
     oldsize = tree->sizex;
     delta   = newsize - oldsize;
-/*
+
     if (oldsize == newsize)
         return 0;
-*/
+
     tree->sizex = newsize;
 
     if (!issplitter(tree))
@@ -428,51 +434,20 @@ wintree *wintree_iter_start(void)
     return tree;
 }
 
-int wintree_select_up(wintree *tree)
+int wintree_select(wintree *tree)
 {
-    wintree *parent;
+    ASSERT_PTR(tree, high, return -1);
 
-    parent = tree->parent;
+    tree->selected = 0;
 
-    if (parent == NULL)
+    while (tree->parent)
     {
-        ERR_NEW(high, "wintree_select_up: Tried to go up from wintree root (or root with no parent)", NULL);
-        return -1;
-    }
+        if      (issub1(tree))
+            tree->parent->selected = 1;
+        else if (issub2(tree))
+            tree->parent->selected = 2;
 
-    parent->selected = 0;
-
-    return 0;
-}
-
-int wintree_select_next(wintree *tree)
-{
-    /* Notice this just counts the selected positions of *
-     * splitters in binary. 111, 112, 121, 122, 211, etc */
-    wintree *parent, *next;
-
-    parent = tree->parent;
-
-    /* If the tree is sub2, continue going up */
-    if      (issub2(tree))
-        return wintree_select_next(parent);
-
-    /* If the tree's sub1, we swap it to sub2 */
-    else if (issub1(tree))
-    {
-        parent->selected = 2;
-        next = parent->sub2;
-    }
-    /* If we got to the root, stop going up. *
-     * This makes us loop!                   */
-    else
-        next = tree;
-
-    /* Decend back down, selecting 1 the whole way */
-    while (next)
-    {
-        next->selected = 1;
-        next = next->sub1;
+        tree =  tree->parent;
     }
 
     return 0;
@@ -560,6 +535,16 @@ int wintree_split(wintree *tree, windir dir)
         hook_call(wintree_on_create, sub2);
 
     return 0;
+}
+
+char *wintree_get_caption(wintree *tree)
+{
+    ASSERT_PTR(tree, high, return "");
+
+    if (tree->caption)
+        return tree->caption;
+
+    return "";
 }
 
 /* This is here to annoy Stef(anie) */

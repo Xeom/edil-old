@@ -20,10 +20,10 @@ typedef enum
     none
 } winsplitdir;
 
-extern hook *wintree_on_resizex;
-extern hook *wintree_on_resizey;
-extern hook *wintree_on_delete;
-extern hook *wintree_on_create;
+extern hook wintree_on_resizex;
+extern hook wintree_on_resizey;
+extern hook wintree_on_delete;
+extern hook wintree_on_create;
 
 /*
  * Initialize the wintree system
@@ -44,6 +44,10 @@ int wintree_killsys(void);
  *
  */
 int wintree_set_root_size(size_t x, size_t y);
+
+/*
+ */
+int wintree_set_caption(wintree *tree, const char *caption);
 
 /*
  * Remove the selected wintree and her chilren from the wintree system. Her space will be filled by her daughters.
@@ -106,21 +110,12 @@ wintree *wintree_iter_start(void);
 wintree *wintree_get_selected(void);
 
 /*
- * Selects the next wintree, iterating in the same manner as wintree_iter_next. Can be handed other wintrees than the
- * currently selected one, but acts oddly if it is. Maybe I'll come up with a reason to do that later.
+ * Selects the wintree handed to it.
  *
- * tree is generally the currently selected wintree.
- *
- */
-int wintree_select_next(wintree *tree);
-
-/*
- * Ensures that the parent of tree is selected instead of tree or its sister
- *
- * tree is generally the currently selected wintree.
+ * tree is the wintree to select.
  *
  */
-int wintree_select_up(wintree *tree);
+int wintree_select(wintree *tree);
 
 /*
  * Splits the supplied wintree in a direction. A newly cloned copy of the currently selected content is placed in
@@ -134,9 +129,18 @@ int wintree_select_up(wintree *tree);
 int wintree_split(wintree *tree, windir dir);
 
 /*
+ * Returns the caption of a wintree, or an empty string on error or if the wintree has no caption
+ *
+ * tree is the wintree whose caption we want.
+ *
+ */
+char *wintree_get_caption(wintree *tree);
+
+/*
  * These functions simply return a property of a wintree
  *
  */
+
 wincont *wintree_get_content(wintree *tree);
 wintree *wintree_get_parent(wintree *tree);
 size_t   wintree_get_sizex(wintree *tree);
