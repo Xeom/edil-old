@@ -2,36 +2,42 @@
 
 import systems.ui
 import systems.windows
-import systems.faces
 import systems.hook
 import systems.io
-import c.lib
-import c.ui
+import c
 import time
-
+import ctypes
 import shared
 import signal
 
 #shared.lib.err_initsys()
 systems.windows.initsys()
 systems.ui.initsys()
-systems.faces.initsys()
 systems.io.initsys()
 
 systems.ui.refresh()
 
 open("textlog.txt", "w").write("")
 
+@systems.windows.hooks.resizex(100)
+@systems.windows.hooks.resizey(100)
+def handle_resize(w, x, y):
+    sizex = x.value
+    sizey = y.value
+
+    c.wintree.set_caption(w, bytes("{0}x{1}".format(sizey, sizex), "ascii"))
+
+
 @systems.io.hooks.keypress(1)
 def handle_hook(k):
     s = c.io.key_str(k)
-    c.ui.set_statusbar(s)
+    c.ui.sbar.set(s)
     c.lib.refresh()
 
 while True:
     char = c.lib.getch()
 
-    if char == c.ui.key_resize:
+    if char == c.io.key_resize:
         systems.ui.resize()
 
     if char == ord('w'):

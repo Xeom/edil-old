@@ -1,4 +1,5 @@
 import c.io
+import ctypes
 import systems.hook
 
 class hooks:

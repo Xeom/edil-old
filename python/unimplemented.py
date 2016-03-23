@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import os
 import importlib
 
@@ -16,6 +17,9 @@ for s in symbolsraw:
     addr, type, fname, line = s.split()
     file, lineno = line.split(":")
 
+    if type.lower() == type:
+        continue
+
     if file.startswith(sourcedir):
         key = file[len(sourcedir):]
         symbolsbyfile[key] = symbolsbyfile.get(key, []) + [fname]
@@ -23,12 +27,14 @@ for s in symbolsraw:
 for file, fnames in symbolsbyfile.items():
     if file.endswith(".c"):
         file = file[:-2]
+
     else:
         continue
 
     try:
         module = "c." + file.split("/")[0]
         obj    = importlib.import_module(module)
+
     except ImportError:
         print("No module " + module)
         continue

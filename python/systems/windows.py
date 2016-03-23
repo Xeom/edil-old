@@ -3,6 +3,7 @@ import c.wintree
 
 import systems.hook
 import ctypes
+import cutil
 
 class direction(c.wintree.dir):
     pass
@@ -21,7 +22,7 @@ def initsys():
 
     hooks.resizey = systems.hook.Hook(c.wintree.on_resizey,
                                       c.wintree.wintree_p, ctypes.c_size_t, ctypes.c_size_t)
-    
+
     hooks.delete = systems.hook.Hook(c.wintree.on_delete,
                                      c.wintree.wintree_p)
 
@@ -32,10 +33,18 @@ def split(direction):
     c.wintree.split(c.wintree.get_selected(), direction)
 
 def select_next():
-    c.wintree.select_next(c.wintree.get_selected())
+    curr = c.wintree.get_selected()
+    next = c.wintree.iter_next(curr)
+
+    if cutil.isnull(next):
+        next = c.wintree.iter_start()
+
+    c.wintree.select(next)
 
 def select_up():
-    c.wintree.select_up(c.wintree.get_selected())
+    curr = c.wintree.get_selected()
+    parent = c.wintree.get_parent(curr)
+    c.wintree.select(parent)
 
 def delete():
     c.wintree.delete(c.wintree.get_selected())
