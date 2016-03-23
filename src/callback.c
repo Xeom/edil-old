@@ -7,24 +7,7 @@
 
 #include "callback.h"
 
-void *callback_call_funct(callback *cb, callback_f f, vec *args);
-
-struct callback_s
-{
-    callback_f funct;
-    size_t     numargs;
-};
-
-callback *callback_init(size_t numargs)
-{
-    callback *rtn;
-
-    rtn = malloc(sizeof(callback));
-
-    rtn->funct = NULL;
-
-    return rtn;
-}
+void *callback_call_funct(callback cb, callback_f f, vec *args);
 
 int callback_mount(callback *cb, callback_f f)
 {
@@ -40,7 +23,7 @@ int callback_unmount(callback *cb)
     return 0;
 }
 
-void *callback_call(callback *cb, ...)
+void *callback_call(callback cb, ...)
 {
     void   *rtn;
     va_list args;
@@ -49,13 +32,17 @@ void *callback_call(callback *cb, ...)
 
     va_start(args, cb);
 
-    numargs = cb->numargs;
+    numargs = cb.numargs;
     argvec  = vec_init(sizeof(void *));
 
     while (numargs--)
-        vec_insert_end(argvec, 1, va_arg(args, void *));
+    {
+        void *arg;
+        arg = va_arg(args, void *);
+        vec_insert_end(argvec, 1, &arg);
+    }
 
-    rtn = callback_call_funct(cb, cb->funct, argvec);
+    rtn = callback_call_funct(cb, cb.funct, argvec);
 
     va_end(args);
     vec_free(argvec);
@@ -63,7 +50,10 @@ void *callback_call(callback *cb, ...)
     return rtn;
 }
 
-void *callback_call_funct(callback *cb, callback_f f, vec *args)
+void *callback_call_funct(callback cb, callback_f f, vec *args)
 {
+    if (f == NULL)
+        return NULL;
+
     return f(args, cb);
 }
