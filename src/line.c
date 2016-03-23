@@ -3,7 +3,7 @@
 
 #include "container/vec.h"
 #include "err.h"
-#include "face.h"
+#include "ui/face.h"
 
 #include "line.h"
 

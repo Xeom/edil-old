@@ -1,6 +1,9 @@
 #ifndef UI_CORE_H
 # define UI_CORE_H
 
+extern hook ui_on_resize;
+
+
 int ui_initsys(void);
 
 int ui_killsys(void);

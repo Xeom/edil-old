@@ -25,7 +25,7 @@ struct io_key_s
 
 io_key io_incomplete_key;
 
-hook *io_on_keypress;
+hook_add(io_on_keypress, 1);
 
 const int io_key_resize = KEY_RESIZE;
 
@@ -37,8 +37,6 @@ static int io_handle_completed_key(void);
 
 int io_initsys(void)
 {
-    io_on_keypress = hook_init(1);
-
     io_clear_incomplete_key();
 
     return 0;
@@ -92,6 +90,7 @@ static int io_handle_completed_key(void)
 
     return 0;
 }
+
 #include <stdio.h>
 int io_handle_chr(int chr)
 {

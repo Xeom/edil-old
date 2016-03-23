@@ -8,16 +8,22 @@
 typedef unsigned short priority;
 typedef struct hook_s hook;
 
-typedef void (*hook_f)(vec *, hook *);
+typedef void (*hook_f)(vec *, hook);
 
-hook *hook_init(size_t numargs);
+struct hook_s
+{
+    vec   *functs;
+    size_t numargs;
+};
 
-void hook_free(hook *h);
+#define hook_add(name, nargs) hook name = {NULL, nargs}
+
+void hook_free(hook h);
 
 int hook_mount(hook *h, hook_f f, priority pri);
 
 int hook_unmount(hook *h, hook_f f);
 
-int hook_call(hook *h, ...);
+int hook_call(hook h, ...);
 
 #endif /* HOOK_H */

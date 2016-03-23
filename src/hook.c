@@ -14,30 +14,11 @@ struct hook_fcont_s
     priority pri;
 };
 
-struct hook_s
+static void hook_call_funct(hook h, hook_fcont f, vec *args);
+
+void hook_free(hook h)
 {
-    vec   *functs;
-    size_t numargs;
-};
-
-void hook_call_funct(hook *h, hook_fcont f, vec *args);
-
-hook *hook_init(size_t numargs)
-{
-    hook *rtn;
-
-    rtn = malloc(sizeof(hook));
-
-    rtn->functs   = vec_init(sizeof(hook_fcont));
-    rtn->numargs  = numargs;
-
-    return rtn;
-}
-
-void hook_free(hook *h)
-{
-    vec_free(h->functs);
-    free(h);
+    vec_free(h.functs);
 }
 
 int hook_mount(hook *h, hook_f f, priority pri)
@@ -51,6 +32,9 @@ int hook_mount(hook *h, hook_f f, priority pri)
 
     functs = h->functs;
     index  = vec_len(functs);
+
+    if (functs == NULL)
+        functs = h->functs = vec_init(sizeof(hook_fcont));
 
     /* In today's episode of "I really can't be fucked to bi-search..." */
     while (index--)
@@ -83,7 +67,7 @@ int hook_unmount(hook *h, hook_f f)
     return 0;
 }
 
-int hook_call(hook *h, ...)
+int hook_call(hook h, ...)
 {
     va_list args;
     vec    *argvec;
@@ -91,13 +75,20 @@ int hook_call(hook *h, ...)
 
     va_start(args, h);
 
-    numargs = h->numargs;
+    if (h.functs == NULL)
+        return 0;
+
+    numargs = h.numargs;
     argvec  = vec_init(sizeof(void *));
 
     while (numargs--)
-        vec_insert_end(argvec, 1, va_arg(args, void *));
+    {
+        void *arg;
+        arg = va_arg(args, void *);
+        vec_insert_end(argvec, 1, &arg);
+    }
 
-    vec_foreach(h->functs, hook_fcont, cont,
+    vec_foreach(h.functs, hook_fcont, cont,
                 hook_call_funct(h, cont, argvec));
 
     va_end(args);
@@ -106,7 +97,7 @@ int hook_call(hook *h, ...)
     return 0;
 }
 
-void hook_call_funct(hook *h, hook_fcont f, vec *args)
+static void hook_call_funct(hook h, hook_fcont f, vec *args)
 {
     f.funct(args, h);
 }
