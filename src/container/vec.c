@@ -1,7 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <stddef.h>
-#include <stdint.h>
 
 #include "container/vec.h"
 
@@ -11,8 +9,10 @@ static int vec_realloc(vec *v);
 static int vec_resize_bigger(vec *v);
 static int vec_resize_smaller(vec *v);
 
+/* Set vecerr to an error with suffix err and return rtn */
 #define ERR(err, rtn) {vecerr = E_VEC_ ## err; return rtn;}
 
+/* Functions for pointer arithmetic */
 #define addptr(ptr, n) (void *)((intptr_t)(ptr) + (ptrdiff_t)(n))
 #define subptr(ptr, n) (void *)((intptr_t)(ptr) - (ptrdiff_t)(n))
 
@@ -48,7 +48,6 @@ static int vec_resize_bigger(vec *v)
      * set it to the minimum allowable value     */
     if (v->capacity < v->width)
         v->capacity = v->width;
-
 
     /* If we don't have capacity, double it, and if  *
      * that STILL isn't enough, keep doing it.       */
@@ -269,6 +268,7 @@ size_t vec_rfind(vec *v, const void *item)
     void *cmp, *first;
     size_t width, index;
 
+    /* Check the values */
     if (v == NULL)
         ERR(NULL_VEC, INVALID_INDEX);
 
@@ -311,14 +311,19 @@ vec *vec_cut(vec *v, size_t index, size_t n)
 
     width = v->width;
 
+    /* Offset is the offset of the startindex, *
+     * amount is the amount in bytes to cut    */
     offset = index * width;
-    amount = index * n;
+    amount =     n * width;
 
+    /* Ensure we have a valid range */
     if (offset + amount > v->length)
         ERR(INVALID_INDEX, NULL);
 
+    /* Starting point for cut */
     slice = addptr(v->data, offset);
 
+    /* Make a new vector for the cut */
     rtn = vec_init_raw(width);
     rtn->length = n;
 
@@ -328,6 +333,7 @@ vec *vec_cut(vec *v, size_t index, size_t n)
         return NULL;
     }
 
+    /* Copy the data for the cut to the new vector */
     memcpy(rtn->data, slice, amount);
 
     return rtn;
