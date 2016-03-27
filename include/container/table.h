@@ -1,3 +1,6 @@
+#ifndef CONTAINER_TABLE_H
+# define CONTAINER_TABLE_H
+
 typedef struct table_s table;
 
 typedef long unsigned int hash;
@@ -13,3 +16,5 @@ int table_insert(table *t, void *key, void *value);
 int table_delete(table *t, void *key);
 
 void *table_get(table *t, void *h);
+
+#endif /* CONTAINER_TABLE_H */
