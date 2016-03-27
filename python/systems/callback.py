@@ -39,8 +39,7 @@ class Callback:
                 pyargs.append(value)
 
             import sys
-            print(repr(self.types), file=sys.stderr)
-            print(list(cargs), file=sys.stderr)
+
             try:
                 return ctypes.cast(self.restype(pyfunct(*pyargs)), ctypes.c_void_p).value
             except:

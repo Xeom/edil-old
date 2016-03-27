@@ -18,7 +18,6 @@ def initsys():
 
     hooks.resize = systems.hook.Hook(c.ui.on_resize,
                                       ctypes.c_size_t, ctypes.c_size_t)
-
 def resize():
     c.ui.resize()
     refresh()

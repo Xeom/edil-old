@@ -33,19 +33,22 @@ class Hook:
 
     def wrap(self, pyfunct):
         def f(args, hook):
-            import sys
-
             cargs = c.vec.Vec(args, ctypes.c_void_p)
             pyargs = []
 
             for type, arg in zip(self.types, cargs):
-                value = ctypes.cast(arg, ctypes.POINTER(type)).contents
+                if issubclass(type, ctypes.Structure) or \
+                   issubclass(type, ctypes._SimpleCData):
+                    value = ctypes.cast(arg, ctypes.POINTER(type)).contents
+
+                else:
+                    value = type(arg)
+
                 pyargs.append(value)
 
-            print(pyargs)
-#            try:
-            pyfunct(*pyargs)
- #           except:
-  #              pass # TODO: Something
+            try:
+                pyfunct(*pyargs)
+            except:
+                pass # TODO: Something
 
         return f

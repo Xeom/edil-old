@@ -1,5 +1,6 @@
 import c.wincont
 import c.wintree
+import c.ui
 
 import systems.hook
 import ctypes
@@ -9,25 +10,26 @@ class direction(c.wintree.dir):
     pass
 
 class hooks:
-    resize = None
-    delete = None
-    create = None
+    resizex = None
+    resizey = None
+    delete  = None
+    create  = None
 
 def initsys():
     c.wincont.initsys()
     c.wintree.initsys()
 
     hooks.resizex = systems.hook.Hook(c.wintree.on_resizex,
-                                      c.wintree.wintree_p, ctypes.c_size_t, ctypes.c_size_t)
+                                      window, ctypes.c_size_t, ctypes.c_size_t)
 
     hooks.resizey = systems.hook.Hook(c.wintree.on_resizey,
-                                      c.wintree.wintree_p, ctypes.c_size_t, ctypes.c_size_t)
+                                      window, ctypes.c_size_t, ctypes.c_size_t)
 
     hooks.delete = systems.hook.Hook(c.wintree.on_delete,
-                                     c.wintree.wintree_p)
+                                     window)
 
     hooks.create = systems.hook.Hook(c.wintree.on_create,
-                                     c.wintree.wintree_p)
+                                     window)
 
 def split(direction):
     c.wintree.split(c.wintree.get_selected(), direction)
@@ -48,3 +50,30 @@ def select_up():
 
 def delete():
     c.wintree.delete(c.wintree.get_selected())
+
+class window:
+    def __init__(self, ptr):
+        self.struct = ctypes.cast(ptr, ctypes.POINTER(c.wintree.wintree_p)).contents
+
+
+    @property
+    def caption(self):
+        return c.wintree.get_caption(self.struct)
+
+    @caption.setter
+    def caption(self, value):
+        if isinstance(value, str):
+            value = bytes(value, "ascii")
+
+        c.wintree.set_caption(self.struct, value)
+
+    @property
+    def sidebar(self):
+        return c.wintree.get_sidebar(self.struct)
+
+    @sidebar.setter
+    def sidebar(self, value):
+        if isinstance(value, str):
+            value = bytes(value, "ascii")
+
+        c.wintree.set_sidebar(self.struct, value)
