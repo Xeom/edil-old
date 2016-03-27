@@ -24,14 +24,16 @@
 #define f_getattr(f)   ( (f->under ? A_UNDERLINE : 0) | (f->bright ? A_BOLD : 0) )
 #define f_getpairid(f) ( pairid(f->fgid, f->bgid) )
 
-void ui_face_initsys(void)
+int ui_face_initsys(void)
 {
     short id;
     id = 0;
 
     /* 0 is white on black. We set up colour pairs from 1 to 63 (black on white) */
     while (++id < 64)
-        init_pair(id, idgetfg(id), idgetbg(id));
+        ASSERT_NCR(init_pair(id, idgetfg(id), idgetbg(id)) != OK, critical, return -1);
+
+    return 0;
 }
 
 int ui_face_killsys(void)
@@ -43,9 +45,7 @@ face *ui_face_init(short fgid, short bgid)
 {
     face *rtn;
 
-    rtn = malloc(sizeof(face));
-
-    CHECK_ALLOC(face_init, rtn, NULL);
+    ASSERT_PTR(rtn = malloc(sizeof(face)), terminal, return NULL);
 
     rtn->fgid = fgid;
     rtn->bgid = bgid;
@@ -56,9 +56,14 @@ face *ui_face_init(short fgid, short bgid)
     return rtn;
 }
 
+void ui_face_free(face *f)
+{
+    free(f);
+}
+
 int ui_face_get_attr(face *f)
 {
-    CHECK_NULL_PRM(face_get_attr, f, 0);
+    ASSERT_PTR(f, high, return 0);
 
     return f_getattr(f) | COLOR_PAIR(f_getpairid(f));
 }
@@ -67,7 +72,7 @@ int ui_face_add_to_line(face *f, colno start, colno end, line *l)
 {
     vec  *faces;
 
-    CHECK_NULL_PRM(line_add_face, l, -1);
+    ASSERT_PTR(f, high, return -1);
 
     TRACE_PTR(faces = line_get_faces(l), return -1);
 
@@ -92,11 +97,13 @@ int ui_face_draw_at(face *f, size_t x, size_t y, size_t sizex, size_t sizey)
     attr_t attr;
     int    colorid;
 
+    ASSERT_PTR(f, high, return -1);
+
     attr    = f_getattr(f);
     colorid = f_getpairid(f);
 
     while (sizey--)
-        mvchgat(y + sizey, x, sizex, attr, colorid, NULL);
+        ASSERT_NCR(mvchgat(y + sizey, x, sizex, attr, colorid, NULL), high, return -1);
 
     return 0;
 }

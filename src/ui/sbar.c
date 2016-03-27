@@ -2,6 +2,7 @@
 #include <string.h>
 #include <curses.h>
 
+#include "err.h"
 #include "ui/util.h"
 
 #include "ui/sbar.h"
@@ -24,15 +25,16 @@ int ui_sbar_killsys(void)
 
 int ui_sbar_draw(void)
 {
-    size_t maxy, maxx;
+    int maxy, maxx;
 
     getmaxyx(stdscr, maxy, maxx);
-    move(maxy - 1, 0);
+
+    ASSERT_NCR(move(maxy - 1, 0), critical, return -1);
 
     if (ui_sbar_content == NULL)
-        clrtoeol();
+        ASSERT_NCR(clrtoeol(), critical, return -1)
     else
-        ui_util_draw_text_limited(maxx, ui_sbar_content, ' ');
+        TRACE_INT(ui_util_draw_text_limited_h(maxx - 1, ui_sbar_content, ' '), return -1);
 
     return 0;
 }
