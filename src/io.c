@@ -8,14 +8,17 @@
 
 #define  MOD_STR "E-"
 #define CTRL_STR "^"
+#define  IGN_STR "(Shh)"
 
 #define  MOD_STR_LEN (sizeof(MOD_STR)  - 1)
 #define CTRL_STR_LEN (sizeof(CTRL_STR) - 1)
+#define  IGN_STR_LEN (sizeof(IGN_STR)  - 1)
 
-#define KEYNAME_LEN 4
+#define KEYNAME_LEN 11
 
 #define CTRL_MODIFIER 1
 #define  MOD_MODIFIER 2
+#define  IGN_MODIFIER 4
 
 struct io_key_s
 {
@@ -26,14 +29,18 @@ struct io_key_s
 io_key io_incomplete_key;
 
 hook_add(io_on_keypress, 1);
+hook_add(io_on_ignored_keypress, 1);
 
+/* TODO: Figure if these should be extern */
 const int io_key_resize = KEY_RESIZE;
+const int io_keyname_len = KEYNAME_LEN;
 
 static void io_clear_incomplete_key(void);
-static int io_handle_completed_key(void);
+static int  io_handle_completed_key(void);
 
 #define HAS_CTRL(key) ((key.modifiers & CTRL_MODIFIER) != 0)
 #define HAS_MOD(key)  ((key.modifiers &  MOD_MODIFIER) != 0)
+#define HAS_IGN(key)  ((key.modifiers &  IGN_MODIFIER) != 0)
 
 int io_initsys(void)
 {
@@ -49,21 +56,36 @@ int io_killsys(void)
     return 0;
 }
 
+void io_ignore_curr(void)
+{
+    io_incomplete_key.modifiers |= IGN_MODIFIER;
+}
+
 static void io_clear_incomplete_key(void)
 {
     io_incomplete_key.modifiers = 0;
-    strcpy(io_incomplete_key.keyname, "<?>");
+    strcpy(io_incomplete_key.keyname, "<NULL>");
 }
 
 char *io_key_str(io_key key)
 {
+    size_t len;
     char *rtn, *ptr;
 
-    rtn = malloc((HAS_MOD(key)  ? MOD_STR_LEN : 0) +
-                 (HAS_CTRL(key) ? CTRL_STR_LEN : 0) +
-                 KEYNAME_LEN);
+    len = (HAS_MOD(key)  ?  MOD_STR_LEN : 0) +
+          (HAS_CTRL(key) ? CTRL_STR_LEN : 0) +
+          (HAS_IGN(key) ?   IGN_STR_LEN : 0) +
+          KEYNAME_LEN;
+
+    rtn = malloc(len);
 
     ptr = rtn;
+
+    if (HAS_IGN(key))
+    {
+        memcpy(ptr, IGN_STR, IGN_STR_LEN);
+        ptr += IGN_STR_LEN;
+    }
 
     if (HAS_MOD(key))
     {
@@ -77,7 +99,7 @@ char *io_key_str(io_key key)
         ptr += CTRL_STR_LEN;
     }
 
-    memcpy(ptr, key.keyname, KEYNAME_LEN);
+    memcpy(ptr, key.keyname, len);
 
     return rtn;
 }
@@ -91,7 +113,6 @@ static int io_handle_completed_key(void)
     return 0;
 }
 
-#include <stdio.h>
 int io_handle_chr(int chr)
 {
     int completed;
@@ -101,6 +122,7 @@ int io_handle_chr(int chr)
         completed                    = 0;
         io_incomplete_key.modifiers |= MOD_MODIFIER;
     }
+
     else if (chr < 32) /* ASCII Ctrl-Key control char */
     {
         completed                    = 1;
@@ -118,7 +140,18 @@ int io_handle_chr(int chr)
 
     else
     {
-        /* Dunno LOL */
+        const char *name;
+
+        completed = 1;
+        name = keyname(chr);
+
+        if (name && strncmp(name, "KEY_", 4) == 0)
+        {
+            strncpy(io_incomplete_key.keyname, name + 4, KEYNAME_LEN - 1);
+            io_incomplete_key.keyname[KEYNAME_LEN - 1] = '\0';
+        }
+        else
+            strcpy(io_incomplete_key.keyname, "<?>");
     }
 
     if (completed)
