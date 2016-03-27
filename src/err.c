@@ -26,8 +26,6 @@ struct err_s
 */
 vec *err_queue;
 
-void err_new_norecurse(errlvl level, const char *title, const char *detail);
-
 void err_initsys(void)
 {
     errlvl i;
@@ -75,7 +73,7 @@ void err_new(errlvl level, const char *title, const char *detail)
     e = malloc(sizeof(err));
 
     if (e == NULL)
-        FUCK_IT("err_new_norecurse: Could not allocate memory for error");
+        FUCK_IT("err_new: Could not allocate memory for error");
 
     if (title == NULL)
         title = "Unknown error";
@@ -92,7 +90,6 @@ void err_new(errlvl level, const char *title, const char *detail)
         level = high;
     }
 
-
     subptr = (vec **)vec_item(err_queue, level);
 
     if (subptr == NULL)
@@ -101,7 +98,7 @@ void err_new(errlvl level, const char *title, const char *detail)
     subqueue = *subptr;
     
     if (subqueue == NULL)
-        FUCK_VEC_ERR("err_new_norecurse: Error getting error subqueue");
+        FUCK_VEC_ERR("err_new: Error getting error subqueue");
 
     if (vec_insert(subqueue, 0, 1, e))
         FUCK_VEC_ERR("err_new: Error pushing error to subqueue");

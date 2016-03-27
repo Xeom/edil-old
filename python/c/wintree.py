@@ -122,7 +122,17 @@ get_caption.restype  = ctypes.c_char_p
 #int wintree_set_caption(wintree *tree, const char *caption);
 set_caption = so.wintree_set_caption
 set_caption.argtypes = [wintree_p, ctypes.c_char_p]
-set_caption.restypes = ctypes.c_int
+set_caption.restype  = ctypes.c_int
+
+#char *wintree_get_sidebar(wintree *tree);
+get_sidebar = so.wintree_get_caption
+get_sidebar.argtypes = [wintree_p]
+get_sidebar.restype  = ctypes.c_char_p
+
+#int wintree_set_sidebar(wintree *tree, const char *sidebar);
+set_sidebar = so.wintree_set_sidebar
+set_sidebar.argtypes = [wintree_p, ctypes.c_char_p]
+set_sidebar.restype  = ctypes.c_int
 
 on_resizex = ctypes.cast(so.wintree_on_resizex, hook_p)
 on_resizey = ctypes.cast(so.wintree_on_resizey, hook_p)

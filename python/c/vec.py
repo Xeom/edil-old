@@ -95,8 +95,6 @@ class Vec:
 
     def __iter__(self):
         for i in range(self.__len__()):
-            import sys
-            print(i, file=sys.stderr)
             yield self.get(i)
 
     def __len__(self):

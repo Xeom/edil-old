@@ -31,11 +31,13 @@ struct face_s
 };
 #undef BITFIELD_TYPE
 
-void ui_face_initsys(void);
+int ui_face_initsys(void);
 
 int ui_face_killsys(void);
 
 face *ui_face_init(short fgid, short bgid);
+
+void ui_face_free(face *f);
 
 int ui_face_get_attr(face *f);
 

@@ -1,8 +1,9 @@
 import ctypes
 from shared import lib as so
 
-from c.hook import hook_p
+from c.hook     import hook_p
 from c.callback import callback_p
+from c.wintree  import wintree_p
 
 initsys = so.ui_initsys
 initsys.argtypes = []
@@ -40,6 +41,23 @@ class sbar:
     set = so.ui_sbar_set
     set.argtypes = [ctypes.c_char_p]
     set.restype  = ctypes.c_int
+
+class win:
+    initsys = so.ui_win_initsys
+    initsys.argtypes = []
+    initsys.restype  = ctypes.c_int
+
+    killsys = so.ui_win_killsys
+    killsys.argtypes = []
+    killsys.restype  = ctypes.c_int
+
+    draw_subframes = so.ui_win_draw_subframes
+    draw_subframes.argtypes = [wintree_p]
+    draw_subframes.restype  = ctypes.c_int
+
+    draw = so.ui_win_draw
+    draw.argtypes = []
+    draw.restype  = ctypes.c_int
 
 on_resize  = ctypes.cast(so.ui_on_resize,  hook_p)
 

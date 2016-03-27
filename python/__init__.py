@@ -9,12 +9,13 @@ import time
 import ctypes
 import shared
 import signal
+import c.lib
 
 #shared.lib.err_initsys()
 systems.windows.initsys()
+
 systems.ui.initsys()
 systems.io.initsys()
-
 systems.ui.refresh()
 
 open("textlog.txt", "w").write("")
@@ -25,13 +26,13 @@ def handle_resize(w, x, y):
     sizex = x.value
     sizey = y.value
 
-    c.wintree.set_caption(w, bytes("{0}x{1}".format(sizey, sizex), "ascii"))
+    w.sidebar = "Cunt"
 
+    w.caption = "{}x{}".format(sizex, sizey)
 
 @systems.io.hooks.keypress(1)
 def handle_hook(k):
-    s = c.io.key_str(k)
-    c.ui.sbar.set(s)
+    c.ui.sbar.set(bytes(k))
     c.lib.refresh()
 
 while True:
@@ -66,9 +67,8 @@ while True:
 
     else:
         c.io.handle_chr(char)
-    systems.ui.refresh()
 
-sizex, sizey = c.wintree.get_sizex(c.wintree.get_selected()), c.wintree.get_sizey(c.wintree.get_selected())
+    c.lib.refresh()
 
 systems.ui.killsys()
-print(sizex, sizey)
+

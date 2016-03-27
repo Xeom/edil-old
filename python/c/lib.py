@@ -17,3 +17,5 @@ clear = so.clear
 clear.argtypes = []
 clear.restype  = ctypes.c_int
 
+free = so.free
+free.argtypes = [ctypes.c_void_p]
