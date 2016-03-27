@@ -12,14 +12,21 @@ typedef enum
     errlvl_end
 } errlvl;
 
-#define ERRLOC Line: __LINE__ File: __FILE__
+#ifndef STRIFY
+# ifndef REALLY_STRIFY
+#  define REALLY_STRIFY(x) #x
+#  define STRIFY(x) REALLY_STRIFY(x)
+# endif
+#endif
+
+#define ERRLOC " " __FILE__ ":" STRIFY(__LINE__)
 
 #define ASSERT_PTR(code, level, fail)                   \
     {                                                   \
         if ( (code) == NULL )                           \
         {                                               \
             err_new(level, "Expected Non-NULL pointer", \
-                    #code " returned NULL");            \
+                    #code " returned NULL" ERRLOC);   \
             {fail;}                                     \
         }                                               \
     }
@@ -30,7 +37,8 @@ typedef enum
         if ( (code) != 0 )                              \
         {                                               \
             err_new(level, "Expected 0 Return",         \
-                    #code " returned non-zero");        \
+                    #code " returned non-zero"          \
+                    ERRLOC);                          \
             {fail;}                                     \
         }                                               \
     }
@@ -40,7 +48,18 @@ typedef enum
         if ( (code) == INVALID_INDEX )                  \
         {                                               \
             err_new(level, "Invalid Index",             \
-                    #code " returned Invalid Index");   \
+                    #code " returned Invalid Index"     \
+                    ERRLOC);                          \
+            {fail;}                                     \
+        }                                               \
+    }
+
+#define ASSERT_NCR(code, level, fail)                   \
+    {                                                   \
+        if ( (code) == ERR )                            \
+        {                                               \
+            err_new(level, "Ncurses error",             \
+                    #code " returned ERR" ERRLOC);    \
             {fail;}                                     \
         }                                               \
     }
