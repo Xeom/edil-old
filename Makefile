@@ -52,7 +52,7 @@ lib.so: $(OBJ_PATHS)
 
 # Cleanup the repo
 clean:
-	@echo Removing deps.mj and *.o
+	@echo Removing $(DEPS_FILE) and *.o
 	@rm -f $(OBJ_PATHS) $(DEPS_FILE)
 
 # Nicer names
