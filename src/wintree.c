@@ -4,6 +4,7 @@
 
 #include "line.h"
 #include "err.h"
+#include "ui/win.h"
 
 #include "wintree.h"
 
@@ -11,14 +12,18 @@
 
 struct wintree_s
 {
+    char        *caption, *sidebar;
+
+    char        selected;
     winsplitdir sdir;
-    char        selected, *caption;
-    size_t      sizex, sizey, relposx, relposy;
+    size_t      sizex, sizey;
+    size_t      relposx, relposy;
+
     wintree    *parent, *sub1, *sub2;
     wincont    *content;
 };
 
-static wintree *wintree_root;
+wintree *wintree_root;
 
 hook_add(wintree_on_resizex, 3);
 hook_add(wintree_on_resizey, 3);
@@ -65,15 +70,26 @@ int wintree_set_root_size(size_t x, size_t y)
     wintree_set_sizex(wintree_root, x);
     wintree_set_sizey(wintree_root, y);
 
+    ui_win_draw();
+
     return 0;
 }
 
 int wintree_set_caption(wintree *tree, const char *caption)
 {
-    tree->caption = malloc(strlen(caption));
+    tree->caption = realloc(tree->caption, strlen(caption));
 
     strcpy(tree->caption, caption);
+    ui_win_draw_subframes(tree);
+    return 0;
+}
 
+int wintree_set_sidebar(wintree *tree, const char *sidebar)
+{
+    tree->sidebar = realloc(tree->sidebar, strlen(sidebar));
+
+    strcpy(tree->sidebar, sidebar);
+    ui_win_draw_subframes(tree);
     return 0;
 }
 
@@ -88,6 +104,8 @@ static wintree *wintree_init(wincont *content)
     /* Easier than setting individual attributes ... */
     memset(rtn, 0, sizeof(wintree));
 
+    rtn->caption = NULL;
+    rtn->sidebar = NULL;
     rtn->sdir    = none;
     rtn->content = content;
     rtn->selected = 1;
@@ -196,6 +214,8 @@ int wintree_delete(wintree *tree)
     wintree_free(tree);
     wintree_free_norecurse(sister);
 
+    ui_win_draw_sub(parent);
+
     return 0;
 }
 
@@ -210,6 +230,8 @@ int wintree_swap_prev(wintree *tree)
 
     tree->content = prev;
 
+    ui_win_draw_sub(tree);
+
     return 0;
 }
 
@@ -223,6 +245,8 @@ int wintree_swap_next(wintree *tree)
     TRACE_NULL(wintree_swap_next, wincont_next(tree->content), next, -1);
 
     tree->content = next;
+
+    ui_win_draw_sub(tree);
 
     return 0;
 }
@@ -313,6 +337,8 @@ int wintree_move_border(wintree *tree, int n)
 
         sub2->relposy += n;
     }
+
+    ui_win_draw_sub(tree);
 
     return 0;
 }
@@ -421,12 +447,8 @@ wintree *wintree_iter_next(wintree *tree)
     return next;
 }
 
-wintree *wintree_iter_start(void)
+wintree *wintree_iter_subs_start(wintree *tree)
 {
-    wintree *tree;
-
-    tree = wintree_root;
-
     /* Keep traversing down sub1s */
     while (tree->sub1)
         tree = tree->sub1;
@@ -434,9 +456,25 @@ wintree *wintree_iter_start(void)
     return tree;
 }
 
+wintree *wintree_iter_subs_end(wintree *tree)
+{
+    /* Keep traversing down sub2s */
+    while (tree->sub2)
+        tree = tree->sub2;
+
+    return tree;
+}
+
+wintree *wintree_iter_start(void)
+{
+    return wintree_iter_subs_start(wintree_root);
+}
+
 int wintree_select(wintree *tree)
 {
     ASSERT_PTR(tree, high, return -1);
+
+    ui_win_draw_highlight(ui_win_frame_face);
 
     tree->selected = 0;
 
@@ -449,6 +487,8 @@ int wintree_select(wintree *tree)
 
         tree =  tree->parent;
     }
+
+    ui_win_draw_highlight(ui_win_frame_sel_face);
 
     return 0;
 }
@@ -534,17 +574,32 @@ int wintree_split(wintree *tree, windir dir)
     else
         hook_call(wintree_on_create, sub2);
 
+    ui_win_draw_sub(tree);
+
     return 0;
 }
 
+static char *blank = "";
+
+char *wintree_get_sidebar(wintree *tree)
+{
+    ASSERT_PTR(tree, high, return blank);
+
+    if (tree->sidebar)
+        return tree->sidebar;
+
+    return blank;
+}
+
+
 char *wintree_get_caption(wintree *tree)
 {
-    ASSERT_PTR(tree, high, return "");
+    ASSERT_PTR(tree, high, return blank);
 
     if (tree->caption)
         return tree->caption;
 
-    return "";
+    return blank;
 }
 
 /* This is here to annoy Stef(anie) */

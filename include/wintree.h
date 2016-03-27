@@ -25,6 +25,8 @@ extern hook wintree_on_resizey;
 extern hook wintree_on_delete;
 extern hook wintree_on_create;
 
+extern wintree *wintree_root;
+
 /*
  * Initialize the wintree system
  *
@@ -48,6 +50,10 @@ int wintree_set_root_size(size_t x, size_t y);
 /*
  */
 int wintree_set_caption(wintree *tree, const char *caption);
+
+/*
+ */
+int wintree_set_sidebar(wintree *tree, const char *sidebar);
 
 /*
  * Remove the selected wintree and her chilren from the wintree system. Her space will be filled by her daughters.
@@ -98,6 +104,12 @@ size_t wintree_get_posy(wintree *tree);
  */
 wintree *wintree_iter_next(wintree *tree);
 
+
+/*
+ */
+wintree *wintree_iter_subs_start(wintree *tree);
+wintree *wintree_iter_subs_end(wintree *tree);
+
 /*
  *
  */
@@ -137,6 +149,14 @@ int wintree_split(wintree *tree, windir dir);
 char *wintree_get_caption(wintree *tree);
 
 /*
+ * Returns the sidebar of a wintree, or an empty string on error or if the wintree has no sidebar
+ *
+ * tree is the wintree whose caption we want.
+ *
+ */
+char *wintree_get_sidebar(wintree *tree);
+
+/*
  * These functions simply return a property of a wintree
  *
  */
@@ -145,5 +165,6 @@ wincont *wintree_get_content(wintree *tree);
 wintree *wintree_get_parent(wintree *tree);
 size_t   wintree_get_sizex(wintree *tree);
 size_t   wintree_get_sizey(wintree *tree);
+
 
 #endif /* WINTREE_H */
