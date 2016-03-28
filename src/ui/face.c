@@ -14,14 +14,14 @@
 /* This translates an fg and bg into the pairid it should be allocated 
  * It's a bit odd since id 0 must be white fg, black bg
  */
-#define pairid(fg, bg) (7 - (fg % 8) + (bg % 8) * 8)
+#define pairid(fg, bg) (short)(7 - (fg % 8) + (bg % 8) * 8)
 
 /* These macros just get the original fg and bg from a pairid */
-#define idgetbg(id)    (id / 8)
-#define idgetfg(id)    (7 - id % 8)
+#define idgetbg(id)    (short)(id / 8)
+#define idgetfg(id)    (short)(7 - id % 8)
 
 /* These get attributes and pairids from a face * */
-#define f_getattr(f)   ( (f->under ? A_UNDERLINE : 0) | (f->bright ? A_BOLD : 0) )
+#define f_getattr(f)   (attr_t)( (f->under ? A_UNDERLINE : 0) | (f->bright ? A_BOLD : 0) )
 #define f_getpairid(f) ( pairid(f->fgid, f->bgid) )
 
 int ui_face_initsys(void)
@@ -41,14 +41,14 @@ int ui_face_killsys(void)
     return 0;
 }
 
-face *ui_face_init(short fgid, short bgid)
+face *ui_face_init(ushort fgid, ushort bgid)
 {
     face *rtn;
 
     ASSERT_PTR(rtn = malloc(sizeof(face)), terminal, return NULL);
 
-    rtn->fgid = fgid;
-    rtn->bgid = bgid;
+    rtn->fgid = (uint)(fgid & 7);
+    rtn->bgid = (uint)(bgid & 7);
 
     rtn->under = 0;
     rtn->bright = 0;
@@ -63,9 +63,14 @@ void ui_face_free(face *f)
 
 int ui_face_get_attr(face *f)
 {
+    attr_t attr, color;
+
     ASSERT_PTR(f, high, return 0);
 
-    return f_getattr(f) | COLOR_PAIR(f_getpairid(f));
+    attr  = f_getattr(f);
+    color = COLOR_PAIR(f_getpairid(f));
+
+    return (int)(attr | color);
 }
 
 int ui_face_add_to_line(face *f, colno start, colno end, line *l)
@@ -92,10 +97,10 @@ int ui_face_add_to_line(face *f, colno start, colno end, line *l)
     return 0;
 }
 
-int ui_face_draw_at(face *f, size_t x, size_t y, size_t sizex, size_t sizey)
+int ui_face_draw_at(face *f, int x, int y, uint sizex, uint sizey)
 {
     attr_t attr;
-    int    colorid;
+    short  colorid;
 
     ASSERT_PTR(f, high, return -1);
 
@@ -103,7 +108,7 @@ int ui_face_draw_at(face *f, size_t x, size_t y, size_t sizex, size_t sizey)
     colorid = f_getpairid(f);
 
     while (sizey--)
-        ASSERT_NCR(mvchgat(y + sizey, x, sizex, attr, colorid, NULL), high, return -1);
+        ASSERT_NCR(mvchgat(y + (int)sizey, x, (int)sizex, attr, colorid, NULL), high, return -1);
 
     return 0;
 }

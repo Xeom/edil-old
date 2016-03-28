@@ -13,7 +13,7 @@ LN=ln
 SRC=src
 INC=include
 
-WARNINGS=all extra no-unused-parameter pedantic missing-prototypes fatal-errors format
+WARNINGS=all extra no-unused-parameter pedantic missing-prototypes fatal-errors format conversion
 LINKS=ncurses
 
 SRC_NAMES=line container/vec err cursor wintree wincont chunk textcont hook io ui/core ui/sbar ui/win ui/face ui/util callback container/table

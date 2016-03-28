@@ -56,13 +56,13 @@ int ui_draw(void)
 
 int ui_resize(void)
 {
-    size_t termy, termx;
+    int termy, termx;
 
     getmaxyx(stdscr, termy, termx);
 
     hook_call(ui_on_resize, &termy, &termx);
 
-    wintree_set_root_size(termx, termy - 1);
+    wintree_set_root_size((uint)termx, (uint)termy - 1);
 
     ui_refresh();
 

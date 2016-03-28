@@ -37,19 +37,19 @@ int ui_win_killsys(void)
 
 int ui_win_draw(void)
 {
-    size_t maxx, maxy;
+    int sizex, sizey;
 
-    getmaxyx(stdscr, maxy, maxx);
+    getmaxyx(stdscr, sizey, sizex);
 
-    ui_util_clear_area(0, 0, maxx, maxy);
+    ui_util_clear_area(0, 0, (uint)sizex, (uint)sizey);
 
     return ui_win_draw_subframes(wintree_root);
 }
 
 int ui_win_draw_sub(wintree *tree)
 {
-    size_t posx,  posy;
-    size_t sizex, sizey;
+    int  posx,  posy;
+    uint sizex, sizey;
 
     posx = wintree_get_posx(tree);
     posy = wintree_get_posy(tree);
@@ -57,6 +57,7 @@ int ui_win_draw_sub(wintree *tree)
     sizey = wintree_get_sizey(tree);
 
     ui_util_clear_area(posx, posy, sizex, sizey);
+
     return ui_win_draw_subframes(tree);
 }
 
@@ -91,9 +92,9 @@ int ui_win_draw_subframes(wintree *tree)
 
 static int ui_win_draw_frame(wintree *tree)
 {
-    size_t     posx,     posy;
-    size_t lastposx, lastposy;
-    size_t    sizex,    sizey;
+    int     posx,     posy;
+    int lastposx, lastposy;
+    uint   sizex,    sizey;
 
     char *caption, *sidebar;
 
@@ -106,8 +107,8 @@ static int ui_win_draw_frame(wintree *tree)
     sizex = wintree_get_sizex(tree);
     sizey = wintree_get_sizey(tree);
 
-    lastposy = posy + sizey - 1;
-    lastposx = posx + sizex - 1;
+    lastposy = posy + (int)sizey - 1;
+    lastposx = posx + (int)sizex - 1;
 
     caption = wintree_get_caption(tree);
     sidebar = wintree_get_sidebar(tree);
@@ -118,14 +119,15 @@ static int ui_win_draw_frame(wintree *tree)
     move(posy, lastposx);
     ui_util_draw_text_limited_v(sizey - 1, sidebar, ui_win_vertical_char);
 
-    mvaddch(lastposy, lastposx, ui_win_corner_char);
+    mvaddch(lastposy, lastposx, (uchar)ui_win_corner_char);
 
     return 0;
 }
 
 void ui_win_draw_highlight(face *f)
 {
-    size_t   posx, posy, sizex, sizey;
+    int   posx,  posy;
+    uint  sizex, sizey;
     wintree *selected;
 
     selected = wintree_get_selected();
@@ -139,6 +141,6 @@ void ui_win_draw_highlight(face *f)
     sizex = wintree_get_sizex(selected);
     sizey = wintree_get_sizey(selected);
 
-    ui_face_draw_at(f, posx, posy + sizey - 1, sizex, 1);
-    ui_face_draw_at(f, posx + sizex - 1, posy, 1, sizey);
+    ui_face_draw_at(f, posx, posy + (int)sizey - 1, sizex, 1);
+    ui_face_draw_at(f, posx + (int)sizex - 1, posy, 1, sizey);
 }

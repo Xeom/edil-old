@@ -1,7 +1,9 @@
 #ifndef WINTREE_H
 # define WINTREE_H
-#include "wincont.h"
-#include "hook.h"
+# include "head.h"
+
+# include "wincont.h"
+# include "hook.h"
 
 typedef struct wintree_s wintree;
 
@@ -45,7 +47,7 @@ int wintree_killsys(void);
  * y is the number of rows of the terminal.
  *
  */
-int wintree_set_root_size(size_t x, size_t y);
+int wintree_set_root_size(uint x, uint y);
 
 /*
  */
@@ -91,8 +93,8 @@ int wintree_move_border(wintree *tree, int n);
  * tree is the wintree whose position we want to obtain
  *
  */
-size_t wintree_get_posx(wintree *tree);
-size_t wintree_get_posy(wintree *tree);
+int wintree_get_posx(wintree *tree);
+int wintree_get_posy(wintree *tree);
 
 /*
  * Get the next tree 'after' a particular one. This allows for iteration across all content
@@ -163,8 +165,8 @@ char *wintree_get_sidebar(wintree *tree);
 
 wincont *wintree_get_content(wintree *tree);
 wintree *wintree_get_parent(wintree *tree);
-size_t   wintree_get_sizex(wintree *tree);
-size_t   wintree_get_sizey(wintree *tree);
+uint     wintree_get_sizex(wintree *tree);
+uint     wintree_get_sizey(wintree *tree);
 
 
 #endif /* WINTREE_H */

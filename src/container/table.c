@@ -106,7 +106,7 @@ static int table_resize_smaller(table *t)
 static hash table_get_hash(table *t, void *h)
 {
     if (t->hfunct == NULL)
-        return (intptr_t)h;
+        return (uintptr_t)h;
     else
         return t->hfunct(h);
 }

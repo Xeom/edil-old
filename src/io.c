@@ -1,6 +1,7 @@
 #include <curses.h>
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "hook.h"
 
@@ -126,7 +127,7 @@ int io_handle_chr(int chr)
     else if (chr < 32) /* ASCII Ctrl-Key control char */
     {
         completed                    = 1;
-        io_incomplete_key.keyname[0] = chr + 64;
+        io_incomplete_key.keyname[0] = (chr + 64) & CHAR_MAX;
         io_incomplete_key.keyname[1] = '\0';
         io_incomplete_key.modifiers |= CTRL_MODIFIER;
     }
@@ -134,7 +135,7 @@ int io_handle_chr(int chr)
     else if (chr < 128) /* Normal ascii character */
     {
         completed                    = 1;
-        io_incomplete_key.keyname[0] = chr;
+        io_incomplete_key.keyname[0] = chr & CHAR_MAX;
         io_incomplete_key.keyname[1] = '\0';
     }
 

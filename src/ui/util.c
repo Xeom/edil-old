@@ -4,7 +4,7 @@
 
 #include "ui/util.h"
 
-int ui_util_draw_text_limited_h(int n, const char *text, char filler)
+int ui_util_draw_text_limited_h(uint n, const char *text, char filler)
 {
     if (text == NULL)
         text = "";
@@ -17,18 +17,18 @@ int ui_util_draw_text_limited_h(int n, const char *text, char filler)
             return 0;
         }
 
-        ASSERT_NCR(addch(*(text++)), high, return -1);
+        ASSERT_NCR(addch((uchar)*(text++)), high, return -1);
 
         n--;
     }
 
     while (n--)
-        ASSERT_NCR(addch(filler), high, return -1);
+        ASSERT_NCR(addch((uchar)filler), high, return -1);
 
     return 0;
 }
 
-int ui_util_draw_text_limited_v(int n, const char *text, char filler)
+int ui_util_draw_text_limited_v(uint n, const char *text, char filler)
 {
     int x, curry;
 
@@ -46,24 +46,24 @@ int ui_util_draw_text_limited_v(int n, const char *text, char filler)
             return 0;
         }
 
-        ASSERT_NCR(mvaddch(curry++, x, *(text++)), high, return -1);
+        ASSERT_NCR(mvaddch(curry++, x, (uchar)*(text++)), high, return -1);
 
         n--;
     }
 
     while (n--)
-        ASSERT_NCR(mvaddch(curry++, x, filler), high, return -1);
+        ASSERT_NCR(mvaddch(curry++, x, (uchar)filler), high, return -1);
 
     return 0;
 }
 
-int ui_util_clear_area(int x, int y, unsigned int sizex, unsigned int sizey)
+int ui_util_clear_area(int x, int y, uint sizex, uint sizey)
 {
     int currx, curry;
     int  maxx,  maxy;
 
-    maxx = x + sizex;
-    maxy = y + sizey;
+    maxx = x + (int)sizex;
+    maxy = y + (int)sizey;
 
     for (currx = x; currx < maxx; currx++)
         for (curry = y; curry < maxy; curry++)

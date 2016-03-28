@@ -7,7 +7,8 @@
 
 #include "ui/sbar.h"
 
-char *ui_sbar_content;
+/* Somewhere to store the current contents of the statusbar */
+static char *ui_sbar_content;
 
 int ui_sbar_initsys(void)
 {
@@ -25,16 +26,17 @@ int ui_sbar_killsys(void)
 
 int ui_sbar_draw(void)
 {
-    int maxy, maxx;
+    int sizey, sizex;
 
-    getmaxyx(stdscr, maxy, maxx);
+    getmaxyx(stdscr, sizey, sizex);
 
-    ASSERT_NCR(move(maxy - 1, 0), critical, return -1);
+    ASSERT_NCR(move(sizey - 1, 0), critical, return -1);
 
     if (ui_sbar_content == NULL)
         ASSERT_NCR(clrtoeol(), critical, return -1)
     else
-        TRACE_INT(ui_util_draw_text_limited_h(maxx - 1, ui_sbar_content, ' '), return -1);
+        TRACE_INT(ui_util_draw_text_limited_h((uint)sizex - 1, ui_sbar_content, ' '),
+                  return -1);
 
     return 0;
 }
