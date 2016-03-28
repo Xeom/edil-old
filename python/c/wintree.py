@@ -34,10 +34,20 @@ killsys = so.wintree_killsys
 killsys.argtypes = []
 killsys.restype  = ctypes.c_int
 
-#int wintree_set_root_size(size_t x, size_t y)
+#int wintree_set_root_size(uint x, uint y)
 set_root_size = so.wintree_set_root_size
-set_root_size.argtypes = [ctypes.c_size_t, ctypes.c_size_t]
+set_root_size.argtypes = [ctypes.c_uint, ctypes.c_uint]
 set_root_size.restype  = ctypes.c_int
+
+#int wintree_set_caption(wintree *tree, const char *caption);
+set_caption = so.wintree_set_caption
+set_caption.argtypes = [wintree_p, ctypes.c_char_p]
+set_caption.restype  = ctypes.c_int
+
+#int wintree_set_sidebar(wintree *tree, const char *sidebar);
+set_sidebar = so.wintree_set_sidebar
+set_sidebar.argtypes = [wintree_p, ctypes.c_char_p]
+set_sidebar.restype  = ctypes.c_int
 
 #int wintree_delete(wintree *tree)
 delete = so.wintree_delete
@@ -104,35 +114,25 @@ get_parent = so.wintree_get_parent
 get_parent.argtypes = [wintree_p]
 get_parent.restype  = wintree_p
 
-#size_t wintree_get_sizex(wintree *tree);
+#uint wintree_get_sizex(wintree *tree);
 get_sizex = so.wintree_get_sizex
 get_sizex.argtypes = [wintree_p]
-get_sizex.restype  = ctypes.c_size_t
+get_sizex.restype  = ctypes.c_uint
 
-#size_t wintree_get_sizey(wintree *tree);
+#uint wintree_get_sizey(wintree *tree);
 get_sizey = so.wintree_get_sizey
 get_sizey.argtypes = [wintree_p]
-get_sizey.restype  = ctypes.c_size_t
+get_sizey.restype  = ctypes.c_uint
 
 #char *wintree_get_caption(wintree *tree);
 get_caption = so.wintree_get_caption
 get_caption.argtypes = [wintree_p]
 get_caption.restype  = ctypes.c_char_p
 
-#int wintree_set_caption(wintree *tree, const char *caption);
-set_caption = so.wintree_set_caption
-set_caption.argtypes = [wintree_p, ctypes.c_char_p]
-set_caption.restype  = ctypes.c_int
-
 #char *wintree_get_sidebar(wintree *tree);
 get_sidebar = so.wintree_get_caption
 get_sidebar.argtypes = [wintree_p]
 get_sidebar.restype  = ctypes.c_char_p
-
-#int wintree_set_sidebar(wintree *tree, const char *sidebar);
-set_sidebar = so.wintree_set_sidebar
-set_sidebar.argtypes = [wintree_p, ctypes.c_char_p]
-set_sidebar.restype  = ctypes.c_int
 
 on_resizex = ctypes.cast(so.wintree_on_resizex, hook_p)
 on_resizey = ctypes.cast(so.wintree_on_resizey, hook_p)

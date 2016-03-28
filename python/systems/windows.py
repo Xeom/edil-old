@@ -20,10 +20,10 @@ def initsys():
     c.wintree.initsys()
 
     hooks.resizex = systems.hook.Hook(c.wintree.on_resizex,
-                                      window, ctypes.c_size_t, ctypes.c_size_t)
+                                      window, ctypes.c_uint, ctypes.c_uint)
 
     hooks.resizey = systems.hook.Hook(c.wintree.on_resizey,
-                                      window, ctypes.c_size_t, ctypes.c_size_t)
+                                      window, ctypes.c_uint, ctypes.c_uint)
 
     hooks.delete = systems.hook.Hook(c.wintree.on_delete,
                                      window)
