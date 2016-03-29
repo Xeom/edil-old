@@ -42,6 +42,17 @@ extern vecerr_t vecerr;
 vec *vec_init(size_t width);
 
 /*
+ * Initialize a vector in memory that is already allocated. The function returns the
+ * argument mem, or NULL on failure.
+ *
+ * width is the size, in bytes of each item in the vector. e.g. sizeof(int) for a vector
+ * of integers.
+ *
+ * mem is a pointer to memory. It must be at least sizeof(vec) bytes long.
+ */
+vec *vec_create(size_t width, void *mem);
+
+/*
  * Free a vector's contents, and pointer.
  *
  * v is the vector to free.

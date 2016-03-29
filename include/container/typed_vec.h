@@ -14,6 +14,11 @@
 
 typedef vec VEC_TYPED_VNAME;
 
+static int VEC_TYPED_FNAME(create)(void *mem)
+{
+    return vec_create(sizeof(VEC_TYPED_TYPE), mem);
+}
+
 static VEC_TYPED_VNAME *VEC_TYPED_FNAME(init)(void)
 {
     return vec_init(sizeof(VEC_TYPED_TYPE));
@@ -67,6 +72,11 @@ static VEC_TYPED_TYPE VEC_TYPED_FNAME(get)(VEC_TYPED_VNAME *v, size_t index)
               return 0);
 
     return *rtnptr;
+}
+
+static int VEC_TYPED_FNAME(set)(VEC_TYPED_VNAME *v, size_t index, VEC_TYPED_TYPE value)
+{
+    return vec_insert(v, index, 1, &value);
 }
 
 #undef VEC_TYPED_TYPE
