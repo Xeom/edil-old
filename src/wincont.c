@@ -4,10 +4,11 @@
 #include "err.h"
 
 #include "wincont.h"
+#include "buffer/core.h"
 
 struct wincont_s
 {
-    textcont *text;
+    buffer   *buf;
     wincont  *next;
     wincont  *prev;
     lineno    startline;
@@ -19,7 +20,8 @@ wincont *wincont_root;
 int wincont_initsys(void)
 {
     wincont_root = NULL;
-    wincont_root = wincont_init(textcont_init());
+    TRACE_INT(wincont_root = wincont_init(buffer_init()),
+              return -1);
 
     wincont_root->prev = wincont_root;
     wincont_root->next = wincont_root;
@@ -41,11 +43,13 @@ int wincont_killsys(void)
 
     return 0;
 }
-wincont *wincont_init(textcont *text)
+
+wincont *wincont_init(buffer *b)
 {
     wincont *rtn;
 
-    rtn = malloc(sizeof(wincont));
+    ASSERT_PTR(rtn = malloc(sizeof(wincont)), terminal,
+               return NULL);
 
     if (wincont_root)
     {
@@ -57,7 +61,7 @@ wincont *wincont_init(textcont *text)
 
     memset(rtn, 0, sizeof(wincont));
 
-    rtn->text = text;
+    rtn->buf = b;
 
     return rtn;
 }
@@ -66,7 +70,10 @@ wincont *wincont_clone(wincont *cont)
 {
     wincont *rtn;
 
-    rtn = wincont_init(cont->text);
+    ASSERT_PTR(cont, high, return NULL);
+
+    TRACE_PTR(rtn = wincont_init(cont->buf),
+              return NULL);
 
     rtn->startline = cont->startline;
     rtn->startcol  = cont->startcol;
@@ -84,50 +91,15 @@ wincont *wincont_prev(wincont *cont)
     return cont->prev;
 }
 
-const char *wincont_get_line_text_const(wincont *cont, line *l)
-{
-    const char *linetext;
-
-    linetext = line_get_text_const(l);
-
-    if (cont->startcol >= line_get_len(l))
-        return "";
-    else
-        return linetext + cont->startcol;
-}
-
-line *wincont_get_line(wincont *cont, lineno ln)
-{
-    int   lineexists;
-    line *rtn;
-    lineno absln;
-
-    absln = ln + cont->startline;
-
-    lineexists = textcont_has_line(cont->text, absln);
-
-    if (lineexists == 0)
-    {
-        ERR_NEW(high, "wincont_get_line: Invalid line",
-                "textcont_has_line returned 0 - Line out of range of textcont");
-        return NULL;
-    }
-
-    if (lineexists == -1)
-        TRACE(wincont_get_line, textcont_has_line(cont->text, absln), NULL);
-
-    rtn = textcont_get_line(cont->text, absln);
-    TRACE_NULL(wincont_get_line, textcont_get_line(cont->txt, absln), rtn, NULL);
-
-    return rtn;
-}
-
 wincont *wincont_get_root(void)
 {
     return wincont_root;
 }
 
-textcont *wincont_get_textcont(wincont *cont)
+buffer *wincont_get_buffer(wincont *cont)
 {
-    return cont->text;
+    ASSERT_PTR(cont, high,
+               return NULL);
+
+    return cont->buf;
 }

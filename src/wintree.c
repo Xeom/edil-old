@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#include "line.h"
 #include "err.h"
 #include "ui/win.h"
 
@@ -17,7 +16,7 @@ struct wintree_s
     char        selected;
     winsplitdir sdir;
     uint        sizex, sizey;
-    int        relposx, relposy;
+    int         relposx, relposy;
 
     wintree    *parent, *sub1, *sub2;
     wincont    *content;
@@ -29,10 +28,12 @@ hook_add(wintree_on_resizex, 3);
 hook_add(wintree_on_resizey, 3);
 hook_add(wintree_on_delete,  1);
 hook_add(wintree_on_create,  1);
+hook_add(wintree_on_split,   1);
 
 static void wintree_free_norecurse(wintree *tree);
 static void wintree_free(wintree *tree);
-static void wintree_move_contents(wintree *dst, wintree *src);
+
+static int wintree_move_contents(wintree *dst, wintree *src);
 
 static wintree *wintree_init(wincont *content);
 static wintree *wintree_get_sister(wintree *tree);
@@ -47,7 +48,9 @@ static int wintree_set_sizey(wintree *tree, uint newsize);
 
 int wintree_initsys(void)
 {
-    wintree_root = wintree_init(wincont_get_root());
+    ASSERT_PTR(wintree_root = wintree_init(wincont_get_root()), terminal,
+               return -1);
+
     hook_call(wintree_on_create, wintree_root);
 
     return 0;
@@ -65,41 +68,12 @@ int wintree_killsys(void)
     return 0;
 }
 
-int wintree_set_root_size(uint x, uint y)
-{
-    wintree_set_sizex(wintree_root, x);
-    wintree_set_sizey(wintree_root, y);
-
-    ui_win_draw();
-
-    return 0;
-}
-
-int wintree_set_caption(wintree *tree, const char *caption)
-{
-    tree->caption = realloc(tree->caption, strlen(caption));
-
-    strcpy(tree->caption, caption);
-    ui_win_draw_subframes(tree);
-    return 0;
-}
-
-int wintree_set_sidebar(wintree *tree, const char *sidebar)
-{
-    tree->sidebar = realloc(tree->sidebar, strlen(sidebar));
-
-    strcpy(tree->sidebar, sidebar);
-    ui_win_draw_subframes(tree);
-    return 0;
-}
-
 static wintree *wintree_init(wincont *content)
 {
     wintree *rtn;
 
-    rtn = malloc(sizeof(wintree));
-
-    CHECK_ALLOC(wintree_init, rtn, NULL);
+    ASSERT_PTR(rtn = malloc(sizeof(wintree)), terminal,
+               return NULL);
 
     /* Easier than setting individual attributes ... */
     memset(rtn, 0, sizeof(wintree));
@@ -111,6 +85,13 @@ static wintree *wintree_init(wincont *content)
     rtn->selected = 1;
 
     return rtn;
+}
+
+/* Used internally for where we need to free a wintree without  *
+ * affecting its children                                       */
+static void wintree_free_norecurse(wintree *tree)
+{
+    free(tree);
 }
 
 static void wintree_free(wintree *tree)
@@ -125,11 +106,43 @@ static void wintree_free(wintree *tree)
     wintree_free_norecurse(tree);
 }
 
-/* Used internally for where we need to free a wintree without  *
- * affecting its children                                       */
-static void wintree_free_norecurse(wintree *tree)
+int wintree_set_root_size(uint x, uint y)
 {
-    free(tree);
+    TRACE_INT(wintree_set_sizex(wintree_root, x),
+              return -1);
+    TRACE_INT(wintree_set_sizey(wintree_root, y),
+              return -1);
+
+    TRACE_INT(ui_win_draw(),
+              return -1);
+
+    return 0;
+}
+
+int wintree_set_caption(wintree *tree, const char *caption)
+{
+    ASSERT_PTR(tree->caption = realloc(tree->caption, strlen(caption)),
+               terminal, return -1);
+
+    strcpy(tree->caption, caption);
+
+    TRACE_INT(ui_win_draw_subframes(tree),
+              return -1);
+
+    return 0;
+}
+
+int wintree_set_sidebar(wintree *tree, const char *sidebar)
+{
+    ASSERT_PTR(tree->sidebar = realloc(tree->sidebar, strlen(sidebar)),
+               terminal, return -1);
+
+    strcpy(tree->sidebar, sidebar);
+
+    TRACE_INT(ui_win_draw_subframes(tree),
+              return -1);
+
+    return 0;
 }
 
 /* Used internally to copy the children etc. of src to dst. The *
@@ -137,10 +150,13 @@ static void wintree_free_norecurse(wintree *tree)
  * src are adjusted to fit. The contents of src are generally   *
  * mutilated, and should be deleted to avoid bad shit, like     *
  * parents which do not know their child.                       */
-static void wintree_move_contents(wintree *dst, wintree *src)
+static int wintree_move_contents(wintree *dst, wintree *src)
 {
     wintree *sub1, *sub2;
     uint     newx,  newy;
+
+    ASSERT_PTR(dst, critical, return -1);
+    ASSERT_PTR(src, critical, return -1);
 
     newx = dst->sizex;
     newy = dst->sizey;
@@ -167,8 +183,12 @@ static void wintree_move_contents(wintree *dst, wintree *src)
 
     dst->content = src->content;
 
-    wintree_set_sizex(dst, newx);
-    wintree_set_sizey(dst, newy);
+    ASSERT_INT(wintree_set_sizex(dst, newx), critical,
+               return -1);
+    ASSERT_INT(wintree_set_sizey(dst, newy), critical,
+               return -1);
+
+    return 0;
 }
 
 /* Used internally to get the sister of a wintree. i.e. if a    *
@@ -176,6 +196,8 @@ static void wintree_move_contents(wintree *dst, wintree *src)
  * parent                                                       */
 static wintree *wintree_get_sister(wintree *tree)
 {
+    ASSERT_PTR(tree, critical, return NULL);
+
     /* If current tree is the sub1 of its parent, return her *
      * parent's sub2, and vice versa.                        */
     if (issub1(tree))
@@ -191,30 +213,25 @@ int wintree_delete(wintree *tree)
 {
     wintree *sister, *parent;
 
+    ASSERT_PTR(tree, high, return -1);
+
     parent = tree->parent;
 
     /* No, no you can't delete that */
-    if (parent == NULL)
-    {
-        ERR_NEW(high, "wintree_delete: Tried to delete wintree_root (or wintree with no parent)", NULL);
-        return -1;
-    }
+    ASSERT_PTR(parent, high, return -1);
 
     sister = wintree_get_sister(tree);
 
-    if (sister == NULL)
-    {
-        ERR_NEW(critical, "wintree_delete: Could not get sister", "Could not fetch sister to replace parent of tree");
-        return -1;
-    }
+    ASSERT_PTR(sister, critical, return -1);
+
     /* Because the parent splitter  is no longer needed, we can move the sister's *
      * contents into where it used to be.                                         */
-    wintree_move_contents(parent, sister);
+    TRACE_INT(wintree_move_contents(parent, sister), return -1);
 
     wintree_free(tree);
     wintree_free_norecurse(sister);
 
-    ui_win_draw_sub(parent);
+    TRACE_INT(ui_win_draw_sub(parent), return -1);
 
     return 0;
 }
@@ -223,14 +240,15 @@ int wintree_swap_prev(wintree *tree)
 {
     wincont *prev;
 
-    CHECK_NULL_PRM(wintree_swap_prev, tree, -1);
+    ASSERT_PTR(tree, high, return -1);
 
-    prev = wincont_prev(tree->content);
-    TRACE_NULL(wintree_swap_prev, wincont_prev(tree->content), prev, -1);
+    TRACE_PTR(prev = wincont_prev(tree->content),
+              return -1);
 
     tree->content = prev;
 
-    ui_win_draw_sub(tree);
+    TRACE_INT(ui_win_draw_sub(tree),
+              return -1);
 
     return 0;
 }
@@ -239,14 +257,15 @@ int wintree_swap_next(wintree *tree)
 {
     wincont *next;
 
-    CHECK_NULL_PRM(wintree_swap_next, tree, -1);
+    ASSERT_PTR(tree, high, return -1);
 
-    next = wincont_next(tree->content);
-    TRACE_NULL(wintree_swap_next, wincont_next(tree->content), next, -1);
+    ASSERT_PTR(next = wincont_next(tree->content), high,
+               return -1);
 
     tree->content = next;
 
-    ui_win_draw_sub(tree);
+    TRACE_INT(ui_win_draw_sub(tree),
+              return -1);
 
     return 0;
 }
@@ -255,7 +274,7 @@ int wintree_get_posx(wintree *tree)
 {
     int pos;
 
-    CHECK_NULL_PRM(wintree_get_posx, tree, -1);
+    ASSERT_PTR(tree, high, return -1);
 
     pos = 0;
     /* Add up the relative positions of all ancestors */
@@ -272,7 +291,7 @@ int wintree_get_posy(wintree *tree)
 {
     int pos;
 
-    CHECK_NULL_PRM(wintree_get_posx, tree, -1);
+    ASSERT_PTR(tree, high, return -1);
 
     pos = 0;
     /* Add up the relative positions of all ancestors */
@@ -474,7 +493,8 @@ int wintree_select(wintree *tree)
 {
     ASSERT_PTR(tree, high, return -1);
 
-    ui_win_draw_highlight(ui_win_frame_face);
+    TRACE_INT(ui_win_draw_highlight(ui_win_frame_face),
+              return -1);
 
     tree->selected = 0;
 
@@ -488,7 +508,8 @@ int wintree_select(wintree *tree)
         tree =  tree->parent;
     }
 
-    ui_win_draw_highlight(ui_win_frame_sel_face);
+    TRACE_INT(ui_win_draw_highlight(ui_win_frame_sel_face),
+              return -1);
 
     return 0;
 }
@@ -507,22 +528,21 @@ int wintree_split(wintree *tree, windir dir)
     /* We make two new subs to split into.                     *
      * this seems easier to implement than making a new        *
      * splitter and one new sub, after experimenting.          */
-    sub1 = wintree_init(NULL);
-    sub2 = wintree_init(NULL);
-
+    TRACE_PTR(sub1 = wintree_init(NULL), return -1);
+    TRACE_PTR(sub2 = wintree_init(NULL), return -1);
 
     /* Move the previous contents into sub2 if we split up or   *
      * left. This means that the new dir will be to the left or *
      * above us, depending which we choose.                     */
     if (dir == up || dir == left)
     {
-        wintree_move_contents(sub2, tree);
+        TRACE_INT(wintree_move_contents(sub2, tree), return -1);
         sub1->content = newcontent;
         tree->selected = 1;
     }
     else if (dir == down || dir == right)
     {
-        wintree_move_contents(sub1, tree);
+        TRACE_INT(wintree_move_contents(sub1, tree), return -1);
         sub2->content = newcontent;
         tree->selected = 2;
     }
@@ -531,27 +551,27 @@ int wintree_split(wintree *tree, windir dir)
     {
         tree->sdir = lr;
 
-        wintree_set_sizey(sub1, tree->sizey);
-        wintree_set_sizey(sub2, tree->sizey);
+        TRACE_INT(wintree_set_sizey(sub1, tree->sizey), return -1);
+        TRACE_INT(wintree_set_sizey(sub2, tree->sizey), return -1);
 
         /* Divide up the space (relposes are 0 by default) */
         newsize = tree->sizex / 2;
-        wintree_set_sizex(sub1, newsize);
+        TRACE_INT(wintree_set_sizex(sub1, newsize), return -1);
         sub2->relposx = (int)newsize;
 
         newsize = tree->sizex - newsize;
-        wintree_set_sizex(sub2, newsize);
+        TRACE_INT(wintree_set_sizex(sub2, newsize), return -1);
     }
     else if (dir == up || dir == down)
     {
         tree->sdir = ud;
 
-        wintree_set_sizex(sub1, tree->sizex);
-        wintree_set_sizex(sub2, tree->sizex);
+        TRACE_INT(wintree_set_sizex(sub1, tree->sizex), return -1);
+        TRACE_INT(wintree_set_sizex(sub2, tree->sizex), return -1);
 
         /* Divide up the space (relposes are 0 by default) */
         newsize = tree->sizey / 2;
-        wintree_set_sizey(sub1, newsize);
+        TRACE_INT(wintree_set_sizey(sub1, newsize), return -1);
         sub2->relposy = (int)newsize;
 
         newsize = tree->sizey - newsize;
@@ -574,7 +594,7 @@ int wintree_split(wintree *tree, windir dir)
     else
         hook_call(wintree_on_create, sub2);
 
-    ui_win_draw_sub(tree);
+    TRACE_INT(ui_win_draw_sub(tree), return -1);
 
     return 0;
 }
@@ -591,7 +611,6 @@ char *wintree_get_sidebar(wintree *tree)
     return blank;
 }
 
-
 char *wintree_get_caption(wintree *tree)
 {
     ASSERT_PTR(tree, high, return blank);
@@ -602,15 +621,26 @@ char *wintree_get_caption(wintree *tree)
     return blank;
 }
 
-/* This is here to annoy Stef(anie) */
-#define F_WINTREE_GET(type, name, errrtn)                      \
-    type wintree_get_ ## name (wintree *tree)                  \
-    {                                                          \
-        CHECK_NULL_PRM(wintree_get_ ## name, tree, errrtn);    \
-        return tree-> name;                                    \
-    }                                                          \
+uint wintree_get_sizex(wintree *tree)
+{
+    ASSERT_PTR(tree, high, return 0);
+    return tree->sizex;
+}
 
-F_WINTREE_GET(uint,     sizex, 0)
-F_WINTREE_GET(uint,     sizey, 0)
-F_WINTREE_GET(wincont*, content, NULL)
-F_WINTREE_GET(wintree*,  parent, NULL)
+uint wintree_get_sizey(wintree *tree)
+{
+    ASSERT_PTR(tree, high, return 0);
+    return tree->sizey;
+}
+
+wincont *wintree_get_content(wintree *tree)
+{
+    ASSERT_PTR(tree, high, return 0);
+    return tree->content;
+}
+
+wintree *wintree_get_parent(wintree *tree)
+{
+    ASSERT_PTR(tree, high, return 0);
+    return tree->parent;
+}

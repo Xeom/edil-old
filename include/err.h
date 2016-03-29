@@ -1,6 +1,8 @@
 #ifndef ERR_H
-#define ERR_H
-#include <stddef.h>
+# define ERR_H
+# include "head.h"
+
+# include <stddef.h>
 
 typedef enum
 {
@@ -12,25 +14,26 @@ typedef enum
     errlvl_end
 } errlvl;
 
-#ifndef STRIFY
-# ifndef REALLY_STRIFY
-#  define REALLY_STRIFY(x) #x
-#  define STRIFY(x) REALLY_STRIFY(x)
-# endif
-#endif
-
 #define ERRLOC " " __FILE__ ":" STRIFY(__LINE__)
+
+#define ASSERT(code, level, fail)                       \
+    {                                                   \
+        if ( ! (code) )                                 \
+        {                                               \
+            err_new(level, "Assertion failed",          \
+                    #code " returneed 0" ERRLOC);       \
+        }                                               \
+    }
 
 #define ASSERT_PTR(code, level, fail)                   \
     {                                                   \
         if ( (code) == NULL )                           \
         {                                               \
             err_new(level, "Expected Non-NULL pointer", \
-                    #code " returned NULL" ERRLOC);   \
+                    #code " returned NULL" ERRLOC);     \
             {fail;}                                     \
         }                                               \
     }
-
 
 #define ASSERT_INT(code, level, fail)                   \
     {                                                   \
@@ -64,7 +67,6 @@ typedef enum
         }                                               \
     }
 
-
 #define TRACE_PTR(code, fail) ASSERT_PTR(code, err_last_lvl, fail)
 #define TRACE_INT(code, fail) ASSERT_INT(code, err_last_lvl, fail)
 #define TRACE_IND(code, fail) ASSERT_IND(code, err_last_lvl, fail)
@@ -83,120 +85,7 @@ typedef enum
  *     This may be NULL.
  *
  */
-#define ERR_NEW(level, title, details) err_new(level, title, details)
-
-/*
- * Checks that var is not NULL. If it is, throws a high level error stating that funct was
- * handed var as a parameter, and it was null. The macro then returns rtn from the function
- * using this macro. A useful shortcut for ERR_NEW.
- *
- * funct is the name of the function using the macro.
- *
- * var is the variable to check for equality with NULL.
- *
- * rtn is the value to return from the function using this macro if var is NULL.
- *
- */
-#define CHECK_NULL_PRM(funct, var, rtn)                      \
-    if (var == NULL) {                                       \
-        ERR_NEW_STRIFY(high,                                 \
-                funct  : NULL argument, Argument name: var); \
-        return rtn;                                          \
-    }
-
-/*
- * Checks that var is not NULL. If it is, throws a terminal level error stating that the
- * application is out of memory. The macro then returns rtn from the function using this macro.
- * (Though that's not particularly useful, is it...) A useful shortcut for ERR_NEW.
- *
- * funct is the name of the function using this macro.
- *
- * var is the variable whose value to check for equality with NULL.
- *
- * rtn is the value to return from the function using this macro if var is NULL.
- *
- */
-#define CHECK_ALLOC(funct, var, rtn)                \
-    if (var == NULL) {                              \
-        ERR_NEW_STRIFY(terminal,                    \
-                funct : Out of memory,              \
-                Could not allocate memory for var); \
-        return rtn;                                 \
-    }
-
-/*
- * If var is non-zero, raises an error of the same level as the last error raised, stating that
- * call had an error while being called from funct. The macro then returns rtn from the function
- * using the macro. Used for producing pseudo-tracebacks of errors. NOTE: Proper tracebacks may
- * be implmented in the future.
- *
- * funct is the name of the function using this macro.
- *
- * call is the function and parameters that produced var's value.
- *
- * var is the variable whose value to check for equality with zero.
- *
- * rtn is the value to return from the function using this macro if var is nonzero.
- */
-#define TRACE_NONZRO(funct, call, var, rtn)         \
-    if (var) {                                      \
-        ERR_NEW_STRIFY(err_last_lvl,                \
-                funct : Call call failed,           \
-                call returned nonzero return code); \
-        return rtn;                                 \
-    }
-
-/*
- * Perform call, and if it returns a nonzero value, use TRACE_NONZERO with call as the call
- * and var.
- *
- * funct is the name of the function using this macro.
- *
- * call is the function to call and check the return value of.
- *
- * rtn is the value to return from the function using this macro if var is NULL.
- */
-#define TRACE_NONZRO_CALL(funct, call, rtn) TRACE_NONZRO(funct, call, call, rtn)
-
-/*
- * If var is NULL, raises an error of the same level as the last error raised, stating that
- * call had an error while being called from funct. The macro then returns rtn from the function
- * using the macro. Used for producing pseudo-tracebacks of errors. NOTE: Proper tracebacks may
- * be implmented in the future.
- *
- * funct is the name of the function using this macro.
- *
- * call is the function and parameters that produced var's value.
- *
- * var is the variable whose value to check for equality with NULL.
- *
- * rtn is the value to return from the function using this macro if var is NULL.
- */
-#define TRACE_NULL(funct, call, var, rtn)                               \
-    if (var == NULL) {                                                  \
-        ERR_NEW_STRIFY(err_last_lvl,                                    \
-                funct : Call call failed,                               \
-                call returned nonzero return code ERRLOC);              \
-        return rtn;                                                     \
-    }
-/*
- * Raises an error of the save level as the last error raised, stating that funct had an error
- * calling call. Then returns value rtn. Used for producing pseudo-tracebacks of errors. NOTE: Proper
- * tracebacks may be implemented in the future.
- *
- * funct is the name of the function using this macro.
- *
- * call is the function and parameters that caused the error.
- *
- * rtn is the value to return from the function using this macro.
- */
-#define TRACE(funct, call, rtn)                    \
-    {                                              \
-        ERR_NEW_STRIFY(err_last_lvl,               \
-                funct : Call call failed,          \
-                call experienced an error ERRLOC); \
-        return rtn;                                \
-    }
+#define ERR_NEW(level, title, details) err_new(level, title, details ERRLOC)
 
 typedef struct err_s err;
 

@@ -3,7 +3,8 @@
 #include <stdlib.h>
 
 #include "err.h"
-#include "line.h"
+#include "buffer/line.h"
+#include "container/vec.h"
 
 #include "ui/face.h"
 

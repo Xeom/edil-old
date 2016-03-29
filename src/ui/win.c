@@ -124,7 +124,7 @@ static int ui_win_draw_frame(wintree *tree)
     return 0;
 }
 
-void ui_win_draw_highlight(face *f)
+int ui_win_draw_highlight(face *f)
 {
     int   posx,  posy;
     uint  sizex, sizey;
@@ -133,7 +133,7 @@ void ui_win_draw_highlight(face *f)
     selected = wintree_get_selected();
 
     if (selected == NULL)
-        return;
+        return -1;
 
     posx  = wintree_get_posx(selected);
     posy  = wintree_get_posy(selected);
@@ -143,4 +143,6 @@ void ui_win_draw_highlight(face *f)
 
     ui_face_draw_at(f, posx, posy + (int)sizey - 1, sizex, 1);
     ui_face_draw_at(f, posx + (int)sizex - 1, posy, 1, sizey);
+
+    return 0;
 }
