@@ -13,7 +13,7 @@ OBJ_PATHS=$(call objify, $(SRC_NAMES)) # All the .cs' .o files' paths
 L_FLAGS=$(addprefix -l, $(LINKS)) #  # all the links... (-l*)
 W_FLAGS=$(addprefix -W, $(WARNINGS)) # all the warnings... (-W*)
 
-OBJ_FLAGS=-I$(INC)/ -g $(W_FLAGS) -fPIC # for compiling objects
+OBJ_FLAGS=-I$(INC)/ -g $(W_FLAGS) -fPIC --std=c99 # for compiling objects
 DEP_FLAGS=-I$(INC)/ -MM #               # for getting dependency rules
 
 get_rule=$(dir $(1))$(subst \ ,,$(shell $(CC) $(DEP_FLAGS) $(1) -o -)) # Get a dependency rule for a
