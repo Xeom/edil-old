@@ -18,8 +18,7 @@ struct chunk_s
 };
 
 static int buffer_chunk_correct_startlines(chunk *c);
-static chunk *buffer_chunk_insert_after(chunk *c);
-/*static chunk *buffer_chunk_insert_before(chunk *c);*/
+static chunk *buffer_chunk_insert(chunk *c);
 static void buffer_chunk_delete(chunk *c);
 static chunk *buffer_chunk_resize_bigger(chunk *c);
 static chunk *buffer_chunk_resize_smaller(chunk *c);
@@ -58,7 +57,7 @@ static int buffer_chunk_correct_startlines(chunk *c)
     return 0;
 }
 
-static chunk *buffer_chunk_insert_after(chunk *c)
+static chunk *buffer_chunk_insert(chunk *c)
 {
     chunk *rtn;
 
@@ -77,25 +76,6 @@ static chunk *buffer_chunk_insert_after(chunk *c)
     return rtn;
 }
 
-/*static chunk *buffer_chunk_insert_before(chunk *c)
-{
-    chunk *rtn;
-
-    rtn = buffer_chunk_init();
-
-    rtn->next = c;
-    rtn->prev = c->prev;
-
-    if (c->prev)
-        c->prev->next = rtn;
-
-    c->prev   = rtn;
-
-    rtn->startline = c->startline;
-
-    return rtn;
-}
-*/
 static void buffer_chunk_delete(chunk *c)
 {
     if (c->next)
@@ -140,7 +120,7 @@ static chunk *buffer_chunk_resize_bigger(chunk *c)
     if (c->next)
         next = c->next;
     else
-        next = buffer_chunk_insert_after(c);
+        next = buffer_chunk_insert(c);
 
     amount = len - BUFFER_CHUNK_DEF_SIZE;
     iter   = vec_lines_item((vec_lines *)c, BUFFER_CHUNK_DEF_SIZE);

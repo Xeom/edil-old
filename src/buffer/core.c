@@ -2,6 +2,8 @@
 #define VEC_TYPED_NAME curs
 #include "container/typed_vec.h"
 */
+#include <stdlib.h>
+
 #include "buffer/chunk.h"
 #include "buffer/line.h"
 
@@ -9,7 +11,6 @@
 #define VEC_TYPED_TYPE line *
 #define VEC_TYPED_NAME lines
 #include "container/typed_vec.h"
-
 
 #include "buffer/core.h"
 
@@ -21,9 +22,25 @@ struct buffer_s
 
 static inline chunk *buffer_get_containing_chunk(buffer *b, lineno ln);
 
-buffer *buffer_init(void);
+buffer *buffer_init(void)
+{
+    buffer *rtn;
 
-void buffer_free(buffer *b);
+    rtn = malloc(sizeof(buffer));
+    vec_lines_create((vec_lines *)rtn);
+
+    rtn->name = NULL;
+
+    return rtn;
+}
+
+void buffer_free(buffer *b)
+{
+    if (b->name)
+        free(b->name);
+
+    vec_lines_free((vec_lines *)b);
+}
 
 static inline chunk *buffer_get_containing_chunk(buffer *b, lineno ln)
 {
