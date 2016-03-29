@@ -5,6 +5,7 @@
 # include <stddef.h>
 
 typedef size_t lineno;
+typedef size_t colno;
 
 typedef struct line_s line;
 typedef struct chunk_s chunk;

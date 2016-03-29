@@ -10,6 +10,12 @@
 #define VEC_TYPED_NAME lines
 #include "container/typed_vec.h"
 
+#define VEC_TYPED_GETSET
+#define VEC_TYPED_TYPE char
+#define VEC_TYPED_NAME char
+#include "container/typed_vec.h"
+
+
 struct line_s
 {
     vec text;
@@ -20,14 +26,14 @@ line *buffer_line_init(void)
 {
     line *rtn = malloc(sizeof(line));
 
-    vec_lines_create(rtn);
+    vec_char_create(rtn);
 
     return rtn;
 }
 
 void buffer_line_free(line *l)
 {
-    vec_lines_free((vec_lines *)l);
+    vec_char_free((vec_lines *)l);
 }
 
 int buffer_line_set_chunk(line *l, chunk *c)

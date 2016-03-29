@@ -1,7 +1,8 @@
 #ifndef WINCONT_H
 # define WINCONT_H
-#include "line.h"
-#include "textcont.h"
+# include "head.h"
+
+# include "buffer/core.h"
 
 typedef struct wincont_s wincont;
 
@@ -19,7 +20,7 @@ int wincont_killsys(void);
  * text is a pointer to the textcont the window content container should contain
  *
  */
-wincont *wincont_init(textcont *text);
+wincont *wincont_init(buffer *text);
 
 /*
  * Copies a wincont, adding it to the ring, allowing for the "forking" of a window, so
@@ -71,6 +72,6 @@ const char *wincont_get_line_text_const(wincont *cont, line *l);
 
 /*
  */
-textcont *wincont_get_textcont(wincont *cont);
+buffer*wincont_get_buffer(wincont *cont);
 
 #endif /* WINCONT_H */

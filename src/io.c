@@ -9,13 +9,14 @@
 
 #define  MOD_STR "E-"
 #define CTRL_STR "^"
-#define  IGN_STR "(Shh)"
+#define  IGN_STR "(Shh)" /* Shh..... */
 
 #define  MOD_STR_LEN (sizeof(MOD_STR)  - 1)
 #define CTRL_STR_LEN (sizeof(CTRL_STR) - 1)
 #define  IGN_STR_LEN (sizeof(IGN_STR)  - 1)
 
-#define KEYNAME_LEN 11
+/* A well chosen and definitely not arbitrary number */
+#define KEYNAME_LEN 15
 
 #define CTRL_MODIFIER 1
 #define  MOD_MODIFIER 2

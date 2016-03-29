@@ -38,7 +38,7 @@ int ui_win_draw_subframes(wintree *tree);
  */
 int ui_win_draw(void);
 
-void ui_win_draw_highlight(face *f);
+int ui_win_draw_highlight(face *f);
 
 #endif /* UI_WIN_H */
 

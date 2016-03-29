@@ -2,7 +2,7 @@
 # define UI_FACE_H
 # include "head.h"
 
-# include "line.h"
+# include "buffer/line.h"
 
 typedef struct face_s face;
 

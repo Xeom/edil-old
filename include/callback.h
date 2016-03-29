@@ -1,8 +1,6 @@
 #ifndef CALLBACK_H
 # define CALLBACK_H
 
-
-
 typedef struct callback_s callback;
 typedef void *(*callback_f)(vec *, callback);
 

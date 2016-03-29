@@ -34,6 +34,7 @@ chunk *buffer_chunk_init(void)
 
     rtn->next = NULL;
     rtn->prev = NULL;
+
     rtn->startline = 0;
 
     return rtn;
@@ -44,7 +45,7 @@ static int buffer_chunk_correct_startlines(chunk *c)
     lineno currstart;
 
     if (c->prev)
-        currstart = c->prev->startline + vec_lines_len((vec_lines *)c);
+        currstart = c->prev->startline + vec_lines_len((vec_lines *)c->prev);
     else
         currstart = 0;
 
@@ -93,29 +94,36 @@ static void buffer_chunk_free_norecurse(chunk *c)
 {
     vec_foreach((vec *)c, line *, l,
                 buffer_line_free(l));
+
     vec_lines_free((vec_lines *)c);
 }
 
 void buffer_chunk_free(chunk *c)
 {
-    chunk *probe;
+    chunk *curr, *next;
 
-    probe = c;
+    curr = c->next;
+    while (curr)
+    {
+        next = curr->next;
+        buffer_chunk_free_norecurse(curr);
+        curr = next;
+    }
 
-    while ((probe = probe->prev))
-        buffer_chunk_free_norecurse(probe);
-
-    probe = c;
-
-    while ((probe = probe->next))
-        buffer_chunk_free_norecurse(probe);
+    curr = c->prev;
+    while (curr)
+    {
+        next = curr->prev;
+        buffer_chunk_free_norecurse(curr);
+        curr = next;
+    }
 
     buffer_chunk_free_norecurse(c);
 }
 
-#define BUFFER_CHUNK_MAX_SIZE 512
-#define BUFFER_CHUNK_MIN_SIZE 128
-#define BUFFER_CHUNK_DEF_SIZE 256
+#define BUFFER_CHUNK_MAX_SIZE 10
+#define BUFFER_CHUNK_MIN_SIZE 2
+#define BUFFER_CHUNK_DEF_SIZE 5
 
 static chunk *buffer_chunk_insert_lines(chunk *c, size_t index, size_t n, line **lines)
 {
@@ -226,6 +234,7 @@ chunk *buffer_chunk_get_containing(chunk *c, lineno ln)
 
 lineno buffer_chunk_lineno_to_offset(chunk *c, lineno ln)
 {
+
     return ln - c->startline;
 }
 
