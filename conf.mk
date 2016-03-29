@@ -19,6 +19,7 @@ LINKS=ncurses
 SRC_NAMES=line err cursor wintree wincont chunk textcont hook io callback \
  buffer/chunk buffer/core buffer/line \
  container/table container/vec \
- ui/core ui/sbar ui/win ui/face ui/util
+ ui/core ui/sbar ui/win ui/face ui/util \
+ io/file
 DEPS_FILE=deps.mk
 

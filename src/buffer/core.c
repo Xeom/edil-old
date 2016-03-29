@@ -12,6 +12,7 @@
 #define VEC_TYPED_NAME lines
 #include "container/typed_vec.h"
 
+
 #include "buffer/core.h"
 
 struct buffer_s
@@ -27,8 +28,8 @@ buffer *buffer_init(void)
     buffer *rtn;
 
     rtn = malloc(sizeof(buffer));
-    vec_lines_create((vec_lines *)rtn);
 
+    rtn->currchunk = buffer_chunk_init();
     rtn->name = NULL;
 
     return rtn;
@@ -36,10 +37,12 @@ buffer *buffer_init(void)
 
 void buffer_free(buffer *b)
 {
+    buffer_chunk_free(b->currchunk);
+
     if (b->name)
         free(b->name);
 
-    vec_lines_free((vec_lines *)b);
+    free(b);
 }
 
 static inline chunk *buffer_get_containing_chunk(buffer *b, lineno ln)
@@ -88,4 +91,9 @@ line *buffer_get_line(buffer *b, lineno ln)
     rtn = buffer_chunk_get_line(c, offset);
 
     return rtn;
+}
+
+lineno buffer_len(buffer *b)
+{
+    return buffer_chunk_get_total_len(b->currchunk);
 }

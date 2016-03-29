@@ -22,4 +22,6 @@ lineno buffer_chunk_lineno_to_offset(chunk *c, lineno ln);
 
 lineno buffer_chunk_offset_to_lineno(chunk *c, lineno offset);
 
+lineno buffer_chunk_get_total_len(chunk *c);
+
 #endif

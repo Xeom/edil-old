@@ -22,12 +22,14 @@ static chunk *buffer_chunk_insert(chunk *c);
 static void buffer_chunk_delete(chunk *c);
 static chunk *buffer_chunk_resize_bigger(chunk *c);
 static chunk *buffer_chunk_resize_smaller(chunk *c);
+static void buffer_chunk_free_norecurse(chunk *c);
 
 chunk *buffer_chunk_init(void)
 {
     chunk *rtn;
 
     rtn = malloc(sizeof(chunk));
+
     vec_lines_create((vec_lines *)rtn);
 
     rtn->next = NULL;
@@ -83,13 +85,32 @@ static void buffer_chunk_delete(chunk *c)
 
     if (c->prev)
         c->prev->next = c->next;
+
+    buffer_chunk_free_norecurse(c);
+}
+
+static void buffer_chunk_free_norecurse(chunk *c)
+{
+    vec_foreach((vec *)c, line *, l,
+                buffer_line_free(l));
+    vec_lines_free((vec_lines *)c);
 }
 
 void buffer_chunk_free(chunk *c)
 {
-    buffer_chunk_delete(c);
-    vec_lines_free((vec_lines *)c);
-    free(c);
+    chunk *probe;
+
+    probe = c;
+
+    while ((probe = probe->prev))
+        buffer_chunk_free_norecurse(probe);
+
+    probe = c;
+
+    while ((probe = probe->next))
+        buffer_chunk_free_norecurse(probe);
+
+    buffer_chunk_free_norecurse(c);
 }
 
 #define BUFFER_CHUNK_MAX_SIZE 512
@@ -154,7 +175,7 @@ static chunk *buffer_chunk_resize_smaller(chunk *c)
 
     buffer_chunk_insert_lines(next, 0, len, iter);
 
-    buffer_chunk_free(c);
+    buffer_chunk_delete(c);
 
     return buffer_chunk_resize_bigger(next);
 }
@@ -197,7 +218,7 @@ chunk *buffer_chunk_get_containing(chunk *c, lineno ln)
     while (ln < c->startline && c->prev)
         c = c->prev;
 
-    while (ln >= c->startline + vec_lines_len((vec_lines *)c) && c->next);
+    while (ln >= c->startline + vec_lines_len((vec_lines *)c) && c->next)
         c = c->next;
 
     return c;
@@ -211,4 +232,12 @@ lineno buffer_chunk_lineno_to_offset(chunk *c, lineno ln)
 lineno buffer_chunk_offset_to_lineno(chunk *c, lineno offset)
 {
     return offset + c->startline;
+}
+
+lineno buffer_chunk_get_total_len(chunk *c)
+{
+    while (c->next)
+        c = c->next;
+
+    return c->startline + vec_lines_len((vec_lines *)c);
 }
