@@ -55,7 +55,7 @@ static inline size_t VEC_TYPED_FNAME(find)(VEC_TYPED_VNAME *v, VEC_TYPED_TYPE *i
     return vec_find(v, item);
 }
 
-static inline size_t VEC_TYPED_FNAME(rfind)(VEC_TYPED_VNAME *v, const VEC_TYPED_TYPE *item)
+static inline size_t VEC_TYPED_FNAME(rfind)(VEC_TYPED_VNAME *v, VEC_TYPED_TYPE *item)
 {
     return vec_rfind(v, item);
 }

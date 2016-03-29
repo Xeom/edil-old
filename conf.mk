@@ -16,6 +16,9 @@ INC=include
 WARNINGS=all extra pedantic missing-prototypes fatal-errors format conversion declaration-after-statement
 LINKS=ncurses
 
-SRC_NAMES=line container/vec err cursor wintree wincont chunk textcont hook io ui/core ui/sbar ui/win ui/face ui/util callback container/table
+SRC_NAMES=line err cursor wintree wincont chunk textcont hook io callback \
+ buffer/chunk buffer/core buffer/line \
+ container/table container/vec \
+ ui/core ui/sbar ui/win ui/face ui/util
 DEPS_FILE=deps.mk
 
