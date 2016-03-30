@@ -1,58 +1,79 @@
 #include <curses.h>
+#include <string.h>
 
 #include "err.h"
 
+#define VEC_TYPED_GETSET
+#define VEC_TYPED_TYPE char
+#define VEC_TYPED_NAME char
+#include "container/typed_vec.h"
+
 #include "ui/util.h"
 
-int ui_util_draw_text_limited_h(uint n, const char *text, char filler)
+int ui_util_draw_vec_limited_h(uint spacelim, char filler, vec *v)
 {
-    if (text == NULL)
-        text = "";
+    char *iter;
+    iter = vec_char_item((vec_char *)v, 0);
 
-    while (*text)
-    {
-        if (n < 4 && *(text + 1) && *(text + 2) && *(text + 3))
-        {
-            do ASSERT_NCR(addch('.'), high, return -1) while (n--);
-            return 0;
-        }
-
-        ASSERT_NCR(addch((uchar)*(text++)), high, return -1);
-
-        n--;
-    }
-
-    while (n--)
-        ASSERT_NCR(addch((uchar)filler), high, return -1);
+    ui_util_draw_text_limited_h(spacelim, (uint)vec_char_len((vec_char *)v), filler, iter);
 
     return 0;
 }
 
-int ui_util_draw_text_limited_v(uint n, const char *text, char filler)
+int ui_util_draw_vec_limited_v(uint spacelim, char filler, vec *v)
 {
-    int x, curry;
+    char *iter;
 
-    ASSERT_NCR(x     = getcurx(stdscr), critical, return -1);
-    ASSERT_NCR(curry = getcury(stdscr), critical, return -1);
+iter = vec_char_item((vec_char *)v, 0);
 
-    if (text == NULL)
-        text = "";
+    return ui_util_draw_text_limited_v(spacelim, (uint)vec_char_len((vec_char *)v), filler, iter);
+}
 
-    while (*text)
+int ui_util_draw_str_limited_h(uint spacelim, char filler, const char *str)
+{
+    size_t len;
+    len = strlen(str);
+
+    ui_util_draw_text_limited_h(spacelim, (uint)len, filler, str);
+}
+
+int ui_util_draw_str_limited_v(uint spacelim, char filler, const char *str)
+{
+    size_t len;
+    len = strlen(str);
+
+    ui_util_draw_text_limited_v(spacelim, (uint)len, filler, str);
+}
+
+int ui_util_draw_text_limited_h(uint spacelim, uint strlim, char filler, const char *str)
+{
+    while (spacelim && strlim--)
     {
-        if (n < 2 && *(text + 1))
-        {
-            do ASSERT_NCR(mvaddch(curry++, x, ':'), high, return -1) while (n--);
-            return 0;
-        }
-
-        ASSERT_NCR(mvaddch(curry++, x, (uchar)*(text++)), high, return -1);
-
-        n--;
+        spacelim--;
+        addch((uchar)*(str++));
     }
 
-    while (n--)
-        ASSERT_NCR(mvaddch(curry++, x, (uchar)filler), high, return -1);
+    while (spacelim--)
+        addch((uchar)filler);
+
+    return 0;
+}
+
+int ui_util_draw_text_limited_v(uint spacelim, uint strlim, char filler, const char *str)
+{
+    int currx, curry;
+
+    currx = getcurx(stdscr);
+    curry = getcury(stdscr);
+
+    while (spacelim && strlim--)
+    {
+        spacelim--;
+        mvaddch(curry++, currx, (uchar)*(str++));
+    }
+
+    while (spacelim--)
+        mvaddch(curry++, currx, (uchar)filler);
 
     return 0;
 }

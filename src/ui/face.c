@@ -77,7 +77,7 @@ int ui_face_get_attr(face *f)
 int ui_face_add_to_line(face *f, colno start, colno end, line *l)
 {
     vec  *faces;
-
+/*
     ASSERT_PTR(f, high, return -1);
 
     TRACE_PTR(faces = line_get_faces(l), return -1);
@@ -94,7 +94,7 @@ int ui_face_add_to_line(face *f, colno start, colno end, line *l)
                      return 0;
                  }
         );
-
+*/
     return 0;
 }
 
