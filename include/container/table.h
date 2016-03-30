@@ -1,15 +1,19 @@
 #ifndef CONTAINER_TABLE_H
 # define CONTAINER_TABLE_H
+# include "head.h"
+
+#include <stddef.h>
+#include <stdint.h>
 
 typedef struct table_s table;
 
 typedef uintptr_t key;
-typedef long uint hash;
+typedef long unsigned hash;
 
-typedef hash (*hashfunct)(void *);
-typedef int  (*keyeqfunct)(void *, void *);
+typedef hash (*hashfunct)(key);
+typedef int  (*keqfunct)(key, key);
 
-int table_init(size_t width, hashfunct hshf, keqfunct keqf);
+table *table_init(size_t width, hashfunct hshf, keqfunct keqf);
 
 int table_set(table *t, key k, void *value);
 
