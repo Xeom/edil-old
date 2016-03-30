@@ -3,18 +3,18 @@
 
 typedef struct table_s table;
 
-typedef long unsigned int hash;
+typedef uintptr_t key;
+typedef long uint hash;
 
 typedef hash (*hashfunct)(void *);
 typedef int  (*keyeqfunct)(void *, void *);
 
+int table_init(size_t width, hashfunct hshf, keqfunct keqf);
 
-table *table_init(hashfunct hf, keyeqfunct eqf);
+int table_set(table *t, key k, void *value);
 
-int table_insert(table *t, void *key, void *value);
+void *table_get(table *t, key k);
 
-int table_delete(table *t, void *key);
-
-void *table_get(table *t, void *h);
+int table_delete(table *t, key k);
 
 #endif /* CONTAINER_TABLE_H */

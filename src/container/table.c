@@ -1,220 +1,236 @@
 #include "container/table.h"
-#include "container/vec.h"
-#include <stddef.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdint.h>
-typedef struct table_item_s table_item;
 
 struct table_item_s
 {
-    size_t *key;
-    void   *data;
+    key  k;
+    char data[];
 };
 
 struct table_s
 {
-    hashfunct   hfunct;
-    keyeqfunct  keqfunct;
+    hashfunct   hshf;
+    keqfunct    keqf;
     size_t      capacity;
     size_t      usage;
+    size_t      width;
     table_item *data;
 };
 
-#define TABLE_OH_FUCK_IT_DEPTH 10
-#define TABLE_MIN_SIZE 32
+#define TABLE_MAX_USAGE(cap) ((cap >> 2) + (cap >> 3))
+#define TABLE_MIN_USAGE(cap) ((cap >> 3) + (cap >> 6))
 
-static int  table_resize_to(table *t, size_t newcap);
-static int  table_resize_bigger(table *t);
-static int  table_resize_smaller(table *t);
+#define TABLE_MIN_CAP 16
 
-static int  table_item_key_eq(table *t, table_item a, void *key);
-static hash table_get_hash(table *t, void *h);
-
-static size_t table_get_key_index          (table *t, void *key);
-static size_t table_get_key_index_used_only(table *t, void *key);
-
-table *table_init(hashfunct hf, keyeqfunct eqf)
+int table_init(size_t width, hashfunct hshf, keqfunct keqf)
 {
     table *rtn;
 
     rtn = malloc(sizeof(table));
 
-    rtn->hfunct = hf;
-    rtn->keqfunct = eqf;
-    rtn->capacity = TABLE_MIN_SIZE;
-    rtn->usage = 0;
-    rtn->data  = malloc(TABLE_MIN_SIZE * sizeof(table_item));
-    memset(rtn->data, 0, TABLE_MIN_SIZE * sizeof(table_item));
+    rtn->hshf     = hshf;
+    rtn->keqf     = keqf;
+    rtn->capacity = TABLE_MIN_CAP;
+    rtn->usage    = 0;
+    rtn->width    = width;
+
+    table_realloc(rtn);
+
     return rtn;
 }
+        
 
-static int table_resize_to(table *t, size_t newcap)
+static int table_realloc(table *t)
 {
-    size_t capacity, currind, newind;
-    table_item curr;
-
-    capacity = t->capacity;
-    t->capacity = newcap;
-    currind  = newcap;
-
-    while (currind < capacity)
-    {
-        curr = t->data[currind];
-
-        if (curr.key == NULL)
-            continue;
-
-        newind = table_get_key_index(t, curr.key);
-        memcpy(t->data + newind, t->data + currind, sizeof(table_item));
-
-        currind++;
-    }
-
-    t->data = realloc(t->data, sizeof(table_item) * newcap);
-
-    if (newcap > capacity)
-        memset(t->data + capacity, 0, sizeof(table_item) * (newcap - capacity));
+    t->data = realloc(t->data, t->capacity);
 
     return 0;
 }
 
 static int table_resize_bigger(table *t)
 {
-    if (t->usage < (t->capacity >> 2) + (t->capacity >> 3))
+    if (t->usage <= TABLE_MAX_USAGE(t->capacity))
         return 0;
 
-    table_resize_to(t, t->capacity << 1);
+    table->capacity <<= 1;
+
+    table_realloc(t);
 
     return 0;
 }
 
 static int table_resize_smaller(table *t)
 {
-    if (t->usage > (t->capacity >> 3) + (t->capacity >> 6))
+    if (t->usage > TABLE_MIN_USAGE(t->capacity) ||
+        t->capacity >> 1 < TABLE_MIN_CAP * t->width)
         return 0;
 
-    if (t->usage >> 1 > TABLE_MIN_SIZE)
-        return 0;
+    table->capacity >>= 1;
 
-    table_resize_to(t, t->capacity >> 1);
+    table_realloc(t);
 
     return 0;
 }
 
-/* TODO: Everything */
-static hash table_get_hash(table *t, void *h)
+static size_t table_item_size(table *t)
 {
-    if (t->hfunct == NULL)
-        return (uintptr_t)h;
-    else
-        return t->hfunct(h);
+    return sizeof(table_item) + t->width;
 }
 
-static int table_item_key_eq(table *t, table_item a, void *key)
+static hash table_key_hash(table *t, key k)
 {
-    if (t->keqfunct == NULL)
-        return a.key == key;
+    if (t->hshf)
+        return (hash)(t->hshf)(k);
     else
-        return t->keqfunct(a.key, key);
+        return (hash)k;
 }
 
-static size_t table_get_key_index_used_only(table *t, void *key)
+static int table_key_eq(table *t, key a, key b)
 {
-    hash hsh;
-    size_t ind;
-    unsigned int n;
-/* TODO: Add limiting of n */
-    hsh = table_get_hash(t, key);
-    n   = 0;
-    do
+    if (t->keqf)
+        return (t->keqf)(a, b);
+    else
+        return (a == b);
+}
+
+static table_item *table_item_init(table *t, key k, void *data)
+{
+    table_item *rtn;
+
+    rtn = malloc(table_item_size(t));
+
+    rtn->k = k;
+    memcpy(&(rtn->data), data, t->width);
+
+    return rtn;
+}
+
+static table_item *table_index(table *t, size_t index)
+{
+    return t->data + table_item_size(t);
+}
+
+static size_t table_key_index_occupied(table *t, key k)
+{
+    size_t ind, cap;
+    key compk;
+
+    cap = t->capacity;
+    ind = table_key_hash(t, k) % cap;
+
+    while (compk = table_index(t, ind)->k)
     {
-        ind = (hsh + n++) % t->capacity;
+        if (table_key_eq(k, compk))
+            return ind;
 
-        if (t->data[ind].key == NULL)
-            return INVALID_INDEX;
+        if (ind >= cap)
+            ind = 0;
+
+        ind++;
     }
-    while (!table_item_key_eq(t, t->data[ind], key));
+
+    return INVALID_INDEX;
+}
+
+static size_t table_key_index(table *t, key k)
+{
+    size_t ind, cap;
+    key compk;
+
+    cap = t->capacity;
+    ind = table_key_hash(t, k) % cap;
+
+    while (compk = table_index(t, ind)->k)
+    {
+        if (table_key_eq(k, compk))
+            break;
+
+        if (ind >= cap)
+            ind = 0;
+
+        ind++;
+    }
 
     return ind;
 }
 
-static size_t table_get_key_index(table *t, void *key)
+int table_set(table *t, key k, void *value)
 {
-    hash hsh;
-    unsigned int n;
+    table_item *item;
     size_t ind;
 
-    hsh = table_get_hash(t, key);
+    ASSERT_PTR(value, high,
+               return -1);
 
-    n = 0;
-    do
-        ind = (hsh + n++) % t->capacity;
-    while (t->data[ind].key &&
-             !table_item_key_eq(t, t->data[ind], key));
+    ASSERT_PTR(k, high,
+               return -1);
 
-    return ind;
-}
+    ind  = table_key_index(t, k);
+    item = table_index(t, ind);
 
-int table_insert(table *t, void *key, void *value)
-{
-    size_t ind;
-    table_item new;
+    item->k = k;
 
-    t->usage++;
+    memcpy(&(item->data), value, t->width);
 
-    ind = table_get_key_index(t, key);
+    ++(t->usage);
 
-    if (t->data[ind].key == NULL)
-        (t->usage)++;
-
-    new.data = value;
-    new.key  = key;
-    t->data[ind] = new;
-
-    table_resize_bigger(t);
+    TRACE_INT(table_realloc_larger(t),
+              return -1);
 
     return 0;
 }
 
-int table_delete(table *t, void *key)
+void *table_get(table *t, key k)
 {
-    size_t ind, n, prevn;
-
-    ind = table_get_key_index_used_only(t, key);
-
-    if (ind == INVALID_INDEX)
-        return -1;
-
-    (t->usage)--;
-    n     = 0;
-    prevn = 0;
-
-    while (t->data[ind + ++n].key)
-        if (table_get_hash(t, t->data[ind + n].key) % t->capacity == ind)
-        {
-            memcpy(t->data + ind + prevn, t->data + ind + n, sizeof(table_item));
-            prevn = n;
-        }
-
-    memset(t->data + prevn, 0, sizeof(table_item));
-
-    table_resize_smaller(t);
-
-    return 0;
-}
-
-void *table_get(table *t, void *key)
-{
-    table_item item;
+    table_item *item;
     size_t ind;
 
-    ind = table_get_key_index_used_only(t, key);
+    ASSERT_PTR(k, high
+               return NULL);
+
+    ind  = table_key_index_occupied(t, k);
 
     if (ind == INVALID_INDEX)
         return NULL;
 
-    item = t->data[ind];
+    item = table_index(t, ind);
 
-    return item.data;
+    return &(item->data);
+}
+
+int table_delete(table *t, key k)
+{
+    table_item *item;
+    size_t prevind, ind;
+    size_t modhsh;
+
+    ASSERT_PTR(k, high,
+               return NULL);
+
+    modhsh   = table_get_hash(t, k) % t->capacity;
+    ind      = table_key_index_occupied(t, k);
+
+    if (ind == INVALID_INDEX)
+        return -1;
+
+    previtem = table_index(t, ind);
+
+    while (1)
+    {
+        item = table_index(t, ++ind);
+
+        if (table_key_hash(t, item->key) % t->capacity
+            == modhsh)
+        {
+            memcpy(previtem, item, table_item_size(t));
+            previtem = item;
+        }
+    }
+
+    memset(previtem, 0, table_item_size(t));
+
+    (table->usage)--;
+
+    table_resize_smaller(t);
+
+    return 0;
 }
