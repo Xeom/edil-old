@@ -31,7 +31,7 @@ struct table_s
 
 static table_item *table_index(table *t, size_t index);
 
-static int table_realloc(table *t);
+static int table_realloc(table *t, size_t newcap);
 static int table_resize_bigger(table *t);
 static int table_resize_smaller(table *t);
 
@@ -50,24 +50,55 @@ table *table_init(size_t width, hashfunct hshf, keqfunct keqf)
 
     rtn->hshf     = hshf;
     rtn->keqf     = keqf;
-    rtn->capacity = TABLE_MIN_CAP;
+    rtn->capacity = 0;
     rtn->usage    = 0;
     rtn->width    = width;
+    rtn->data     = NULL;
 
-    table_realloc(rtn);
+    table_realloc(rtn, TABLE_MIN_CAP);
 
     return rtn;
 }
 
 static table_item *table_index(table *t, size_t index)
 {
-    return t->data + table_item_size(t) + index;
+    return ADDPTR(t->data, table_item_size(t) * index);
 }
 
 
-static int table_realloc(table *t)
+static int table_realloc(table *t, size_t newcap)
 {
-    t->data = realloc(t->data, t->capacity);
+    size_t cap, ind;
+
+    cap     = t->capacity;
+    t->capacity = newcap;
+
+    if (newcap > cap)
+    {
+        t->data = realloc(t->data, table_item_size(t) * newcap);
+        memset(ADDPTR(t->data, cap * table_item_size(t)), 0,
+               (newcap - cap) * table_item_size(t));
+    }
+
+    for (ind = 0; ind < cap; ++ind)
+    {
+        size_t newind;
+        key    k;
+
+        k = table_index(t, ind)->k;
+
+        if (! k)
+            continue;
+
+        newind = table_key_index(t, k);
+
+        if (newind != ind)
+            memcpy(table_index(t, newind),
+                   table_index(t, ind), table_item_size(t));
+    }
+
+    if (cap > newcap)
+        t->data = realloc(t->data, table_item_size(t) * newcap);
 
     return 0;
 }
@@ -77,9 +108,7 @@ static int table_resize_bigger(table *t)
     if (t->usage <= TABLE_MAX_USAGE(t->capacity))
         return 0;
 
-    t->capacity <<= 1;
-
-    table_realloc(t);
+    table_realloc(t, t->capacity << 1);
 
     return 0;
 }
@@ -90,9 +119,7 @@ static int table_resize_smaller(table *t)
         t->capacity >> 1 < TABLE_MIN_CAP * t->width)
         return 0;
 
-    t->capacity >>= 1;
-
-    table_realloc(t);
+    table_realloc(t, t->capacity >> 1);
 
     return 0;
 }
@@ -131,10 +158,10 @@ static size_t table_key_index_occupied(table *t, key k)
         if (table_key_eq(t, k, compk))
             return ind;
 
+        ind++;
+
         if (ind >= cap)
             ind = 0;
-
-        ind++;
     }
 
     return INVALID_INDEX;
@@ -153,10 +180,10 @@ static size_t table_key_index(table *t, key k)
         if (table_key_eq(t, k, compk))
             break;
 
+        ind++;
+
         if (ind >= cap)
             ind = 0;
-
-        ind++;
     }
 
     return ind;
