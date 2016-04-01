@@ -1,13 +1,13 @@
 #include <stdio.h>
 
-#ifdef __unix__
+#if defined(__unix__)
 # include <unistd.h>
 #else
 # error "Yea I hate you too"
 #endif
 
 #include "err.h"
-#include "buffer/core.h"
+#include "buffer/buffer.h"
 #include "io/file.h"
 
 int file_dump_vec(vec *v, FILE *stream)
