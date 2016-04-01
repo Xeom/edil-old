@@ -5,7 +5,7 @@ include conf.mk
 
 incify=$(addprefix $(INC)/, $(addsuffix .h, $(1))) # Change names into header paths
 srcify=$(addprefix $(SRC)/, $(addsuffix .c, $(1))) # Change names into .c paths
-objify=$(addprefix $(SRC)/, $(addsuffix .o, $(1))) # Change names into .cs' .o paths
+objify=$(addprefix $(OBJ)/, $(addsuffix .o, $(1))) # Change names into .cs' .o paths
 
 SRC_PATHS=$(call srcify, $(SRC_NAMES)) # All the .c files' paths
 OBJ_PATHS=$(call objify, $(SRC_NAMES)) # All the .cs' .o files' paths
@@ -34,8 +34,9 @@ $(foreach F, $(SRC_PATHS), $(call add_deps, $(F))) # For every .c file, add depe
 include $(DEPS_FILE) # Include dynamic dependencies
 
 # Rule for compiling any .o file
-%.o: %.c
+obj/%.o: src/%.c
 	@echo "Compiling $@ ..."
+	@mkdir -p $(dir $@)
 	@$(CC) $(OBJ_FLAGS) -c $< -o $@
 
 objs: $(OBJ_PATHS) # A proxy for compiling all objects
@@ -54,8 +55,7 @@ lib.so: $(OBJ_PATHS)
 # Cleanup the repo
 clean:
 	@echo Removing $(DEPS_FILE) and *.o
-	@rm -f $(OBJ_PATHS) $(DEPS_FILE)
-
+	rm -r $(OBJ)/*
 # Nicer names
 test: test.out
 lib:  lib.so

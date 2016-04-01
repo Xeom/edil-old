@@ -12,14 +12,17 @@ LN=ln
 
 SRC=src
 INC=include
+OBJ=obj
 
 WARNINGS=all extra pedantic missing-prototypes fatal-errors format conversion declaration-after-statement
 LINKS=ncurses
 
-SRC_NAMES=err wintree wincont hook io callback \
- buffer/chunk buffer/core buffer/line \
+SRC_NAMES=err hook io callback \
+ win/label win/pos win/select win/size win/win \
+ buffer/chunk buffer/buffer buffer/line \
  container/table container/vec \
- ui/core ui/sbar ui/win ui/face ui/util \
+ ui/core ui/sbar ui/face ui/util ui/win/content \
  io/file
+
 DEPS_FILE=deps.mk
 
