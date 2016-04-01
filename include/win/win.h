@@ -2,21 +2,9 @@
 # define WIN_WIN_H
 # include "head.h"
 
+# include "buffer/buffer.h"
+
 typedef struct win_s win;
-
-typedef enum
-{
-    lrsplit,
-    udsplit,
-    leaf
-} win_contype;
-
-typedef enum
-{
-    sub1,
-    sub2,
-    none
-} win_seldir;
 
 typedef enum
 {
@@ -33,5 +21,13 @@ int win_killsys(void);
 int win_split(win *w, win_dir d);
 
 int win_delete(win *w);
+
+buffer *win_get_buffer(win *w);
+
+win *win_get_parent(win *w);
+
+uint win_get_offsetx(win *w);
+
+uint win_get_offsety(win *w);
 
 #endif /* WIN_WIN_H */

@@ -8,9 +8,25 @@
 
 win *win_root;
 
-int win_initsys(void);
+static win *win_init_leaf(void);
+static win *win_init(void);
 
-int win_killsys(void);
+static void win_free_norecurse(win *w);
+static void win_free(win *w);
+
+int win_initsys(void)
+{
+    win_root = win_init_leaf();
+
+    return 0;
+}
+
+int win_killsys(void)
+{
+    win_free(win_root);
+
+    return 0;
+}
 
 static win *win_init(void)
 {
@@ -39,7 +55,7 @@ static win *win_init_leaf(void)
     return rtn;
 }
 
-static void win_free(win *w)
+static void win_free_norecurse(win *w)
 {
     if (win_isleaf(w))
     {
@@ -49,6 +65,18 @@ static void win_free(win *w)
 
     free(w);
 }
+
+static void win_free(win *w)
+{
+    if (win_issplit(w))
+    {
+        win_free(w->cont.split.sub1);
+        win_free(w->cont.split.sub2);
+    }
+
+    win_free_norecurse(w);
+}
+
 
 int win_split(win *w, win_dir d)
 {
@@ -130,7 +158,39 @@ int win_delete(win *w)
         par->parent->cont.split.sub2 = sister;
 
     win_free(w);
-    win_free(par);
+    win_free_norecurse(par);
 
     return 0;
+}
+
+win *win_get_parent(win *w)
+{
+    if (win_isroot(w))
+        return NULL;
+
+    return w->parent;
+}
+
+buffer *win_get_buffer(win *w)
+{
+    if (!win_isleaf(w))
+        return NULL;
+
+    return w->cont.leaf.b;
+}
+
+uint win_get_offsetx(win *w)
+{
+    if (!win_isleaf(w))
+        return 0;
+
+    return w->cont.leaf.offsetx;
+}
+
+uint win_get_offsety(win *w)
+{
+    if (!win_isleaf(w))
+        return 0;
+
+    return w->cont.leaf.offsety;
 }
