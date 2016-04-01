@@ -1,6 +1,4 @@
-import c.wincont
-import c.wintree
-import c.ui
+import c.win
 
 import systems.hook
 import ctypes
@@ -10,70 +8,89 @@ class direction(c.wintree.dir):
     pass
 
 class hooks:
-    resizex = None
-    resizey = None
-    delete  = None
-    create  = None
+    pass
 
 def initsys():
-    c.wincont.initsys()
-    c.wintree.initsys()
+    c.win.initsys()
 
-    hooks.resizex = systems.hook.Hook(c.wintree.on_resizex,
-                                      window, ctypes.c_uint, ctypes.c_uint)
+def killsys():
+    c.win.killsys()
 
-    hooks.resizey = systems.hook.Hook(c.wintree.on_resizey,
-                                      window, ctypes.c_uint, ctypes.c_uint)
+def get_selected(self):
+    return Window(c.win.select.get())
 
-    hooks.delete = systems.hook.Hook(c.wintree.on_delete,
-                                     window)
+def get_root():
+    return Window(c.win.root)
 
-    hooks.create = systems.hook.Hook(c.wintree.on_create,
-                                     window)
-
-def split(direction):
-    c.wintree.split(c.wintree.get_selected(), direction)
-
-def select_next():
-    curr = c.wintree.get_selected()
-    next = c.wintree.iter_next(curr)
-
-    if cutil.isnull(next):
-        next = c.wintree.iter_start()
-
-    c.wintree.select(next)
-
-def select_up():
-    curr = c.wintree.get_selected()
-    parent = c.wintree.get_parent(curr)
-    c.wintree.select(parent)
-
-def delete():
-    c.wintree.delete(c.wintree.get_selected())
-
-class window:
+class Window:
     def __init__(self, ptr):
-        self.struct = ctypes.cast(ptr, ctypes.POINTER(c.wintree.wintree_p)).contents
+        self.valid  = True
+        self.struct = ctypes.cast(ptr, win.win_p)
 
+    @property
+    def struct(self):
+        if not self.valid:
+            raise Exception("Invalid window")
+
+        return self._struct
+
+    @struct.setter
+    def struct(self, value):
+        self.valid   = True
+        self._struct = value
+
+    @property
+    def size(self):
+        return (c.win.size.get_x(self.struct),
+                c.win.size.get_y(self.struct))
+    @property
+    def pos(self):
+        return (c.win.pos.get_x(self.struct),
+                c.win.pos.get_y(self.struct))
+
+    @property
+    def selected(self):
+        return c.win.select.get() == self.struct
+
+    def select(self):
+        c.win.select.set(self.struct)
 
     @property
     def caption(self):
-        return c.wintree.get_caption(self.struct)
+        return c.win.label.caption_get(self.struct)
 
     @caption.setter
-    def caption(self, value):
-        if isinstance(value, str):
-            value = bytes(value, "ascii")
-
-        c.wintree.set_caption(self.struct, value)
+    def caption(self, cap):
+        c.win.label.caption_set(cap)
 
     @property
     def sidebar(self):
-        return c.wintree.get_sidebar(self.struct)
+        return c.win.label.sidebar_get(self.struct)
 
-    @sidebar.setter
-    def sidebar(self, value):
-        if isinstance(value, str):
-            value = bytes(value, "ascii")
+    @caption.setter
+    def sidebar(self, sbar):
+        c.win.label.caption_set(sbar)
 
-        c.wintree.set_sidebar(self.struct, value)
+    @property
+    def parent(self):
+        return Window(self.struct)
+
+    def delete(self):
+        c.win.delete(self.struct)
+        self.valid = False
+
+    def split(self, direction):
+        return 0
+
+    def __iter__(self):
+        sub = c.win.get_first(self.struct)
+        last = c.win.get_last(self.struct)
+
+        while sub != last:
+            yield Window(sub)
+            sub = c.win.get_next(sub)
+
+        yield Window(sub)
+
+    def next(self):
+        return Window(c.win.get_next(self.struct))
