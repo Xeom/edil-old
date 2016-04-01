@@ -15,7 +15,6 @@
 #define VEC_TYPED_NAME char
 #include "container/typed_vec.h"
 
-
 struct line_s
 {
     vec text;

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "buffer/line.h"
+#include "buffer/buffer.h"
 
 #define VEC_TYPED_GETSET
 #define VEC_TYPED_TYPE line *
@@ -15,6 +16,7 @@ struct chunk_s
     lineno     startline;
     chunk     *next;
     chunk     *prev;
+    buffer    *b;
 };
 
 static int buffer_chunk_correct_startlines(chunk *c);
@@ -24,7 +26,7 @@ static chunk *buffer_chunk_resize_bigger(chunk *c);
 static chunk *buffer_chunk_resize_smaller(chunk *c);
 static void buffer_chunk_free_norecurse(chunk *c);
 
-chunk *buffer_chunk_init(void)
+chunk *buffer_chunk_init(buffer *b)
 {
     chunk *rtn;
 
@@ -34,6 +36,7 @@ chunk *buffer_chunk_init(void)
 
     rtn->next = NULL;
     rtn->prev = NULL;
+    rtn->b    = b;
 
     rtn->startline = 0;
 
@@ -64,7 +67,7 @@ static chunk *buffer_chunk_insert(chunk *c)
 {
     chunk *rtn;
 
-    rtn = buffer_chunk_init();
+    rtn = buffer_chunk_init(buffer_chunk_get_buffer(c));
 
     rtn->next = c->next;
     rtn->prev = c;
@@ -249,4 +252,9 @@ lineno buffer_chunk_get_total_len(chunk *c)
         c = c->next;
 
     return c->startline + vec_lines_len((vec_lines *)c);
+}
+
+buffer *buffer_chunk_get_buffer(chunk *c)
+{
+    return c->b;
 }
