@@ -12,7 +12,7 @@
 #define VEC_TYPED_NAME lines
 #include "container/typed_vec.h"
 
-#include "buffer/core.h"
+#include "buffer/buffer.h"
 
 struct buffer_s
 {
@@ -28,7 +28,7 @@ buffer *buffer_init(void)
 
     rtn = malloc(sizeof(buffer));
 
-    rtn->currchunk = buffer_chunk_init();
+    rtn->currchunk = buffer_chunk_init(rtn);
     rtn->name = NULL;
 
     return rtn;
@@ -86,7 +86,7 @@ line *buffer_get_line(buffer *b, lineno ln)
 
     c      = buffer_get_containing_chunk(b, ln);
     offset = buffer_chunk_lineno_to_offset(c, ln);
-    rtn = buffer_chunk_get_line(c, offset);
+    rtn    = buffer_chunk_get_line(c, offset);
 
     return rtn;
 }
