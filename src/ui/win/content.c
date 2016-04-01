@@ -1,57 +1,70 @@
 #include <curses.h>
 
 #include "buffer/buffer.h"
-#include "wintree.h"
+#include "win/win.h"
+#include "win/iter.h"
+#include "win/pos.h"
+#include "win/size.h"
 #include "ui/util.h"
-#include "wintree.h"
+
 
 #include "ui/win/content.h"
 
-int ui_win_content_draw_subs(wintree *tree)
+int ui_win_content_draw_subs(win *w)
 {
-    wintree *iter, *end, *next;
+    win *sub, *last;
 
-    iter = wintree_iter_subs_start(tree);
-    end  = wintree_iter_subs_end(tree);
+    sub  = win_iter_first(w);
+    last = win_iter_last(w);
 
-    next = iter;
-
-    do
+    while (sub != last)
     {
-        ui_win_content_draw(iter = next);
-        next = wintree_iter_next(iter);
+        ui_win_content_draw(sub);
+        sub = win_iter_next(sub);
     }
-    while (iter != end);
+
+    ui_win_content_draw(sub);
 
     refresh();
 
     return 0;
 }
 
-int ui_win_content_draw(wintree *tree)
+int ui_win_content_draw(win *tree)
 {
     buffer *b;
     size_t ln;
     uint sizex, sizey;
+    uint offx,  offy;
     int  currx, curry;
 
-    b     = wintree_get_buffer(tree);
+    b     = win_get_buffer(tree);
 
-    ln    = wintree_get_offsetline(tree);
+    offx = win_get_offsetx(tree);
+    offy = win_get_offsety(tree);
 
-    curry = wintree_get_posy(tree);
-    currx = wintree_get_posx(tree);
+    curry = win_pos_get_y(tree);
+    currx = win_pos_get_x(tree);
 
-    sizex = wintree_get_sizex(tree);
-    sizey = wintree_get_sizey(tree);
+    sizex = win_size_get_x(tree);
+    sizey = win_size_get_y(tree);
+
+    ln = (size_t)offy;
 
     while (sizey--)
     {
         line *l;
+        char *iter;
+
         l = buffer_get_line(b, ln++);
 
+        if (vec_len((vec *)l) < offx)
+            iter = "";
+        else
+            iter = vec_item((vec *)l, offx);
+
         move(curry++, currx);
-        ui_util_draw_vec_limited_h(sizex, ' ', (vec *)l);
+        ui_util_draw_str_limited_h(sizex, ' ', iter);
     }
 
     return 0;

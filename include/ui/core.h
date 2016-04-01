@@ -3,7 +3,6 @@
 
 extern hook ui_on_resize;
 
-
 int ui_initsys(void);
 
 int ui_killsys(void);

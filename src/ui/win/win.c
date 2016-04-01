@@ -27,15 +27,19 @@ int ui_win_killsys(void)
 
 int ui_win_draw(void)
 {
-    ui_win_content_draw_sub(wintree_root);
+    ui_win_content_draw_subs(wintree_root);
 
-    return ui_win_draw_subframes(wintree_root);
+    ui_win_frame_draw_subs(wintree_root);
+
+    return 0;
 }
 
-int ui_win_draw_sub(wintree *tree)
+int ui_win_draw_sub(win *w)
 {
-    ui_win_content_draw_sub(tree);
+    ui_win_content_draw_subs(w);
 
-    return ui_win_draw_subframes(tree);
+    ui_win_frame_draw_subs(w);
+
+    return 0;
 }
 

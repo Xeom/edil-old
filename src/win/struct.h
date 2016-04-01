@@ -4,6 +4,20 @@
 # include "win/win.h"
 # include "buffer/buffer.h"
 
+typedef enum
+{
+    lrsplit,
+    udsplit,
+    leaf
+} win_contype;
+
+typedef enum
+{
+    sub1,
+    sub2,
+    none
+} win_seldir;
+
 struct win_s
 {
     win        *parent;

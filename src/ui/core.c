@@ -1,10 +1,10 @@
 #include <curses.h>
 
 #include "hook.h"
-#include "wintree.h"
 #include "ui/sbar.h"
 #include "ui/face.h"
-#include "ui/win.h"
+#include "ui/win/win.h"
+#include "win/size.h"
 
 #include "ui/core.h"
 
@@ -62,7 +62,7 @@ int ui_resize(void)
 
     hook_call(ui_on_resize, &termy, &termx);
 
-    wintree_set_root_size((uint)termx, (uint)termy - 1);
+    win_size_set_root((uint)termx, (uint)termy - 1);
 
     ui_refresh();
 
