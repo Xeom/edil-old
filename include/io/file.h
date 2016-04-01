@@ -1,4 +1,4 @@
-#ifndef IO_FILE_H
+#if !defined(IO_FILE_H)
 # define IO_FILE_H
 # include "head.h"
 

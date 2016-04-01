@@ -1,4 +1,4 @@
-#ifndef HEAD_H
+#if !defined(HEAD_H)
 # define HEAD_H
 
 # define REALLY_STRIFY(a) #a
@@ -9,6 +9,9 @@
 
 # define MAX(a, b) a > b ? a : b
 # define MIN(a, b) a > b ? b : a
+
+# define ADDPTR(ptr, n) (void *)((intptr_t)(ptr) + (ptrdiff_t)(n))
+# define SUBPTR(ptr, n) (void *)((intptr_t)(ptr) - (ptrdiff_t)(n))
 
 typedef unsigned int uint;
 typedef unsigned char uchar;

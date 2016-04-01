@@ -1,4 +1,4 @@
-#ifndef UI_FACE_H
+#if !defined(UI_FACE_H)
 # define UI_FACE_H
 # include "head.h"
 

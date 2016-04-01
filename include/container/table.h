@@ -1,4 +1,4 @@
-#ifndef CONTAINER_TABLE_H
+#if !defined(CONTAINER_TABLE_H)
 # define CONTAINER_TABLE_H
 # include "head.h"
 

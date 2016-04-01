@@ -1,11 +1,12 @@
-#ifndef CONTAINER_VEC_H
+#if !defined(CONTAINER_VEC_H)
 # define CONTAINER_VEC_H
+# include "head.h"
 
-#include <stddef.h>
-#include <stdint.h>
+# include <stddef.h>
+# include <stdint.h>
 
 /* Used to represent an invalid index (duh) */
-#define INVALID_INDEX SIZE_MAX
+# define INVALID_INDEX SIZE_MAX
 
 typedef struct vec_s vec;
 

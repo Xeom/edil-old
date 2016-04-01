@@ -1,4 +1,4 @@
-#ifndef UI_WIN_H
+#if !defined(UI_WIN_H)
 # define UI_WIN_H
 
 #include "wintree.h"

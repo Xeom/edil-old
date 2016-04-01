@@ -1,4 +1,4 @@
-#ifndef ERR_H
+#if !defined(ERR_H)
 # define ERR_H
 # include "head.h"
 

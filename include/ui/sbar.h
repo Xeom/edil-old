@@ -1,4 +1,4 @@
-#ifndef UI_SBAR_H
+#if !defined(UI_SBAR_H)
 # define UI_SBAR_H
 
 int ui_sbar_initsys(void);

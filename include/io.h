@@ -1,4 +1,4 @@
-#ifndef IO_H
+#if !defined(IO_H)
 #define IO_H
 
 typedef struct io_key_s io_key;

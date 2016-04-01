@@ -1,4 +1,4 @@
-#ifndef BUFFER_LINE_H
+#if !defined(BUFFER_LINE_H)
 # define BUFFER_LINE_H
 # include "head.h"
 

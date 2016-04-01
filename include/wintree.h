@@ -1,4 +1,4 @@
-#ifndef WINTREE_H
+#if !defined(WINTREE_H)
 # define WINTREE_H
 # include "head.h"
 
@@ -163,10 +163,11 @@ char *wintree_get_sidebar(wintree *tree);
  *
  */
 
-wincont *wintree_get_content(wintree *tree);
+
 wintree *wintree_get_parent(wintree *tree);
 uint     wintree_get_sizex(wintree *tree);
 uint     wintree_get_sizey(wintree *tree);
-
-
+lineno wintree_get_offsetcol(wintree *tree);
+lineno wintree_get_offsetline(wintree *tree);
+buffer *wintree_get_buffer(wintree *tree);
 #endif /* WINTREE_H */

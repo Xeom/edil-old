@@ -1,8 +1,8 @@
-#ifndef WINCONT_H
+#if !defined(WINCONT_H)
 # define WINCONT_H
 # include "head.h"
 
-# include "buffer/core.h"
+# include "buffer/buffer.h"
 
 typedef struct wincont_s wincont;
 

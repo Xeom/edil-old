@@ -1,4 +1,4 @@
-#ifndef HOOK_H
+#if !defined(HOOK_H)
 # define HOOK_H
 
 #include "container/vec.h"

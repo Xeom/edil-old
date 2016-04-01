@@ -1,4 +1,4 @@
-#ifndef CURSOR_H
+#if !defined(CURSOR_H)
 #define CURSOR_H
 #include "line.h"
 
