@@ -18,7 +18,7 @@ WARNINGS=all extra pedantic missing-prototypes fatal-errors format conversion de
 LINKS=ncurses
 
 SRC_NAMES=err hook io callback \
- win/label win/pos win/select win/size win/win \
+ win/label win/pos win/select win/size win/win win/iter \
  buffer/chunk buffer/buffer buffer/line \
  container/table container/vec \
  ui/core ui/sbar ui/face ui/util ui/win/content \
