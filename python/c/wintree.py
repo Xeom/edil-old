@@ -2,7 +2,11 @@ import ctypes
 from shared import lib as so
 
 from c.hook    import hook_p
-from c.wincont import wincont_p
+
+class wincont_s(ctypes.Structure):
+	pass
+
+wincont_p = ctypes.POINTER(wincont_s)
 
 class wintree_s(ctypes.Structure):
     pass
@@ -54,16 +58,6 @@ delete = so.wintree_delete
 delete.argtypes = [wintree_p]
 delete.restype  = ctypes.c_int
 
-#int wintree_swap_next(wintree *tree)
-swap_next = so.wintree_swap_next
-swap_next.argtypes = [wintree_p]
-swap_next.restype  = ctypes.c_int
-
-#int wintree_swap_prev(wintree *tree)
-swap_prev = so.wintree_swap_prev
-swap_prev.argtypes = [wintree_p]
-swap_prev.restype  = ctypes.c_int
-
 #int wintree_move_border(wintree *tree, int n)
 move_border = so.wintree_move_border
 move_border.argtypes = [wintree_p, ctypes.c_int]
@@ -105,9 +99,9 @@ split.argtypes = [wintree_p, ctypes.c_int]
 split.restype  = ctypes.c_int
 
 #wincont *wintree_get_content(wintree *tree);
-get_content = so.wintree_get_content
-get_content.argtypes = [wintree_p]
-get_content.restype  = wincont_p
+get_buffer = so.wintree_get_buffer
+get_buffer.argtypes = [wintree_p]
+get_buffer.restype  = wincont_p
 
 #wintree *wintree_get_parent(wintree *tree);
 get_parent = so.wintree_get_parent
