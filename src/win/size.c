@@ -135,17 +135,17 @@ uint win_size_get_x(win *w)
     if (win_isroot(w))
         return win_size_root_x;
 
-    if (par->type == lrsplit)
-    {
-        if (win_issub1(w))
-            return par->cont.split.sub2offset;
+    if (par->type != lrsplit)
+        return win_size_get_x(par);
 
-        if (win_issub2(w))
-            return win_size_get_x(par) -
-                par->cont.split.sub2offset;
-    }
+    if (win_issub1(w))
+        return par->cont.split.sub2offset;
 
-    return win_size_get_x(par);
+    if (win_issub2(w))
+        return win_size_get_x(par) -
+            par->cont.split.sub2offset;
+
+    return 0;
 }
 
 uint win_size_get_y(win *w)
@@ -156,15 +156,15 @@ uint win_size_get_y(win *w)
     if (win_isroot(w))
         return win_size_root_y;
 
-    if (par->type == udsplit)
-    {
-        if (win_issub1(w))
-            return par->cont.split.sub2offset;
+    if (par->type != udsplit)
+        return win_size_get_y(par);
 
-        if (win_issub2(w))
-            return win_size_get_y(par) -
-                par->cont.split.sub2offset;
-    }
+    if (win_issub1(w))
+        return par->cont.split.sub2offset;
 
-    return win_size_get_y(par);
+    if (win_issub2(w))
+        return win_size_get_y(par) -
+            par->cont.split.sub2offset;
+
+    return 0;
 }
