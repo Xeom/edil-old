@@ -1,5 +1,8 @@
 #if !defined(CALLBACK_H)
 # define CALLBACK_H
+# include "head.h"
+
+# include "container/vec.h"
 
 typedef struct callback_s callback;
 typedef void *(*callback_f)(vec *, callback);
