@@ -4,8 +4,8 @@ include conf.mk
 # Get configuration
 
 incify=$(addprefix $(INC)/, $(addsuffix .h, $(1))) # Change names into header paths
-srcify=$(addprefix $(SRC)/, $(addsuffix .c, $(1))) # Change names into .c paths
-objify=$(addprefix $(OBJ)/, $(addsuffix .o, $(1))) # Change names into .cs' .o paths
+srcify=$(addprefix src/, $(addsuffix .c, $(1))) # Change names into .c paths
+objify=$(addprefix obj/, $(addsuffix .o, $(1))) # Change names into .cs' .o paths
 
 SRC_PATHS=$(call srcify, $(SRC_NAMES)) # All the .c files' paths
 OBJ_PATHS=$(call objify, $(SRC_NAMES)) # All the .cs' .o files' paths
@@ -13,7 +13,7 @@ OBJ_PATHS=$(call objify, $(SRC_NAMES)) # All the .cs' .o files' paths
 L_FLAGS=$(addprefix -l, $(LINKS)) #  # all the links... (-l*)
 W_FLAGS=$(addprefix -W, $(WARNINGS)) # all the warnings... (-W*)
 
-INC_FLAGS=-I$(INC) -I$(SRC)
+INC_FLAGS=-I$(INC) -Isrc
 OBJ_FLAGS=$(INC_FLAGS)/ -g $(W_FLAGS) -fPIC --std=c99 # for compiling objects
 DEP_FLAGS=$(INC_FLAGS)/ -MM #                         # for getting dependency rules
 
@@ -44,7 +44,8 @@ objs: $(OBJ_PATHS) # A proxy for compiling all objects
 # Rule to compile test.out. Main should be in TEST_PATH
 test/%: $(OBJ_PATHS) test/%.c test/test.h
 	@echo "Linking into %"
-	$(CC) -g $^ $(L_FLAGS) -I$(INC) -o $@
+	@mkdir -p $(dir $@)
+	@$(CC) -g $^ $(L_FLAGS) -I$(INC) -o $@
 
 # Compile a shared object and copy into python directory
 lib.so: $(OBJ_PATHS)
@@ -57,7 +58,6 @@ clean:
 	@echo Removing $(DEPS_FILE) and *.o
 	rm -r $(OBJ)/*
 # Nicer names
-test: test.out
 lib:  lib.so
 
 .PHONY: test lib clean_tmp clean objs
