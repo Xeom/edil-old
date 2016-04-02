@@ -7,7 +7,6 @@
 #include "win/size.h"
 #include "ui/util.h"
 
-
 #include "ui/win/content.h"
 
 int ui_win_content_draw_subs(win *w)

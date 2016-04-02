@@ -35,6 +35,8 @@ int ui_util_draw_str_limited_h(uint spacelim, char filler, const char *str)
     len = strlen(str);
 
     ui_util_draw_text_limited_h(spacelim, (uint)len, filler, str);
+
+    return 0;
 }
 
 int ui_util_draw_str_limited_v(uint spacelim, char filler, const char *str)
@@ -43,6 +45,8 @@ int ui_util_draw_str_limited_v(uint spacelim, char filler, const char *str)
     len = strlen(str);
 
     ui_util_draw_text_limited_v(spacelim, (uint)len, filler, str);
+
+    return 0;
 }
 
 int ui_util_draw_text_limited_h(uint spacelim, uint strlim, char filler, const char *str)

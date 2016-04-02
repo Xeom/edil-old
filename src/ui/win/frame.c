@@ -1,8 +1,8 @@
 #include <curses.h>
 
-#include "ui/face.h"
 #include "ui/util.h"
-#include "wintree.h"
+#include "win/pos.h"
+#include "win/size.h"
 
 #include "ui/win/frame.h"
 
@@ -13,19 +13,19 @@ char ui_win_corner_char      = '\'';
 face *ui_win_frame_face;
 face *ui_win_frame_sel_face;
 
-int ui_win_frame_faceify(wintree *tree, face *f)
+int ui_win_frame_faceify(win *w, face *f)
 {
     int   posx,  posy;
     uint  sizex, sizey;
 
-    if (selected == NULL)
+    if (f == NULL)
         return -1;
 
-    posx  = wintree_get_posx(tree);
-    posy  = wintree_get_posy(tree);
+    posx  = win_pos_get_x(w);
+    posy  = win_pos_get_y(w);
 
-    sizex = wintree_get_sizex(tree);
-    sizey = wintree_get_sizey(tree);
+    sizex = win_size_get_x(w);
+    sizey = win_size_get_y(w);
 
     ui_face_draw_at(f, posx, posy + (int)sizey - 1, sizex, 1);
     ui_face_draw_at(f, posx + (int)sizex - 1, posy, 1, sizey);
@@ -35,35 +35,34 @@ int ui_win_frame_faceify(wintree *tree, face *f)
     return 0;
 }
 
-int ui_win_frame_draw_subs(wintree *tree)
+int ui_win_frame_draw_subs(win *w)
 {
     int borderattr;
-    wintree *iter, *end, *next;
+    win *sub, *last;
 
-    iter = wintree_iter_subs_start(tree);
-    end  = wintree_iter_subs_end(tree);
-
-    next = iter;
+    sub  = win_iter_first(w);
+    last = win_iter_last(w);
 
     borderattr = ui_face_get_attr(ui_win_frame_face);
     attron(borderattr);
 
-    do
+    while (sub != last)
     {
-        ui_win_draw_frame(iter = next);
-        next = wintree_iter_next(iter);
+        ui_win_frame_draw(sub);
+        sub = win_iter_next(sub);
     }
-    while (iter != end);
+
+    ui_win_frame_draw(sub);
 
     attroff(borderattr);
 
-    ui_win_frame_faceify(wintree_get_selected(),
+    ui_win_frame_faceify(win_select_get(),
                          ui_win_frame_sel_face);
 
     return 0;
 }
 
-int ui_win_frame_draw(wintree *tree)
+int ui_win_frame_draw(win *w)
 {
     int     posx,     posy;
     int lastposx, lastposy;
@@ -71,20 +70,20 @@ int ui_win_frame_draw(wintree *tree)
 
     char *caption, *sidebar;
 
-    posx = wintree_get_posx(tree);
-    posy = wintree_get_posy(tree);
+    posx = win_pos_get_x(w);
+    posy = win_pos_get_y(w);
 
-    if (wintree_get_sizey(tree) == 0 || wintree_get_sizex(tree) == 0)
+    if (win_size_get_y(w) == 0 || win_size_get_x(w) == 0)
         return -1;
 
-    sizex = wintree_get_sizex(tree);
-    sizey = wintree_get_sizey(tree);
+    sizex = win_pos_get_x(w);
+    sizey = win_pos_get_y(w);
 
     lastposy = posy + (int)sizey - 1;
     lastposx = posx + (int)sizex - 1;
 
-    caption = wintree_get_caption(tree);
-    sidebar = wintree_get_sidebar(tree);
+    caption = win_label_caption_get(w);
+    sidebar = win_label_sidebar_get(w);
 
     move(lastposy, posx);
     ui_util_draw_str_limited_h(sizex - 1, ui_win_horizontal_char, caption);
