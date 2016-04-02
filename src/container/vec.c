@@ -12,10 +12,6 @@ static int vec_resize_smaller(vec *v);
 /* Set vecerr to an error with suffix err and return rtn */
 #define ERR(err, rtn) {vecerr = E_VEC_ ## err; return rtn;}
 
-/* Functions for pointer arithmetic */
-#define addptr(ptr, n) (void *)((intptr_t)(ptr) + (ptrdiff_t)(n))
-#define subptr(ptr, n) (void *)((intptr_t)(ptr) - (ptrdiff_t)(n))
-
 static int vec_realloc(vec *v)
 {
     v->data = realloc(v->data, v->capacity);
@@ -159,7 +155,7 @@ void *vec_item(vec *v, size_t index)
     if (offset + v->width > v->length)
         ERR(INVALID_INDEX, NULL);
 
-    return addptr(v->data, offset);
+    return ADDPTR(v->data, offset);
 }
 
 int vec_delete(vec *v, size_t index, size_t n)
@@ -179,8 +175,8 @@ int vec_delete(vec *v, size_t index, size_t n)
         ERR(INVALID_INDEX, -1);
 
     /* Move memory beyond offset backwards by amount. */
-    memmove(addptr(v->data, offset),
-            addptr(v->data, offset + amount),
+    memmove(ADDPTR(v->data, offset),
+            ADDPTR(v->data, offset + amount),
             v->length - offset - amount);
 
     /* Modify length and resize */
@@ -219,12 +215,12 @@ int vec_insert(vec *v, size_t index, size_t n, const void *new)
     /* If any data is displaced, we move it forward to make *
      * room for inserted data.                              */
     if (displaced)
-        memmove(addptr(v->data, offset + amount),
-                addptr(v->data, offset),
+        memmove(ADDPTR(v->data, offset + amount),
+                ADDPTR(v->data, offset),
                 displaced);
 
     /* We insert the new data */
-    memmove(addptr(v->data, offset),
+    memmove(ADDPTR(v->data, offset),
             new, amount);
 
     ERR(OK, 0);
@@ -255,8 +251,7 @@ size_t vec_find(vec *v, const void *item)
      * the one just past the end (invalid) */
     width  = v->width;
     cmp    = v->data;
-    last   = addptr(cmp, v->length);
-
+    last   = ADDPTR(cmp, v->length);
 
     index  = 0;
     while (cmp != last)
@@ -266,7 +261,7 @@ size_t vec_find(vec *v, const void *item)
             ERR(OK, index);
 
         /* Increment cmp by width, and index by 1 */
-        cmp = addptr(cmp, width);
+        cmp = ADDPTR(cmp, width);
         ++index;
     }
 
@@ -290,7 +285,7 @@ size_t vec_rfind(vec *v, const void *item)
      * the one just past the end (invalid) */
     width  = v->width;
     first  = v->data;
-    cmp    = addptr(first, v->length);
+    cmp    = ADDPTR(first, v->length);
 
     /* While we're not at the start */
     index  = vec_len(v);
@@ -298,7 +293,7 @@ size_t vec_rfind(vec *v, const void *item)
     {
         /* Decrement cmp by width and index by 1 */
         index--;
-        cmp = subptr(cmp, width);
+        cmp = SUBPTR(cmp, width);
 
         /* If there's a match, return the index */
         if (memcmp(cmp, item, width) == 0)
@@ -332,7 +327,7 @@ vec *vec_cut(vec *v, size_t index, size_t n)
         ERR(INVALID_INDEX, NULL);
 
     /* Starting point for cut */
-    slice = addptr(v->data, offset);
+    slice = ADDPTR(v->data, offset);
 
     /* Make a new vector for the cut */
     rtn = vec_init_raw(width);

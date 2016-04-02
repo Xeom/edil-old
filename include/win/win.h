@@ -14,6 +14,8 @@ typedef enum
     right
 } win_dir;
 
+extern win *win_root;
+
 int win_initsys(void);
 
 int win_killsys(void);

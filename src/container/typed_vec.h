@@ -1,12 +1,12 @@
 #include "container/vec.h"
 #include "err.h"
 
-#ifndef VEC_TYPED_TYPE
+#if !defined(VEC_TYPED_TYPE)
 # define VEC_TYPED_TYPE void *
 # warning "typed_vec with included no VEC_TYPED_TYPE defined"
 #endif
 
-#ifndef VEC_TYPED_NAME
+#if !defined(VEC_TYPED_NAME)
 # error "typed_vec included with no VEC_TYPED_NAME defined"
 #endif
 
@@ -65,7 +65,7 @@ static inline VEC_TYPED_VNAME *VEC_TYPED_FNAME(cut)(VEC_TYPED_VNAME *v, size_t i
     return vec_cut(v, index, n);
 }
 
-#ifdef VEC_TYPED_GETSET
+#if defined(VEC_TYPED_GETSET)
 # undef VEC_TYPED_GETSET
   static inline VEC_TYPED_TYPE VEC_TYPED_FNAME(get)(VEC_TYPED_VNAME *v, size_t index)
   {
