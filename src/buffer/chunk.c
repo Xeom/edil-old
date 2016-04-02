@@ -10,20 +10,27 @@
 
 #include "buffer/chunk.h"
 
+#define BUFFER_CHUNK_MAX_SIZE 512 /* The maximum size a buffer can be before it overflows            */
+#define BUFFER_CHUNK_MIN_SIZE 128 /* The minimum size a buffer can be if it is not the last buffer   */
+#define BUFFER_CHUNK_DEF_SIZE 256 /* The default size a buffer returns to after over or underflowing */
+
 struct chunk_s
 {
-    vec_lines  lines;
-    lineno     startline;
-    chunk     *next;
-    chunk     *prev;
-    buffer    *b;
+    vec_lines  lines;     /* chunk_s is an extention of vec_s. The vector stores pointers to every line */
+    lineno     startline; /* The line number of the first line of the chunk                             */
+    chunk     *next;      /* A link forward to the next chunk. NULL if this is the last chunk.          */
+    chunk     *prev;      /* A link backward to the last chunk. NULL if this is the first chunk.        */
+    buffer    *b;         /* The buffer which this chunk can be a part of.                              */
 };
 
 static int buffer_chunk_correct_startlines(chunk *c);
+
 static chunk *buffer_chunk_insert(chunk *c);
-static void buffer_chunk_delete(chunk *c);
+static void   buffer_chunk_delete(chunk *c);
+
 static chunk *buffer_chunk_resize_bigger(chunk *c);
 static chunk *buffer_chunk_resize_smaller(chunk *c);
+
 static void buffer_chunk_free_norecurse(chunk *c);
 
 chunk *buffer_chunk_init(buffer *b)
@@ -41,6 +48,37 @@ chunk *buffer_chunk_init(buffer *b)
     rtn->startline = 0;
 
     return rtn;
+}
+
+void buffer_chunk_free(chunk *c)
+{
+    chunk *curr, *next;
+
+    curr = c->next;
+    while (curr)
+    {
+        next = curr->next;
+        buffer_chunk_free_norecurse(curr);
+        curr = next;
+    }
+
+    curr = c->prev;
+    while (curr)
+    {
+        next = curr->prev;
+        buffer_chunk_free_norecurse(curr);
+        curr = next;
+    }
+
+    buffer_chunk_free_norecurse(c);
+}
+
+static void buffer_chunk_free_norecurse(chunk *c)
+{
+    vec_foreach((vec *)c, line *, l,
+                buffer_line_free(l));
+
+    vec_lines_free((vec_lines *)c);
 }
 
 static int buffer_chunk_correct_startlines(chunk *c)
@@ -92,41 +130,6 @@ static void buffer_chunk_delete(chunk *c)
 
     buffer_chunk_free_norecurse(c);
 }
-
-static void buffer_chunk_free_norecurse(chunk *c)
-{
-    vec_foreach((vec *)c, line *, l,
-                buffer_line_free(l));
-
-    vec_lines_free((vec_lines *)c);
-}
-
-void buffer_chunk_free(chunk *c)
-{
-    chunk *curr, *next;
-
-    curr = c->next;
-    while (curr)
-    {
-        next = curr->next;
-        buffer_chunk_free_norecurse(curr);
-        curr = next;
-    }
-
-    curr = c->prev;
-    while (curr)
-    {
-        next = curr->prev;
-        buffer_chunk_free_norecurse(curr);
-        curr = next;
-    }
-
-    buffer_chunk_free_norecurse(c);
-}
-
-#define BUFFER_CHUNK_MAX_SIZE 10
-#define BUFFER_CHUNK_MIN_SIZE 2
-#define BUFFER_CHUNK_DEF_SIZE 5
 
 static chunk *buffer_chunk_insert_lines(chunk *c, size_t index, size_t n, line **lines)
 {
