@@ -1,63 +1,28 @@
-#!/usr/bin/make
-
 include conf.mk
-# Get configuration
+include common.mk
 
-incify=$(addprefix $(INC)/, $(addsuffix .h, $(1))) # Change names into header paths
-srcify=$(addprefix src/, $(addsuffix .c, $(1))) # Change names into .c paths
-objify=$(addprefix obj/, $(addsuffix .o, $(1))) # Change names into .cs' .o paths
+$(shell $(call pinfo,"Making dependencies..."))
+$(shell make -f deps.mk deps >/dev/null)
+$(shell $(call pinfo,"Done"))
 
-SRC_PATHS=$(call srcify, $(SRC_NAMES)) # All the .c files' paths
-OBJ_PATHS=$(call objify, $(SRC_NAMES)) # All the .cs' .o files' paths
+include $(DEP_FILES)
 
-L_FLAGS=$(addprefix -l, $(LINKS)) #  # all the links... (-l*)
-W_FLAGS=$(addprefix -W, $(WARNINGS)) # all the warnings... (-W*)
-
-INC_FLAGS=-I$(INC) -Isrc
-OBJ_FLAGS=$(INC_FLAGS)/ -g $(W_FLAGS) -fPIC --std=c99 # for compiling objects
-DEP_FLAGS=$(INC_FLAGS)/ -MM #                         # for getting dependency rules
-
-get_rule=$(dir $(1))$(subst \ ,,$(shell $(CC) $(DEP_FLAGS) $(1) -o -)) # Get a dependency rule for a
-                                                                       # file($(1)) from the compiler.
-
-append_rule=$(file >>$(DEPS_FILE),$(1)) # Append a rule ($(1)) to the dependecies file.
-
-add_deps=$(call append_rule,$(call get_rule, $(1))) # Add the dependency rule to the depdendency file for a file ($(1))
-
-$(shell rm -f $(DEPS_FILE))                        # Remove the old deps file
-$(foreach F, $(SRC_PATHS), $(call add_deps, $(F))) # For every .c file, add dependencies,
-
-#########
-# RULES #
-#########
-
-include $(DEPS_FILE) # Include dynamic dependencies
-
-# Rule for compiling any .o file
 obj/%.o: src/%.c
-	@echo "Compiling $@ ..."
-	@mkdir -p $(dir $@)
-	@$(CC) $(OBJ_FLAGS) -c $< -o $@
+	@$(call pinfo,"Creating object file $@")
+	mkdir -p $(@D)
+	gcc -c -g $(W_FLAGS) $(I_FLAGS) $< -o $@
 
-objs: $(OBJ_PATHS) # A proxy for compiling all objects
+clean_dep:
+	@$(call pinfo,"Removing dep/*")
+	rm -rf dep/*
 
-# Rule to compile test.out. Main should be in TEST_PATH
-test/%: $(OBJ_PATHS) test/%.c test/test.h
-	@echo "Linking into %"
-	@mkdir -p $(dir $@)
-	@$(CC) -g $^ $(L_FLAGS) -I$(INC) -o $@
+clean_obj:
+	@$(call pinfo,"Removing obj/*")
+	rm -rf obj/*
 
-# Compile a shared object and copy into python directory
-lib.so: $(OBJ_PATHS)
-	@echo "Linking into lib.so"
-	@$(CC) -shared $(L_FLAGS) -g $^ -o $@
-	@cp $@ python/lib.so
+clean: clean_dep clean_obj
 
-# Cleanup the repo
-clean:
-	@echo Removing $(DEPS_FILE) and *.o
-	rm -r $(OBJ)/*
-# Nicer names
-lib:  lib.so
+obj: $(OBJ_FILES)
 
-.PHONY: test lib clean_tmp clean objs
+.PHONY: clean clean_dep clean_obj
+.DEFAULT_GOAL := all

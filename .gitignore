@@ -10,5 +10,4 @@
 *.pyc
 __pycache__
 
-deps.mk
 

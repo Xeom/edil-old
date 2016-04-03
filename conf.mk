@@ -17,6 +17,7 @@ OBJ=obj
 
 WARNINGS=all extra pedantic missing-prototypes fatal-errors format conversion declaration-after-statement
 LINKS=ncurses
+INCLUDES=include/ src/
 
 SRC_NAMES=err hook io callback \
   win/label win/pos win/select win/size win/win win/iter \
