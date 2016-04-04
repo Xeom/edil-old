@@ -21,7 +21,7 @@ win *win_iter_last(win *w)
 
 win *win_iter_next(win *w)
 {
-    while (!win_isroot(w) && !win_issub2(w))
+    while (win_issub2(w))
         w = w->parent;
 
     if (!win_isroot(w))
