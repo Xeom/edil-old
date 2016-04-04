@@ -11,15 +11,15 @@ import shared
 import signal
 import c.lib
 
-#shared.lib.err_initsys()
+
 systems.windows.initsys()
 
 systems.ui.initsys()
+
 systems.io.initsys()
+
 systems.ui.refresh()
-
-open("textlog.txt", "w").write("")
-
+"""
 @systems.windows.hooks.resizex(100)
 @systems.windows.hooks.resizey(100)
 def handle_resize(w, x, y):
@@ -34,6 +34,9 @@ def handle_resize(w, x, y):
 def handle_hook(k):
     c.ui.sbar.set(bytes(k))
     c.lib.refresh()
+"""
+
+
 
 while True:
     char = c.lib.getch()
@@ -42,33 +45,33 @@ while True:
         systems.ui.resize()
 
     if char == ord('w'):
-        systems.windows.split(systems.windows.direction.up)
+        systems.windows.get_selected().split(systems.windows.direction.up)
 
     if char == ord('s'):
-        systems.windows.split(systems.windows.direction.down)
+        systems.windows.get_selected().split(systems.windows.direction.down)
 
     if char == ord('a'):
-        systems.windows.split(systems.windows.direction.left)
+        systems.windows.get_selected().split(systems.windows.direction.left)
 
     if char == ord('d'):
-        systems.windows.split(systems.windows.direction.right)
+        systems.windows.get_selected().split(systems.windows.direction.right)
 
     if char == ord('e'):
-        systems.windows.select_next()
+        systems.windows.get_selected().next().select()
 
     if char == ord('c'):
-        systems.windows.delete()
+        systems.windows.get_selected().delete()
 
     if char == ord('x'):
         break
 
     if char == ord('u'):
-        systems.windows.select_up()
+        systems.windows.get_selected().parent.select()
 
     else:
         c.io.handle_chr(char)
 
-    c.lib.refresh()
+    systems.ui.refresh()
 
 systems.ui.killsys()
 

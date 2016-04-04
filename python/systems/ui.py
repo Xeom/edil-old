@@ -1,5 +1,4 @@
 import c.ui
-import c.wintree
 import c.lib
 import ctypes
 

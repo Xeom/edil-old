@@ -4,7 +4,7 @@ import systems.hook
 import ctypes
 import cutil
 
-class direction(c.wintree.dir):
+class direction(c.win.dir):
     pass
 
 class hooks:
@@ -16,7 +16,7 @@ def initsys():
 def killsys():
     c.win.killsys()
 
-def get_selected(self):
+def get_selected():
     return Window(c.win.select.get())
 
 def get_root():
@@ -25,7 +25,7 @@ def get_root():
 class Window:
     def __init__(self, ptr):
         self.valid  = True
-        self.struct = ctypes.cast(ptr, win.win_p)
+        self.struct = ctypes.cast(ptr, c.win.win_p)
 
     @property
     def struct(self):
@@ -73,14 +73,14 @@ class Window:
 
     @property
     def parent(self):
-        return Window(self.struct)
+        return Window(c.win.get_parent(self.struct))
 
     def delete(self):
         c.win.delete(self.struct)
         self.valid = False
 
     def split(self, direction):
-        return 0
+        c.win.split(self.struct, direction)
 
     def __iter__(self):
         sub = c.win.get_first(self.struct)
@@ -93,4 +93,4 @@ class Window:
         yield Window(sub)
 
     def next(self):
-        return Window(c.win.get_next(self.struct))
+        return Window(c.win.iter.next(self.struct))
