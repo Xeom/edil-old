@@ -136,8 +136,13 @@ vec *vec_init(size_t width)
 
 void vec_free(vec *v)
 {
-    free(v->data);
+    vec_kill(v);
     free(v);
+}
+
+void vec_kill(vec *v)
+{
+    free(v->data);
 }
 
 void *vec_item(vec *v, size_t index)

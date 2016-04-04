@@ -10,6 +10,6 @@ int ui_win_killsys(void);
 
 int ui_win_draw(void);
 
-int ui_win_draw_sub(win *w);
+int ui_win_draw_subs(win *w);
 
 #endif /* UI_WIN_H */

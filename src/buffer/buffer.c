@@ -16,6 +16,12 @@ struct buffer_s
     char     *name;
 };
 
+hook_add(buffer_line_on_delete, 2);
+hook_add(buffer_line_on_insert, 2);
+
+hook_add(buffer_on_create, 1);
+hook_add(buffer_on_delete, 1);
+
 /* Function to get the chunk containinng a specific line in a buffer.   *
  * This function also moves the currchunk of that buffer to the one     *
  * containing the line, which is why I use it instead of simply calling *
@@ -33,11 +39,15 @@ buffer *buffer_init(void)
     rtn->currchunk = buffer_chunk_init(rtn);
     rtn->name = NULL;
 
+    hook_call(buffer_on_create, &rtn);
+
     return rtn;
 }
 
 void buffer_free(buffer *b)
 {
+    hook_call(buffer_on_delete, &b);
+
     /* Free the chunks (and lines) */
     buffer_chunk_free(b->currchunk);
 

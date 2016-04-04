@@ -2,7 +2,13 @@
 # define BUFFER_CORE_H
 # include "head.h"
 
+# include "hook.h"
 # include "buffer/line.h"
+
+extern hook buffer_line_on_delete;
+extern hook buffer_line_on_insert;
+extern hook buffer_on_create;
+extern hook buffer_on_delete;
 
 typedef struct buffer_s buffer;
 

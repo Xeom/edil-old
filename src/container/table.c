@@ -11,7 +11,7 @@ typedef struct table_item_s table_item;
 struct table_item_s
 {
     key  k;
-    char data[];
+    char data[1];
 };
 
 struct table_s
@@ -64,7 +64,6 @@ static table_item *table_index(table *t, size_t index)
 {
     return ADDPTR(t->data, table_item_size(t) * index);
 }
-
 
 static int table_realloc(table *t, size_t newcap)
 {
@@ -126,7 +125,7 @@ static int table_resize_smaller(table *t)
 
 static size_t table_item_size(table *t)
 {
-    return sizeof(table_item) + t->width;
+    return sizeof(table_item) + t->width - 1;
 }
 
 static hash table_key_hash(table *t, key k)

@@ -5,6 +5,8 @@
 
 #include "win/label.h"
 
+static const char *blank = "";
+
 int win_label_caption_set(win *w, const char *caption)
 {
     size_t len;
@@ -42,7 +44,6 @@ int win_label_sidebar_set(win *w, const char *sidebar)
 
     return 0;
 }
-static const char *blank = "";
 
 const char *win_label_caption_get(win *w)
 {

@@ -53,8 +53,6 @@ int io_initsys(void)
 
 int io_killsys(void)
 {
-    hook_free(io_on_keypress);
-
     return 0;
 }
 

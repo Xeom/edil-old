@@ -1,8 +1,12 @@
+#include <stdio.h>
 #include <curses.h>
 
 #include "ui/util.h"
 #include "win/pos.h"
 #include "win/size.h"
+#include "win/label.h"
+#include "win/select.h"
+#include "win/iter.h"
 
 #include "ui/win/frame.h"
 
@@ -57,7 +61,7 @@ int ui_win_frame_draw_subs(win *w)
     attroff(borderattr);
 
     ui_win_frame_faceify(win_select_get(),
-                         ui_win_frame_sel_face);
+    ui_win_frame_sel_face);
 
     return 0;
 }
@@ -68,7 +72,7 @@ int ui_win_frame_draw(win *w)
     int lastposx, lastposy;
     uint   sizex,    sizey;
 
-    char *caption, *sidebar;
+    const char *caption, *sidebar;
 
     posx = win_pos_get_x(w);
     posy = win_pos_get_y(w);
@@ -76,8 +80,8 @@ int ui_win_frame_draw(win *w)
     if (win_size_get_y(w) == 0 || win_size_get_x(w) == 0)
         return -1;
 
-    sizex = win_pos_get_x(w);
-    sizey = win_pos_get_y(w);
+    sizex = win_size_get_x(w);
+    sizey = win_size_get_y(w);
 
     lastposy = posy + (int)sizey - 1;
     lastposx = posx + (int)sizex - 1;

@@ -30,6 +30,11 @@ static inline void VEC_TYPED_FNAME(free)(VEC_TYPED_VNAME *v)
     vec_free(v);
 }
 
+static inline void VEC_TYPED_FNAME(kill)(VEC_TYPED_VNAME *v)
+{
+    vec_kill(v);
+}
+
 static inline VEC_TYPED_TYPE *VEC_TYPED_FNAME(item)(VEC_TYPED_VNAME *v, size_t index)
 {
     return vec_item(v, index);

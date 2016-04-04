@@ -18,7 +18,9 @@ struct hook_s
 
 #define hook_add(name, nargs) hook name = {NULL, nargs}
 
-void hook_free(hook h);
+int hook_initsys(void);
+
+int hook_killsys(void);
 
 int hook_mount(hook *h, hook_f f, priority pri);
 

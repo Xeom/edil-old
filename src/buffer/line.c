@@ -17,7 +17,7 @@
 
 struct line_s
 {
-    vec text;
+    vec_char text;
     chunk   *c;
 };
 
@@ -32,7 +32,7 @@ line *buffer_line_init(void)
 
 void buffer_line_free(line *l)
 {
-    vec_char_free((vec_lines *)l);
+    vec_char_free((vec_char *)l);
 }
 
 int buffer_line_set_chunk(line *l, chunk *c)

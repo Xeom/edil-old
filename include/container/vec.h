@@ -62,6 +62,14 @@ vec *vec_create(size_t width, void *mem);
 void vec_free(vec *v);
 
 /*
+ * Free only a vector's contents.
+ *
+ * v is the vector to free..
+ *
+ */
+void vec_kill(vec *v);
+
+/*
  * Get a pointer to an item in the vector. The items are represented as a simple array in
  * memory, so vec_item() + vec->width will provide the next item in the vector.
  *

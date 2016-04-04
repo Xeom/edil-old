@@ -32,12 +32,14 @@ int ui_win_content_draw_subs(win *w)
 int ui_win_content_draw(win *tree)
 {
     buffer *b;
-    size_t ln;
+    size_t ln, numlines;
     uint sizex, sizey;
     uint offx,  offy;
     int  currx, curry;
 
-    b     = win_get_buffer(tree);
+    b    = win_get_buffer(tree);
+
+    numlines = buffer_len(b);
 
     offx = win_get_offsetx(tree);
     offy = win_get_offsety(tree);
@@ -55,7 +57,11 @@ int ui_win_content_draw(win *tree)
         line *l;
         char *iter;
 
-        l = buffer_get_line(b, ln++);
+        ln++;
+        if (ln >= numlines)
+            break;
+
+        l = buffer_get_line(b, ln);
 
         if (vec_len((vec *)l) < offx)
             iter = "";

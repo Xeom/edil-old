@@ -34,9 +34,9 @@ struct win_s
 
         struct
         {
-            win_seldir selected;
             win       *sub1;
             win       *sub2;
+            win_seldir selected;
             uint       sub2offset;
         } split;
     } cont;

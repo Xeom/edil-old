@@ -29,8 +29,6 @@ int ui_killsys(void)
 {
     endwin();
 
-    hook_free(ui_on_resize);
-
     ui_win_killsys();
     ui_sbar_killsys();
     ui_face_killsys();

@@ -204,6 +204,8 @@ line *buffer_chunk_insert_line(chunk *c, lineno offset)
     buffer_chunk_resize_bigger(c);
     buffer_chunk_correct_startlines(c);
 
+    hook_call(buffer_line_on_insert, &(c->b), &rtn);
+
     return rtn;
 }
 
@@ -212,6 +214,9 @@ chunk *buffer_chunk_delete_line(chunk *c, lineno offset)
     line *l;
 
     l = vec_lines_get((vec_lines *)c, offset);
+
+    hook_call(buffer_line_on_delete, &(c->b), &l);
+
     vec_lines_delete((vec_lines *)c, offset, 1);
 
     buffer_line_free(l);

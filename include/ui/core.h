@@ -1,5 +1,8 @@
 #if !defined(UI_CORE_H)
 # define UI_CORE_H
+# include "head.h"
+
+# include "hook.h"
 
 extern hook ui_on_resize;
 
