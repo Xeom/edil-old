@@ -1,12 +1,21 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "win/size.h"
 #include "win/util.h"
 #include "win/label.h"
+#include "hook.h"
 
 #include "win/win.h"
 
 win *win_root;
+
+hook_add(win_on_resize_x, 3);
+hook_add(win_on_resize_y, 3);
+
+hook_add(win_on_split,  2);
+hook_add(win_on_delete, 1);
+hook_add(win_on_create, 1);
 
 static win *win_init_leaf(void);
 static win *win_init(void);
@@ -33,6 +42,7 @@ static win *win_init(void)
     win *rtn;
 
     rtn = malloc(sizeof(win));
+    memset(rtn, 0, sizeof(win));
 
     return rtn;
 }
@@ -77,53 +87,60 @@ static void win_free(win *w)
     win_free_norecurse(w);
 }
 
-
 int win_split(win *w, win_dir d)
 {
-    win *split, *newleaf, *sub1, *sub2;
+    win *newleaf, *neww, *nsub1, *nsub2;
     uint sizex, sizey;
 
     sizex = win_size_get_x(w);
     sizey = win_size_get_y(w);
 
-    split   = win_init();
+    neww    = win_init();
+    memcpy(neww, w, sizeof(win));
+
+    neww->parent = w;
+
+    if (win_issplit(neww))
+    {
+        neww->cont.split.sub1->parent = neww;
+        neww->cont.split.sub2->parent = neww;
+    }
+
     newleaf = win_init_leaf();
+    newleaf->parent = w;
 
     if (d == up || d == left)
     {
-        sub1 = newleaf;
-        sub2 = w;
+        nsub1 = newleaf;
+        nsub2 = neww;
+        w->cont.split.selected = sub1;
     }
 
-    if (d == down || d == right)
+    if (d == right || d == down)
     {
-        sub1 = w;
-        sub2 = newleaf;
+        nsub1 = neww;
+        nsub2 = newleaf;
+        w->cont.split.selected = sub2;
     }
 
     if (d == left || d == right)
     {
-        split->type = lrsplit;
-        split->cont.split.sub2offset = sizex / 2;
-
-        win_size_resize_x(sub1, sizex / 2);
-        win_size_resize_x(sub2, sizex - sizex / 2);
+        w->type = lrsplit;
+        win_size_resize_x(neww, sizex / 2);
+        w->cont.split.sub2offset = sizex / 2;
     }
 
     if (d == up || d == down)
     {
-        split->cont.split.sub2offset = sizey / 2;
-        split->type = udsplit;
-
-        win_size_resize_y(sub1, sizey / 2);
-        win_size_resize_y(sub2, sizey - sizey / 2);
+        w->type = udsplit;
+        win_size_resize_y(neww, sizey / 2);
+        w->cont.split.sub2offset = sizey / 2;
     }
 
-    split->cont.split.sub1 = sub1;
-    split->cont.split.sub2 = sub2;
+    w->cont.split.sub1 = nsub1;
+    w->cont.split.sub2 = nsub2;
 
-    sub1->parent = split;
-    sub2->parent = split;
+    hook_call(win_on_split, &w, &newleaf);
 
     return 0;
 }
