@@ -28,7 +28,7 @@ int ui_win_killsys(void)
 
 int ui_win_draw(void)
 {
-/*    ui_win_content_draw_subs(win_root);*/
+    ui_win_content_draw_subs(win_root);
     ui_win_frame_draw_subs(win_root);
 
     return 0;

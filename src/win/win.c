@@ -87,6 +87,46 @@ static void win_free(win *w)
     win_free_norecurse(w);
 }
 
+static int win_move_contents(win *dst, win *src)
+{
+    uint sizex, sizey;
+    win *par;
+
+    par   = dst->parent;
+
+    sizex = win_size_get_x(dst);
+    sizey = win_size_get_y(dst);
+
+    win_size_resize_x(src, sizex);
+    win_size_resize_y(src, sizey);
+
+    memcpy(dst, src, sizeof(win));
+
+    dst->parent = par;
+
+    if (win_issplit(src))
+    {
+        src->cont.split.sub1->parent = dst;
+        src->cont.split.sub2->parent = dst;
+    }
+    else if (win_isleaf(src))
+    {
+        dst->cont.leaf.caption = NULL;
+        dst->cont.leaf.sidebar = NULL;
+
+        win_label_caption_set(dst, win_label_caption_get(src));
+        win_label_sidebar_set(dst, win_label_sidebar_get(src));
+    }
+
+    if (win_issub1(src))
+        src->parent->cont.split.sub1 = dst;
+
+    if (win_issub2(src))
+        src->parent->cont.split.sub2 = dst;
+
+    return 0;
+}
+
 int win_split(win *w, win_dir d)
 {
     win *newleaf, *neww, *nsub1, *nsub2;
@@ -160,22 +200,10 @@ int win_delete(win *w)
     if (win_issub2(w))
         sister = par->cont.split.sub1;
 
-    if (par->type == lrsplit)
-        win_size_resize_x(sister, win_size_get_x(par));
-
-    if (par->type == udsplit)
-        win_size_resize_y(sister, win_size_get_y(par));
-
-    sister->parent = par->parent;
-
-    if (win_issub1(par))
-        par->parent->cont.split.sub1 = sister;
-
-    if (win_issub2(par))
-        par->parent->cont.split.sub2 = sister;
+    win_move_contents(par, sister);
 
     win_free(w);
-    win_free_norecurse(par);
+    win_free_norecurse(sister);
 
     return 0;
 }
