@@ -3,7 +3,9 @@ from shared import lib as so
 
 from c.hook     import hook_p
 from c.callback import callback_p
-from c.wintree  import wintree_p
+from c.win      import win_p
+
+#from c.face     import face_p
 
 initsys = so.ui_initsys
 initsys.argtypes = []
@@ -51,13 +53,38 @@ class win:
     killsys.argtypes = []
     killsys.restype  = ctypes.c_int
 
-    draw_subframes = so.ui_win_draw_subframes
-    draw_subframes.argtypes = [wintree_p]
-    draw_subframes.restype  = ctypes.c_int
-
     draw = so.ui_win_draw
     draw.argtypes = []
     draw.restype  = ctypes.c_int
+
+    draw_subs = so.ui_win_draw_subs
+    draw_subs.argtypes = [win_p]
+    draw_subs.restype  = ctypes.c_int
+
+    class content:
+        draw = so.ui_win_content_draw
+        draw.argtypes = [win_p]
+        draw.restype  = ctypes.c_int
+
+        draw_subs = so.ui_win_content_draw_subs
+        draw_subs.argtypes = [win_p]
+        draw_subs.restype  = ctypes.c_int
+
+
+    class frame:
+        faceify = so.ui_win_frame_faceify
+#        faceify.argtypes = [win_p, face_p]
+        faceify.restype  = ctypes.c_int
+
+        draw = so.ui_win_content_draw
+        draw.argtypes = [win_p]
+        draw.restype  = ctypes.c_int
+
+        draw_subs = so.ui_win_content_draw_subs
+        draw_subs.argtypes = [win_p]
+        draw_subs.restype  = ctypes.c_int
+
+
 
 on_resize  = ctypes.cast(so.ui_on_resize,  hook_p)
 

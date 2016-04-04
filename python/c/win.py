@@ -28,6 +28,10 @@ delete = so.win_delete
 delete.argtypes = [win_p]
 delete.restype  = ctypes.c_int
 
+get_parent = so.win_get_parent
+get_parent.argtypes = [win_p]
+get_parent.restype  = win_p
+
 class size:
     set_root = so.win_size_set_root
     set_root.argtypes = [ctypes.c_uint, ctypes.c_uint]
@@ -79,3 +83,16 @@ class label:
     sidebar_get = so.win_label_sidebar_get
     sidebar_get.argtypes = [win_p]
     sidebar_get.restype  = ctypes.c_char_p
+
+class iter:
+    first = so.win_iter_first
+    first.argtypes = [win_p]
+    first.restype  = win_p
+
+    last = so.win_iter_last
+    last.argtypes = [win_p]
+    last.restype  = win_p
+
+    next = so.win_iter_next
+    next.argtypes = [win_p]
+    next.restype  = win_p
