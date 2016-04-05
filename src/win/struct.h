@@ -21,7 +21,6 @@ typedef enum
 struct win_s
 {
     win        *parent;
-    win_contype type;
     union
     {
         struct
@@ -40,6 +39,7 @@ struct win_s
             uint       sub2offset;
         } split;
     } cont;
+    win_contype type;
 };
 
 extern win *win_root;
