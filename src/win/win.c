@@ -135,6 +135,12 @@ int win_split(win *w, win_dir d)
     sizex = win_size_get_x(w);
     sizey = win_size_get_y(w);
 
+    if (d == up || d == down)
+        win_size_resize_y(w, sizey / 2);
+
+    if (d == left || d == right)
+        win_size_resize_x(w, sizex / 2);
+
     neww    = win_init();
     memcpy(neww, w, sizeof(win));
 
@@ -163,22 +169,20 @@ int win_split(win *w, win_dir d)
         w->cont.split.selected = sub2;
     }
 
+    w->cont.split.sub1 = nsub1;
+    w->cont.split.sub2 = nsub2;
+
     if (d == left || d == right)
     {
         w->type = lrsplit;
-        win_size_resize_x(neww, sizex / 2);
         w->cont.split.sub2offset = sizex / 2;
     }
 
     if (d == up || d == down)
     {
         w->type = udsplit;
-        win_size_resize_y(neww, sizey / 2);
         w->cont.split.sub2offset = sizey / 2;
     }
-
-    w->cont.split.sub1 = nsub1;
-    w->cont.split.sub2 = nsub2;
 
     hook_call(win_on_split, &w, &newleaf);
 
