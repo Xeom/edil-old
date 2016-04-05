@@ -14,12 +14,4 @@ line *buffer_line_init(void);
 
 void buffer_line_free(line *l);
 
-int buffer_line_set_chunk(line *l, chunk *c);
-
-lineno buffer_line_get_lineno(line *l);
-
-lineno buffer_line_rget_lineno(line *l);
-
-lineno buffer_line_get_lineno_hint(line *l, lineno hint);
-
 #endif /* BUFFER_LINE_H */

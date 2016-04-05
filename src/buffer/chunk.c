@@ -135,9 +135,6 @@ static chunk *buffer_chunk_insert_lines(chunk *c, size_t index, size_t n, line *
 {
     vec_lines_insert((vec_lines *)c, index, n, lines);
 
-    while (n--)
-        buffer_line_set_chunk(vec_lines_get((vec_lines *)c, index++), c);
-
     return buffer_chunk_resize_bigger(c);
 }
 
