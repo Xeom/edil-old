@@ -18,6 +18,7 @@ struct buffer_s
 
 hook_add(buffer_line_on_delete, 2);
 hook_add(buffer_line_on_insert, 2);
+hook_add(buffer_line_on_change, 2);
 
 hook_add(buffer_on_create, 1);
 hook_add(buffer_on_delete, 1);

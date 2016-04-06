@@ -8,6 +8,8 @@
 
 extern hook buffer_line_on_delete;
 extern hook buffer_line_on_insert;
+extern hook buffer_line_on_change;
+
 extern hook buffer_on_create;
 extern hook buffer_on_delete;
 

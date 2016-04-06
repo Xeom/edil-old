@@ -237,9 +237,14 @@ vec *buffer_chunk_get_line(chunk *c, lineno offset)
 
 int buffer_chunk_set_line(chunk *c, lineno offset, vec *v)
 {
-    return buffer_line_set_vec(
-        vec_lines_get((vec_lines *)c, offset), v);
+    lineno ln;
+
+    buffer_line_set_vec(vec_lines_get((vec_lines *)c, offset), v);
+
+    ln = buffer_chunk_offset_to_lineno(c, offset);
+    hook_call(buffer_line_on_change, &(c->b), &ln);
 }
+
 chunk *buffer_chunk_get_containing(chunk *c, lineno ln)
 {
     while (ln < c->startline && c->prev)
