@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "container/vec.h"
 #include "buffer/chunk.h"
@@ -17,19 +18,49 @@
 
 struct line_s
 {
-    vec_char text; /* A line is an extention of a vec_char. All normal vec/vec_char operations work */
+    size_t length;
+    char    *text;
 };
 
 line *buffer_line_init(void)
 {
-    line *rtn = malloc(sizeof(line));
+    line *rtn;
 
-    vec_char_create(rtn);
+    rtn = malloc(sizeof(line));
+
+    rtn->text   = NULL;
+    rtn->length = 0;
 
     return rtn;
 }
 
 void buffer_line_free(line *l)
 {
-    vec_char_free((vec_char *)l);
+    free(l);
+}
+
+vec *buffer_line_get_vec(line *l)
+{
+    size_t len;
+    vec *rtn;
+
+    rtn = vec_char_init();
+    len = l->length;
+
+    if (l->length)
+        vec_char_insert(rtn, 0, len, l->text);
+
+    return rtn;
+}
+
+int buffer_line_set_vec(line *l, vec *v)
+{
+    size_t len;
+
+    len = vec_char_len(v);
+
+    l->text = realloc(l->text, len);
+    memcpy(l->text, vec_char_item(v, 0), len);
+
+    return 0;
 }

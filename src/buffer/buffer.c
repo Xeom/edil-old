@@ -68,9 +68,8 @@ static inline chunk *buffer_get_containing_chunk(buffer *b, lineno ln)
     return b->currchunk;
 }
 
-line *buffer_insert(buffer *b, lineno ln)
+int buffer_insert(buffer *b, lineno ln)
 {
-    line  *rtn;
     chunk *c;
     lineno offset;
 
@@ -79,9 +78,7 @@ line *buffer_insert(buffer *b, lineno ln)
     offset = buffer_chunk_lineno_to_offset(c, ln);
 
     /* Aaaaand we've abstracted over the rest cos we're useless. */
-    rtn = buffer_chunk_insert_line(c, offset);
-
-    return rtn;
+    return buffer_chunk_insert_line(c, offset);
 }
 
 int buffer_delete(buffer *b, lineno ln)
@@ -99,11 +96,11 @@ int buffer_delete(buffer *b, lineno ln)
     return 0;
 }
 
-line *buffer_get_line(buffer *b, lineno ln)
+vec *buffer_get_line(buffer *b, lineno ln)
 {
     chunk *c;
     lineno offset;
-    line  *rtn;
+    vec  *rtn;
 
     /* Get the chunk, and depth into that chunk of where we want to get. */
     c      = buffer_get_containing_chunk(b, ln);
@@ -112,6 +109,18 @@ line *buffer_get_line(buffer *b, lineno ln)
     rtn    = buffer_chunk_get_line(c, offset);
 
     return rtn;
+}
+
+int buffer_set_line(buffer *b, lineno ln, vec *v)
+{
+    chunk *c;
+    lineno offset;
+
+    /* Get the chunk, and depth into that chunk of where we want to get. */
+    c      = buffer_get_containing_chunk(b, ln);
+    offset = buffer_chunk_lineno_to_offset(c, ln);
+
+    return buffer_chunk_set_line(c, offset, v);
 }
 
 lineno buffer_len(buffer *b)

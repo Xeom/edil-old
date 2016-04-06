@@ -191,28 +191,33 @@ static chunk *buffer_chunk_resize_smaller(chunk *c)
     return buffer_chunk_resize_bigger(next);
 }
 
-line *buffer_chunk_insert_line(chunk *c, lineno offset)
+int buffer_chunk_insert_line(chunk *c, lineno offset)
 {
-    line *rtn;
+    line  *l;
+    lineno ln;
 
-    rtn = buffer_line_init();
+    l = buffer_line_init();
 
-    buffer_chunk_insert_lines(c, offset, 1, &rtn);
+    buffer_chunk_insert_lines(c, offset, 1, &l);
     buffer_chunk_resize_bigger(c);
     buffer_chunk_correct_startlines(c);
 
-    hook_call(buffer_line_on_insert, &(c->b), &rtn);
+    ln = buffer_chunk_offset_to_lineno(c, offset);
 
-    return rtn;
+    hook_call(buffer_line_on_insert, &(c->b), &ln);
+
+    return 0;
 }
 
 chunk *buffer_chunk_delete_line(chunk *c, lineno offset)
 {
-    line *l;
+    line  *l;
+    lineno ln;
 
-    l = vec_lines_get((vec_lines *)c, offset);
+    l  = vec_lines_get((vec_lines *)c, offset);
+    ln = buffer_chunk_offset_to_lineno(c, offset);
 
-    hook_call(buffer_line_on_delete, &(c->b), &l);
+    hook_call(buffer_line_on_delete, &(c->b), &ln);
 
     vec_lines_delete((vec_lines *)c, offset, 1);
 
@@ -224,11 +229,17 @@ chunk *buffer_chunk_delete_line(chunk *c, lineno offset)
     return c;
 }
 
-line *buffer_chunk_get_line(chunk *c, lineno offset)
+vec *buffer_chunk_get_line(chunk *c, lineno offset)
 {
-    return vec_lines_get((vec_lines *)c, offset);
+    return buffer_line_get_vec(
+        vec_lines_get((vec_lines *)c, offset));
 }
 
+int buffer_chunk_set_line(chunk *c, lineno offset, vec *v)
+{
+    return buffer_line_set_vec(
+        vec_lines_get((vec_lines *)c, offset), v);
+}
 chunk *buffer_chunk_get_containing(chunk *c, lineno ln)
 {
     while (ln < c->startline && c->prev)

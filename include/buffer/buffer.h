@@ -2,6 +2,7 @@
 # define BUFFER_CORE_H
 # include "head.h"
 
+# include "container/vec.h"
 # include "hook.h"
 # include "buffer/line.h"
 
@@ -16,11 +17,13 @@ buffer *buffer_init(void);
 
 void buffer_free(buffer *b);
 
-line *buffer_insert(buffer *b, lineno ln);
+int buffer_insert(buffer *b, lineno ln);
 
 int buffer_delete(buffer *b, lineno index);
 
-line *buffer_get_line(buffer *b, lineno ln);
+vec *buffer_get_line(buffer *b, lineno ln);
+
+int buffer_set_line(buffer *b, lineno ln, vec *l);
 
 lineno buffer_len(buffer *b);
 

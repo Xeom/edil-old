@@ -4,6 +4,7 @@
 
 # include "buffer/buffer.h"
 # include "buffer/line.h"
+# include "container/vec.h"
 
 chunk *buffer_chunk_init(buffer *b);
 
@@ -11,11 +12,13 @@ size_t chunk_len(chunk *c);
 
 void buffer_chunk_free(chunk *c);
 
-line *buffer_chunk_insert_line(chunk *c, lineno offset);
+int buffer_chunk_insert_line(chunk *c, lineno offset);
 
 chunk *buffer_chunk_delete_line(chunk *c, lineno offset);
 
-line *buffer_chunk_get_line(chunk *c, lineno offset);
+vec *buffer_chunk_get_line(chunk *c, lineno offset);
+
+int buffer_chunk_set_line(chunk *c, lineno offset, vec *v);
 
 chunk *buffer_chunk_get_containing(chunk *c, lineno ln);
 
