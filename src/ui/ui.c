@@ -6,7 +6,7 @@
 #include "ui/win/win.h"
 #include "win/size.h"
 
-#include "ui/core.h"
+#include "ui/ui.h"
 
 hook_add(ui_on_resize, 2);
 
