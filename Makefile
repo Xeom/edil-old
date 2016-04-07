@@ -15,11 +15,11 @@ lib.so: $(OBJ_FILES)
 obj/%.o: src/%.c
 	@$(call pinfo,"Creating object file $@")
 	mkdir -p $(@D)
-	gcc -c -g -fPIC $(W_FLAGS) $(I_FLAGS) $< -o $@
+	gcc -c -g -fPIC $(W_FLAGS) $(I_FLAGS) --std=$(STD) $< -o $@
 
 test/%: test/%.c $(OBJ_FILES)
 	@$(call pinfo,"Creating test executable $@")
-	gcc -g $(W_FLAGS) $(L_FLAGS) $(I_FLAGS) $^ -o $@
+	gcc -g $(W_FLAGS) $(L_FLAGS) $(I_FLAGS)--std=$(STD)  $^ -o $@
 
 clean_dep:
 	@$(call pinfo,"Removing dep/*")
