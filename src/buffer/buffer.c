@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "buffer/chunk.h"
 #include "buffer/line.h"
@@ -11,10 +12,10 @@
 
 #include "buffer/buffer.h"
 
+
 struct buffer_s
 {
     chunk *currchunk; /* Linked list (most recent link) of chunks */
-
     struct
     {
         unsigned int modified:1;
@@ -47,6 +48,8 @@ buffer *buffer_init(void)
     TRACE_PTR(rtn->currchunk = buffer_chunk_init(rtn),
               return NULL);
 
+    memset(&(rtn->flags), 0, sizeof(rtn->flags));
+
     hook_call(buffer_on_create, &rtn);
 
     return rtn;
@@ -54,6 +57,8 @@ buffer *buffer_init(void)
 
 void buffer_free(buffer *b)
 {
+    if (!b) return;
+
     hook_call(buffer_on_delete, &b);
 
     /* Free the chunks (and lines) */
@@ -79,11 +84,24 @@ int buffer_insert(buffer *b, lineno ln)
     chunk *c;
     lineno offset;
 
+    ASSERT_PTR(b, high,
+               return -1);
+
+    if (b->flags.readonly)
+    {
+        ERR_NEW(medium, "Buffer is read-only",
+                "Cannot insert to read-only buffer.");
+
+        return -1;
+    }
+
     /* Get the chunk, and depth into that chunk of where we want to insert. */
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
               return -1);
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
+
+    b->flags.modified = 1;
 
     /* Aaaaand we've abstracted over the rest cos we're useless. */
     TRACE_INT(buffer_chunk_insert_line(c, offset),
@@ -97,11 +115,24 @@ int buffer_delete(buffer *b, lineno ln)
     chunk *c;
     lineno offset;
 
+    ASSERT_PTR(b, high,
+               return -1);
+
+    if (b->flags.readonly)
+    {
+        ERR_NEW(medium, "Buffer is read-only",
+                "Cannot delete from read-only buffer.");
+
+        return -1;
+    }
+
     /* Get the chunk, and depth into that chunk of where we want to delete. */
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
               return -1);
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
+
+    b->flags.modified = 1;
 
     /* Bla */
     TRACE_INT(buffer_chunk_delete_line(c, offset),
@@ -115,6 +146,9 @@ vec *buffer_get_line(buffer *b, lineno ln)
     chunk *c;
     lineno offset;
     vec  *rtn;
+
+    ASSERT_PTR(b, high,
+               return NULL);
 
     /* Get the chunk, and depth into that chunk of where we want to get. */
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
@@ -133,14 +167,37 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     chunk *c;
     lineno offset;
 
+    ASSERT_PTR(b, high,
+               return -1);
+
+    if (b->flags.readonly)
+    {
+        ERR_NEW(medium, "Buffer is read-only",
+                "Cannot set in read-only buffer.");
+
+        return -1;
+    }
+
     /* Get the chunk, and depth into that chunk of where we want to get. */
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
               return -1);
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
+    b->flags.modified = 1;
+
     TRACE_INT(buffer_chunk_set_line(c, offset, v),
               return -1);
+
+    return 0;
+}
+
+int buffer_reset_modified(buffer *b)
+{
+    ASSERT_PTR(b, high,
+               return -1);
+
+    b->flags.modified = 0;
 
     return 0;
 }
