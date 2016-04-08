@@ -21,6 +21,8 @@ LINKS=ncurses
 INCLUDES=include/ src/
 
 SRC_NAMES=\
+    core                   \
+                           \
     err                    \
     hook                   \
     io                     \
