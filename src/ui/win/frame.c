@@ -7,6 +7,7 @@
 #include "win/label.h"
 #include "win/select.h"
 #include "win/iter.h"
+#include "ui/win/win.h"
 
 #include "ui/win/frame.h"
 
@@ -61,7 +62,7 @@ int ui_win_frame_draw_subs(win *w)
     attroff(borderattr);
 
     ui_win_frame_faceify(win_select_get(),
-    ui_win_frame_sel_face);
+                         ui_win_frame_sel_face);
 
     return 0;
 }
@@ -73,6 +74,8 @@ int ui_win_frame_draw(win *w)
     uint   sizex,    sizey;
 
     const char *caption, *sidebar;
+
+    hook_call(ui_win_on_draw_frame_pre, &w);
 
     posx = win_pos_get_x(w);
     posy = win_pos_get_y(w);
@@ -96,6 +99,8 @@ int ui_win_frame_draw(win *w)
     ui_util_draw_str_limited_v(sizey - 1, ui_win_vertical_char, sidebar);
 
     mvaddch(lastposy, lastposx, (uchar)ui_win_corner_char);
+
+    hook_call(ui_win_on_draw_frame_post, &w);
 
     return 0;
 }

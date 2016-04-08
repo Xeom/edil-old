@@ -3,11 +3,23 @@
 #include "ui/win/frame.h"
 #include "ui/win/content.h"
 #include "callback.h"
+#include "hook.h"
 
 #include "ui/win/win.h"
 
 face *ui_win_frame_sel_face;
 face *ui_win_frame_face;
+
+/* TODO: This */
+/* (window) */
+hook_add(ui_win_on_draw_frame_pre, 1);
+hook_add(ui_win_on_draw_frame_post, 1);
+/* (window, buffer) */
+hook_add(ui_win_on_draw_content_pre, 2);
+hook_add(ui_win_on_draw_content_post, 2);
+/* (window, buffer, lineno, str) */
+hook_add(ui_win_on_draw_content_line_pre, 4);
+hook_add(ui_win_on_draw_content_line_post, 4);
 
 int ui_win_initsys(void)
 {

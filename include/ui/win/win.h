@@ -4,6 +4,15 @@
 
 # include "win/win.h"
 
+extern hook ui_win_on_draw_frame_pre;
+extern hook ui_win_on_draw_frame_post;
+
+extern hook ui_win_on_draw_content_pre;
+extern hook ui_win_on_draw_content_post;
+
+extern hook ui_win_on_draw_content_line_pre;
+extern hook ui_win_on_draw_content_line_post;
+
 int ui_win_initsys(void);
 
 int ui_win_killsys(void);
