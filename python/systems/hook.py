@@ -38,7 +38,8 @@ class Hook:
 
             for type, arg in zip(self.types, cargs):
                 if issubclass(type, ctypes.Structure) or \
-                   issubclass(type, ctypes._SimpleCData):
+                   issubclass(type, ctypes._SimpleCData) or \
+                   issubclass(type, ctypes._Pointer):
                     value = ctypes.cast(arg, ctypes.POINTER(type)).contents
 
                 else:

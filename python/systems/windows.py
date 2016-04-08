@@ -43,6 +43,7 @@ class Window:
     def size(self):
         return (c.win.size.get_x(self.struct),
                 c.win.size.get_y(self.struct))
+
     @property
     def pos(self):
         return (c.win.pos.get_x(self.struct),
@@ -61,7 +62,10 @@ class Window:
 
     @caption.setter
     def caption(self, cap):
-        c.win.label.caption_set(cap)
+        if isinstance(cap, str):
+            cap = cap.encode("ascii")
+
+        c.win.label.caption_set(self.struct, cap)
 
     @property
     def sidebar(self):
@@ -69,7 +73,10 @@ class Window:
 
     @caption.setter
     def sidebar(self, sbar):
-        c.win.label.caption_set(sbar)
+        if isinstance(sbar, str):
+            sbar = sbar.encode("ascii")
+
+        c.win.label.sidebar_set(self.struct, sbar)
 
     @property
     def parent(self):
