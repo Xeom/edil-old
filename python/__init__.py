@@ -18,7 +18,25 @@ systems.ui.initsys()
 
 systems.io.initsys()
 
+@systems.ui.hooks.win.content.draw_pre(100)
+def handle_content_draw_pre(w, b):
+    import sys
+    print(c.buffer.insert(b, 0))
+
+    l = c.buffer.get_line(b, 0)
+
+    if not w.caption:
+        w.caption = "0"
+    w.caption = str(int(w.caption) + 1)
+
+
 systems.ui.refresh()
+
+
+
+import c.buffer
+
+
 """
 @systems.windows.hooks.resizex(100)
 @systems.windows.hooks.resizey(100)
@@ -71,6 +89,8 @@ while True:
     else:
         c.io.handle_chr(char)
 
+#k    systems.windows.Window(c.win.select.get()).sidebar = "Hiiii"
+        
     systems.ui.refresh()
 
 systems.ui.killsys()
