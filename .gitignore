@@ -1,14 +1,19 @@
+# Gcc
 *.d
 *.o
 *.so
 *.out
 
+# Emacs
 *~
 #*
 *#
 .#*
 
+# Python files
 *.pyc
 __pycache__
 
+# Valgrind
 callgrind.out*
+*.supp
