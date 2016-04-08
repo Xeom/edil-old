@@ -42,13 +42,14 @@ class Hook:
                     value = ctypes.cast(arg, ctypes.POINTER(type)).contents
 
                 else:
-                    value = type(arg)
+                    value = type(ctypes.cast(arg, ctypes.POINTER(ctypes.c_void_p)).contents)
 
                 pyargs.append(value)
 
-            try:
-                pyfunct(*pyargs)
-            except:
-                pass # TODO: Something
+#            try:
+            pyfunct(*pyargs)
+#            except:
+#                pass # TODO: Something
 
         return f
+
