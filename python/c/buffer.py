@@ -8,6 +8,11 @@ class flag:
     readonly = 1
     modified = 2
 
+class buffer_s(ctypes.Structure):
+    pass
+
+buffer_p = ctypes.POINTER(buffer_s)
+
 lineno = ctypes.c_size_t
 
 on_create = ctypes.cast(so.buffer_on_create, hook_p)
@@ -52,4 +57,3 @@ disable_flag.restype  = ctypes.c_int
 len = so.buffer_len
 len.argtypes = [buffer_p]
 len.restype  = lineno
-

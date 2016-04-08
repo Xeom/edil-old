@@ -93,28 +93,25 @@ class Vec:
         self.type = type
         self.type_p = ctypes.POINTER(type)
 
-    def __iter__(self):
-        for i in range(self.__len__()):
-            yield self.get(i)
-
-    def __len__(self):
-        return self.len()
-
     def getptr(self, value):
         if not isinstance(value, self.type):
             value = self.type(value)
 
         return self.type_p(value)
 
-    def get(self, index):
+    def __iter__(self):
+        for i in range(self.__len__()):
+            yield self[i]
+
+    def __len__(self):
+        return len(self.struct)
+
+    def __getitem__(self, index):
         ptr = item(self.struct, index)
         ptr = ctypes.cast(ptr, self.type_p)
         return ptr.contents
 
-    def len(self):
-        return len(self.struct)
-
-    def set(self, index, value):
+    def __setitem__(self, index, value):
         ptr = ctypes.cast(item(self.struct, index), self.type_p)
         ptr.contents = value
         set(self.struct, index, ptr)
@@ -133,3 +130,10 @@ class Vec:
 
     def delete(self, index, n):
         delete(self.struct, index, n)
+
+class VecType:
+    def __init__(self, type):
+        self.type = type
+
+    def __call__(self, struct):
+        return Vec(struct, self.type)
