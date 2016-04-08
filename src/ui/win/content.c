@@ -40,7 +40,7 @@ int ui_win_content_draw(win *w)
 
     b    = win_get_buffer(w);
 
-    hook_call(ui_win_on_draw_content_pre, &w, &b);
+    hook_call(ui_win_content_on_draw_pre, &w, &b);
 
     numlines = buffer_len(b);
 
@@ -65,7 +65,7 @@ int ui_win_content_draw(win *w)
 
         l = buffer_get_line(b, ln);
 
-        hook_call(ui_win_on_draw_content_line_pre, &w, &b, &ln, &l);
+        hook_call(ui_win_content_on_draw_line_pre, &w, &b, &ln, &l);
 
         if (vec_len(l) < offx)
             iter = "";
@@ -76,13 +76,13 @@ int ui_win_content_draw(win *w)
 
         ui_util_draw_text_limited_h(sizex, vec_len(l) - offx, ' ', iter);
 
-        hook_call(ui_win_on_draw_content_line_post, &w, &b, &ln, &l);
+        hook_call(ui_win_content_on_draw_line_post, &w, &b, &ln, &l);
 
         vec_free(l);
         ln++;
     }
 
-    hook_call(ui_win_on_draw_content_post, &w, &b);
+    hook_call(ui_win_content_on_draw_post, &w, &b);
 
     return 0;
 }

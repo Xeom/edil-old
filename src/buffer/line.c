@@ -1,8 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include "container/vec.h"
 #include "buffer/chunk.h"
+#include "hook.h"
 
 #include "buffer/line.h"
 
@@ -60,6 +62,7 @@ int buffer_line_set_vec(line *l, vec *v)
     len = vec_char_len(v);
 
     l->text = realloc(l->text, len);
+    l->length = len;
     memcpy(l->text, vec_char_item(v, 0), len);
 
     return 0;

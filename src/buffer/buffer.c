@@ -156,7 +156,7 @@ vec *buffer_get_line(buffer *b, lineno ln)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return NULL);
 
-    TRACE_INT(rtn    = buffer_chunk_get_line(c, offset),
+    TRACE_PTR(rtn    = buffer_chunk_get_line(c, offset),
               return NULL);
 
     return rtn;

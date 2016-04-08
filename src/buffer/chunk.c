@@ -243,6 +243,8 @@ int buffer_chunk_set_line(chunk *c, lineno offset, vec *v)
 
     ln = buffer_chunk_offset_to_lineno(c, offset);
     hook_call(buffer_line_on_change, &(c->b), &ln);
+
+    return 0;
 }
 
 chunk *buffer_chunk_get_containing(chunk *c, lineno ln)

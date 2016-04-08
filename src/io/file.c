@@ -29,11 +29,11 @@ int file_dump_buffer(buffer *b, FILE *stream)
 
     while (currln < numln)
     {
-        line *l;
+        vec *l;
 
         l = buffer_get_line(b, currln++);
 
-        file_dump_vec((vec *)l, stream);
+        file_dump_vec(l, stream);
     }
 
     return 0;
@@ -42,27 +42,41 @@ int file_dump_buffer(buffer *b, FILE *stream)
 static int file_read_buffer_line(buffer *b, FILE *stream)
 {
     char val;
-    int chr;
+    int chr, rtn;
     size_t len;
-    line *l;
+    vec *l;
 
-    len = buffer_len(b);
-    l = buffer_insert(b, len);
+
+    l = vec_init(sizeof(char));
 
     while (1)
     {
         chr = fgetc(stream);
 
         if (chr == EOF)
-            return EOF;
+        {
+            rtn = EOF;
+            break;
+        }
 
         val = (char)chr;
 
-        vec_insert_end((vec *)l, 1, &val);
+        vec_insert_end(l, 1, &val);
 
         if (chr == '\n')
-            return 0;
+        {
+            rtn = 0;
+            break;
+        }
     }
+
+    len = buffer_len(b);
+
+    buffer_insert(b, len);
+    buffer_set_line(b, len, l);
+    vec_free(l);
+
+    return rtn;
 }
 
 int file_read_buffer(buffer *b, FILE *stream)

@@ -75,7 +75,7 @@ int ui_win_frame_draw(win *w)
 
     const char *caption, *sidebar;
 
-    hook_call(ui_win_on_draw_frame_pre, &w);
+    hook_call(ui_win_frame_on_draw_pre, &w);
 
     posx = win_pos_get_x(w);
     posy = win_pos_get_y(w);
@@ -100,7 +100,7 @@ int ui_win_frame_draw(win *w)
 
     mvaddch(lastposy, lastposx, (uchar)ui_win_corner_char);
 
-    hook_call(ui_win_on_draw_frame_post, &w);
+    hook_call(ui_win_frame_on_draw_post, &w);
 
     return 0;
 }

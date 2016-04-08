@@ -11,7 +11,7 @@ typedef struct table_item_s table_item;
 struct table_item_s
 {
     key  k;
-    char data[1];
+    char data[];
 };
 
 struct table_s
@@ -60,7 +60,7 @@ table *table_init(size_t width, hashfunct hshf, keqfunct keqf)
     return rtn;
 }
 
-static table_item *table_index(table *t, size_t index)
+static inline table_item *table_index(table *t, size_t index)
 {
     return ADDPTR(t->data, table_item_size(t) * index);
 }
@@ -123,12 +123,12 @@ static int table_resize_smaller(table *t)
     return 0;
 }
 
-static size_t table_item_size(table *t)
+static inline size_t table_item_size(table *t)
 {
-    return sizeof(table_item) + t->width - 1;
+    return sizeof(table_item) + t->width;
 }
 
-static hash table_key_hash(table *t, key k)
+static inline hash table_key_hash(table *t, key k)
 {
     if (t->hshf)
         return (hash)((t->hshf)(k));
@@ -136,7 +136,7 @@ static hash table_key_hash(table *t, key k)
         return (hash)k;
 }
 
-static int table_key_eq(table *t, key a, key b)
+static inline int table_key_eq(table *t, key a, key b)
 {
     if (t->keqf)
         return (t->keqf)(a, b);

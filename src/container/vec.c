@@ -136,12 +136,16 @@ vec *vec_init(size_t width)
 
 void vec_free(vec *v)
 {
+    if (!v) return;
+
     vec_kill(v);
     free(v);
 }
 
 void vec_kill(vec *v)
 {
+    if (!v) return;
+
     free(v->data);
 }
 
