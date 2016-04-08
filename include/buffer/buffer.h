@@ -13,6 +13,9 @@ extern hook buffer_line_on_change;
 extern hook buffer_on_create;
 extern hook buffer_on_delete;
 
+#define buffer_readonly_flag (uint)(0x01)
+#define buffer_modified_flag (uint)(0x02)
+
 typedef struct buffer_s buffer;
 
 buffer *buffer_init(void);
@@ -26,6 +29,12 @@ int buffer_delete(buffer *b, lineno index);
 vec *buffer_get_line(buffer *b, lineno ln);
 
 int buffer_set_line(buffer *b, lineno ln, vec *l);
+
+int buffer_get_flag(buffer *b, uint flag);
+
+int buffer_disable_flag(buffer *b, uint flag);
+
+int buffer_enable_flag(buffer *b, uint flag);
 
 lineno buffer_len(buffer *b);
 

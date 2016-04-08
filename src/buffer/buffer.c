@@ -12,15 +12,10 @@
 
 #include "buffer/buffer.h"
 
-
 struct buffer_s
 {
     chunk *currchunk; /* Linked list (most recent link) of chunks */
-    struct
-    {
-        unsigned int modified:1;
-        unsigned int readonly:1;
-    } flags;
+    uint   flags;
 };
 
 hook_add(buffer_line_on_delete, 2);
@@ -29,6 +24,11 @@ hook_add(buffer_line_on_change, 2);
 
 hook_add(buffer_on_create, 1);
 hook_add(buffer_on_delete, 1);
+
+#define buffer_extern_flags buffer_readonly_flag || buffer_modified_flag
+#define buffer_flag(b, name)     (b->flags &   buffer_ ## name ## _flag)
+#define buffer_flag_on(b, name)  (b->flags |=  buffer_ ## name ## _flag)
+#define buffer_flag_off(b, name) (b->flags &= ~buffer_ ## name ## _flag)
 
 /* Function to get the chunk containinng a specific line in a buffer.   *
  * This function also moves the currchunk of that buffer to the one     *
@@ -48,7 +48,7 @@ buffer *buffer_init(void)
     TRACE_PTR(rtn->currchunk = buffer_chunk_init(rtn),
               return NULL);
 
-    memset(&(rtn->flags), 0, sizeof(rtn->flags));
+    rtn->flags = 0;
 
     hook_call(buffer_on_create, &rtn);
 
@@ -87,7 +87,7 @@ int buffer_insert(buffer *b, lineno ln)
     ASSERT_PTR(b, high,
                return -1);
 
-    if (b->flags.readonly)
+    if (buffer_flag(b, readonly))
     {
         ERR_NEW(medium, "Buffer is read-only",
                 "Cannot insert to read-only buffer.");
@@ -101,7 +101,7 @@ int buffer_insert(buffer *b, lineno ln)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    b->flags.modified = 1;
+    buffer_flag_on(b, modified);
 
     /* Aaaaand we've abstracted over the rest cos we're useless. */
     TRACE_INT(buffer_chunk_insert_line(c, offset),
@@ -118,7 +118,7 @@ int buffer_delete(buffer *b, lineno ln)
     ASSERT_PTR(b, high,
                return -1);
 
-    if (b->flags.readonly)
+    if (buffer_flag(b, readonly))
     {
         ERR_NEW(medium, "Buffer is read-only",
                 "Cannot delete from read-only buffer.");
@@ -132,7 +132,7 @@ int buffer_delete(buffer *b, lineno ln)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    b->flags.modified = 1;
+    buffer_flag_on(b, modified);
 
     /* Bla */
     TRACE_INT(buffer_chunk_delete_line(c, offset),
@@ -170,7 +170,7 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     ASSERT_PTR(b, high,
                return -1);
 
-    if (b->flags.readonly)
+    if (buffer_flag(b, readonly))
     {
         ERR_NEW(medium, "Buffer is read-only",
                 "Cannot set in read-only buffer.");
@@ -184,7 +184,7 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    b->flags.modified = 1;
+    buffer_flag_on(b, modified);
 
     TRACE_INT(buffer_chunk_set_line(c, offset, v),
               return -1);
@@ -192,12 +192,35 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     return 0;
 }
 
-int buffer_reset_modified(buffer *b)
+int buffer_get_flag(buffer *b, uint flag)
 {
-    ASSERT_PTR(b, high,
-               return -1);
+    return (b->flags & flag) != 0;
+}
 
-    b->flags.modified = 0;
+int buffer_enable_flag(buffer *b, uint flag)
+{
+    if (flag & ~buffer_extern_flags)
+    {
+        ERR_NEW(high, "Invalid flag",
+                "Flag either does not exist or cannot be externally set");
+        return -1;
+    }
+
+    b->flags |= flag;
+
+    return 0;
+}
+
+int buffer_disable_flag(buffer *b, uint flag)
+{
+    if (flag & ~buffer_extern_flags)
+    {
+        ERR_NEW(high, "Invalid flag",
+                "Flag either does not exist or cannot be externally set");
+        return -1;
+    }
+
+    b->flags &= ~flag;
 
     return 0;
 }
