@@ -1,0 +1,143 @@
+{
+   Ncurses init
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:initscr
+   fun:ui_initsys
+   ...
+}
+
+{
+   Ncurses init color
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:start_color
+   fun:ui_initsys
+   ...
+}   
+
+{
+   PYTHOOON
+   Memcheck:Leak
+   match-leak-kinds: reachable,possible
+   ...   
+   fun:PyMem_Raw*alloc
+   ...
+}
+
+{
+   PYTHONNNN
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:_dl_new_object 
+}
+
+{
+   Ncurses refresh
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:doupdate
+   fun:wrefresh
+   ...
+}
+
+{
+   Python again
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:prepare_s
+   fun:s_init
+   fun:type_call
+   fun:PyObject_Call
+   fun:PyObject_CallFunctionObjArgs
+   ...
+}
+
+{
+   Python more
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:Py*
+   ...
+}
+
+{
+   Ncurses keypad
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:_nc_keypad
+   fun:ui_initsys
+   ...
+}
+
+{
+   Python alloc program path
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:Py_GetProgramFullPath 
+   ...
+}
+
+{
+   Python dl open worker
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:dl_open_worker
+   ...
+}
+
+{
+   Python PyObjectDict_SetItem
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:_PyObjectDict_SetItem
+   ...
+}
+
+{
+   Ctypes allocations
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:_ctypes_alloc*
+   ...
+}
+
+{
+   Python bullshit
+   Memcheck:Leak
+   match-leak-kinds: reachable 
+   fun:malloc
+   fun:new_keys_object
+   ...
+}
+
+{
+   Python extend some lists
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:realloc
+   fun:list_resize
+   fun:listextend
+   ...
+}
+
+{
+   Dlerror
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   fun:_dlerror_run    
+}
