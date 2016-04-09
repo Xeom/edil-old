@@ -11,24 +11,36 @@ import shared
 import signal
 import c.lib
 
+def append(b, text):
+    c.buffer.insert(b, 0)
 
-systems.windows.initsys()
+    l = c.vec.str2vec(text)
 
-systems.ui.initsys()
+    c.buffer.set_line(b, 0, l.struct)
 
-systems.io.initsys()
 
 @systems.ui.hooks.win.content.draw_pre(100)
 def handle_content_draw_pre(w, b):
-    import sys
-    print(c.buffer.insert(b, 0))
-
-    l = c.buffer.get_line(b, 0)
+    append(b, b"I was drawn ^-^")
 
     if not w.caption:
         w.caption = "0"
+
     w.caption = str(int(w.caption) + 1)
 
+@systems.windows.hooks.split(100)
+def handle_split(wb, wbaby):
+    b = wbaby.buffer
+    append(b, b"I was created in a split :D")
+
+@systems.windows.hooks.create(100)
+def handle_created(w):
+    b = w.buffer
+    append(b, b"Yay I exist!!")
+
+systems.windows.initsys()
+systems.ui.initsys()
+systems.io.initsys()
 
 systems.ui.refresh()
 
@@ -90,8 +102,9 @@ while True:
         c.io.handle_chr(char)
 
 #k    systems.windows.Window(c.win.select.get()).sidebar = "Hiiii"
-        
     systems.ui.refresh()
 
 systems.ui.killsys()
 
+import gc
+gc.collect()
