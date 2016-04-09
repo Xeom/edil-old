@@ -31,6 +31,11 @@ class Hook:
 
         return funct
 
+    def unmount(self, funct):
+        for index, item in enumerate(self.functs):
+            if item.pyfunct == funct:
+                del self.functs[index]
+
     def wrap(self, pyfunct):
         def f(args, hook):
             cargs = c.vec.Vec(args, ctypes.c_void_p)
