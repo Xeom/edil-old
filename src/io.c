@@ -74,7 +74,7 @@ char *io_key_str(io_key key)
 
     len = (HAS_MOD(key)  ?  MOD_STR_LEN : 0) +
           (HAS_CTRL(key) ? CTRL_STR_LEN : 0) +
-          (HAS_IGN(key) ?   IGN_STR_LEN : 0) +
+          (HAS_IGN(key)  ?  IGN_STR_LEN : 0) +
           KEYNAME_LEN;
 
     rtn = malloc(len);

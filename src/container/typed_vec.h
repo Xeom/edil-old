@@ -76,6 +76,10 @@ static inline VEC_TYPED_VNAME *VEC_TYPED_FNAME(cut)(VEC_TYPED_VNAME *v, size_t i
   {
       VEC_TYPED_TYPE *rtnptr;
       rtnptr = VEC_TYPED_FNAME(item)(v, index);
+
+      if (!rtnptr)
+          return 0;
+
       return *rtnptr;
   }
 
