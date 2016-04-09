@@ -1,3 +1,4 @@
+
 #!/bin/bash
 
 make -C .. lib &&
@@ -5,8 +6,12 @@ make -C .. lib &&
         if [[ ! -f stfu-python.supp ]]; then
            curl https://svn.python.org/projects/python/trunk/Misc/valgrind-python.supp > stfu-python.supp
         fi
-        valgrind --leak-check=full --show-leak-kinds=all --suppressions=stfu-python.supp --suppressions=stfu.supp python3 __init__.py 2>tmp
+		if [[ $* == *full* ]]; then
+	        valgrind --leak-check=full --show-leak-kinds=all --suppressions=stfu-python.supp --suppressions=stfu.supp python3 __init__.py 2>tmp
+		else
+	        valgrind --leak-check=full --show-leak-kinds=possible,indirect,definite --suppressions=stfu-python.supp --suppressions=stfu.supp python3 __init__.py 2>tmp
+		fi
         cat tmp
     else
-        python3 __init__.py
+        python3 __init__.py 2>tmp
     fi

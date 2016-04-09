@@ -43,14 +43,14 @@ class hooks:
                 systems.windows.Window,
                 c.buffer.buffer_p,
                 c.buffer.lineno,
-                c.vec.VecType(ctypes.c_char))
+                c.vec.Vec.Type(ctypes.c_char))
 
             draw_line_post = systems.hook.Hook(
                 c.ui.win.content.on_draw_line_post,
                 systems.windows.Window,
                 c.buffer.buffer_p,
                 c.buffer.lineno,
-                c.vec.VecType(ctypes.c_char))
+                c.vec.Vec.Type(ctypes.c_char))
 
 def initsys():
     c.ui.initsys()
