@@ -55,7 +55,7 @@ delete.argtypes = [vec_p, ctypes.c_size_t, ctypes.c_size_t]
 delete.restype  = ctypes.c_int
 delete.errcheck = check_nonzro_return
 
-insert = so.vec_delete
+insert = so.vec_insert
 insert.argtypes = [vec_p, ctypes.c_size_t, ctypes.c_size_t, ctypes.c_void_p]
 insert.restype  = ctypes.c_int
 insert.errcheck = check_nonzro_return
@@ -92,6 +92,10 @@ class Vec:
         self.struct = struct
         self.type = type
         self.type_p = ctypes.POINTER(type)
+
+    @classmethod
+    def Type(cls, type):
+        return lambda struct:cls(struct, type)
 
     def getptr(self, value):
         if not isinstance(value, self.type):
@@ -131,9 +135,20 @@ class Vec:
     def delete(self, index, n):
         delete(self.struct, index, n)
 
-class VecType:
-    def __init__(self, type):
-        self.type = type
+class VecFreeOnDel(Vec):
+    def __del__(self):
+        free(self.struct)
 
-    def __call__(self, struct):
-        return Vec(struct, self.type)
+def str2vec(s):
+    if isinstance(s, str):
+        s = s.encode("ascii")
+
+    struct = init(ctypes.sizeof(ctypes.c_char))
+    rtn = VecFreeOnDel(struct, ctypes.c_char)
+
+    insert(struct, 0, bytes.__len__(s), s)
+
+    return rtn
+
+def vec2str(v):
+    return b"".join(map(lambda c:c.value, v))
