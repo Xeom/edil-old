@@ -7,9 +7,6 @@ import cutil
 class direction(c.win.dir):
     pass
 
-class hooks:
-    pass
-
 def initsys():
     c.win.initsys()
 
@@ -26,6 +23,17 @@ class Window:
     def __init__(self, ptr):
         self.valid  = True
         self.struct = ctypes.cast(ptr, c.win.win_p)
+
+        @hooks.delete
+        def handle_delete(window):
+            if window == self:
+                window.valid = False
+                self.valid   = False
+
+        self.handle_delete = handle_delete
+
+    def __del__(self):
+        hooks.delete.unmount(self.handle_delete)
 
     @property
     def struct(self):
@@ -79,6 +87,10 @@ class Window:
         c.win.label.sidebar_set(self.struct, sbar)
 
     @property
+    def buffer(self):
+        return c.win.get_buffer(self.struct)
+
+    @property
     def parent(self):
         return Window(c.win.get_parent(self.struct))
 
@@ -89,6 +101,9 @@ class Window:
     def split(self, direction):
         c.win.split(self.struct, direction)
 
+    def __eq__(self, other):
+        return self.struct == other.struct
+    
     def __iter__(self):
         sub = c.win.get_first(self.struct)
         last = c.win.get_last(self.struct)
@@ -101,3 +116,29 @@ class Window:
 
     def next(self):
         return Window(c.win.iter.next(self.struct))
+
+class hooks:
+    resize_x = systems.hook.Hook(
+        c.win.on_resize_x,
+        Window,
+        ctypes.c_uint,
+        ctypes.c_uint)
+
+    resize_y = systems.hook.Hook(
+        c.win.on_resize_y,
+        Window,
+        ctypes.c_uint,
+        ctypes.c_uint)
+
+    split = systems.hook.Hook(
+        c.win.on_split,
+        Window,
+        Window)
+
+    delete = systems.hook.Hook(
+        c.win.on_delete,
+        Window)
+
+    create = systems.hook.Hook(
+        c.win.on_create,
+        Window)

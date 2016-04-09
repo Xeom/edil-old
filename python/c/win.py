@@ -1,6 +1,10 @@
 import ctypes
 from shared import lib as so
 
+from c.buffer import buffer_p
+
+from c.hook import hook_p
+
 class win_s(ctypes.Structure):
     pass
 
@@ -11,6 +15,13 @@ class dir:
     down  = 1
     left  = 2
     right = 3
+
+on_resize_x = ctypes.cast(so.win_on_resize_x, hook_p)
+on_resize_y = ctypes.cast(so.win_on_resize_y, hook_p)
+
+on_split  = ctypes.cast(so.win_on_split,  hook_p)
+on_delete = ctypes.cast(so.win_on_delete, hook_p)
+on_create = ctypes.cast(so.win_on_create, hook_p)
 
 initsys = so.win_initsys
 initsys.argtypes = []
@@ -31,6 +42,10 @@ delete.restype  = ctypes.c_int
 get_parent = so.win_get_parent
 get_parent.argtypes = [win_p]
 get_parent.restype  = win_p
+
+get_buffer = so.win_get_buffer
+get_buffer.argtypes = [win_p]
+get_buffer.restype  = buffer_p
 
 class size:
     set_root = so.win_size_set_root
