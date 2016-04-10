@@ -70,12 +70,14 @@ int hook_mount(hook *h, hook_f f, priority pri)
 
     return 0;
 }
-
+#include <stdio.h>
 int hook_unmount(hook *h, hook_f f)
 {
+    fputs(">HOOK_UNMOUNT\n", stderr);
     vec_foreach(h->functs, hook_fcont, cont,
                 if (cont.funct == f)
                 {
+                    fputs("Removed function\n", stderr);
                     vec_delete(h->functs, _vec_index, 1);
                     return 0;
                 }
@@ -83,7 +85,7 @@ int hook_unmount(hook *h, hook_f f)
 
     return 0;
 }
-
+#include <stdio.h>
 int hook_call(hook h, ...)
 {
     va_list args;
@@ -105,8 +107,9 @@ int hook_call(hook h, ...)
         vec_insert_end(argvec, 1, &arg);
     }
 
-    vec_foreach(h.functs, hook_fcont, cont,
-                hook_call_funct(h, cont, argvec));
+    vec_rforeach(h.functs, hook_fcont, cont,
+                 hook_call_funct(h, cont, argvec));
+
 
     va_end(args);
     vec_free(argvec);
@@ -114,7 +117,7 @@ int hook_call(hook h, ...)
     return 0;
 }
 
-static void hook_call_funct(hook h, hook_fcont f, vec *args)
+void hook_call_funct(hook h, hook_fcont f, vec *args)
 {
     f.funct(args, h);
 }

@@ -61,13 +61,13 @@ static int file_read_buffer_line(buffer *b, FILE *stream)
 
         val = (char)chr;
 
-        vec_insert_end(l, 1, &val);
-
         if (chr == '\n')
         {
             rtn = 0;
             break;
         }
+
+        vec_insert_end(l, 1, &val);
     }
 
     len = buffer_len(b);
@@ -82,7 +82,7 @@ static int file_read_buffer_line(buffer *b, FILE *stream)
 int file_read_buffer(buffer *b, FILE *stream)
 {
     int val;
-    for (;;)
+    for (;;) /* You're here, forever */
     {
         val = file_read_buffer_line(b, stream);
 

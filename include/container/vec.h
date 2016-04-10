@@ -186,7 +186,6 @@ const char *vec_err_str(void);
         }                                                \
     }
 
-
 /*
  * Perform a chunk of code, once for every item in a vector, starting at the last item,
  * dereferencing and casting each item of the vector to a specified type as a
