@@ -20,20 +20,26 @@ struct chunk_s
     lineno     startline; /* The line number of the first line of the chunk                             */
     chunk     *next;      /* A link forward to the next chunk. NULL if this is the last chunk.          */
     chunk     *prev;      /* A link backward to the last chunk. NULL if this is the first chunk.        */
-    buffer    *b;         /* The buffer which this chunk can be a part of.                              */
 };
 
+/* Correct the starting lines of all the chunks after and including c */
 static int buffer_chunk_correct_startlines(chunk *c);
 
+/* Insert a new chunk after a particular chunk and return it. */
 static chunk *buffer_chunk_insert(chunk *c);
+/* Delete a chunk and sew up the surrounding chunks in the chain */
 static void   buffer_chunk_delete(chunk *c);
 
+/* Call when chunk sizes increase or decrease, handles overflowing lines into *
+ * the next chunk, or deleting the current chunk. Returns a valid chunk in    *
+ * case the one passed to it was free'd                                       */
 static chunk *buffer_chunk_resize_bigger(chunk *c);
 static chunk *buffer_chunk_resize_smaller(chunk *c);
 
+/* Free a chunk without freeing the rest of the chunks in its chain */
 static void buffer_chunk_free_norecurse(chunk *c);
 
-chunk *buffer_chunk_init(buffer *b)
+chunk *buffer_chunk_init(void)
 {
     chunk *rtn;
 
@@ -43,7 +49,6 @@ chunk *buffer_chunk_init(buffer *b)
 
     rtn->next = NULL;
     rtn->prev = NULL;
-    rtn->b    = b;
 
     rtn->startline = 0;
 
@@ -105,7 +110,7 @@ static chunk *buffer_chunk_insert(chunk *c)
 {
     chunk *rtn;
 
-    rtn = buffer_chunk_init(buffer_chunk_get_buffer(c));
+    rtn = buffer_chunk_init();
 
     rtn->next = c->next;
     rtn->prev = c;
@@ -194,7 +199,6 @@ static chunk *buffer_chunk_resize_smaller(chunk *c)
 int buffer_chunk_insert_line(chunk *c, lineno offset)
 {
     line  *l;
-    lineno ln;
 
     l = buffer_line_init();
 
@@ -202,22 +206,14 @@ int buffer_chunk_insert_line(chunk *c, lineno offset)
     buffer_chunk_resize_bigger(c);
     buffer_chunk_correct_startlines(c);
 
-    ln = buffer_chunk_offset_to_lineno(c, offset);
-
-    hook_call(buffer_line_on_insert, &(c->b), &ln);
-
     return 0;
 }
 
 chunk *buffer_chunk_delete_line(chunk *c, lineno offset)
 {
     line  *l;
-    lineno ln;
 
     l  = vec_lines_get((vec_lines *)c, offset);
-    ln = buffer_chunk_offset_to_lineno(c, offset);
-
-    hook_call(buffer_line_on_delete, &(c->b), &ln);
 
     vec_lines_delete((vec_lines *)c, offset, 1);
 
@@ -237,12 +233,7 @@ vec *buffer_chunk_get_line(chunk *c, lineno offset)
 
 int buffer_chunk_set_line(chunk *c, lineno offset, vec *v)
 {
-    lineno ln;
-
     buffer_line_set_vec(vec_lines_get((vec_lines *)c, offset), v);
-
-    ln = buffer_chunk_offset_to_lineno(c, offset);
-    hook_call(buffer_line_on_change, &(c->b), &ln);
 
     return 0;
 }
@@ -275,9 +266,4 @@ lineno buffer_chunk_get_total_len(chunk *c)
         c = c->next;
 
     return c->startline + vec_lines_len((vec_lines *)c);
-}
-
-buffer *buffer_chunk_get_buffer(chunk *c)
-{
-    return c->b;
 }

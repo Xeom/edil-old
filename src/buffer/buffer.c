@@ -45,7 +45,7 @@ buffer *buffer_init(void)
                terminal, return NULL);
 
     /* We need to initialize a new chunk for the buffer as well */
-    TRACE_PTR(rtn->currchunk = buffer_chunk_init(rtn),
+    TRACE_PTR(rtn->currchunk = buffer_chunk_init(),
               return NULL);
 
     rtn->flags = 0;
@@ -107,6 +107,8 @@ int buffer_insert(buffer *b, lineno ln)
     TRACE_INT(buffer_chunk_insert_line(c, offset),
               return -1);
 
+    hook_call(buffer_line_on_insert, &b, &ln);
+
     return 0;
 }
 
@@ -118,6 +120,14 @@ int buffer_delete(buffer *b, lineno ln)
     ASSERT_PTR(b, high,
                return -1);
 
+    /* Get the chunk, and depth into that chunk of where we want to delete. */
+    TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
+              return -1);
+    TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
+              return -1);
+
+    hook_call(buffer_line_on_delete, &b, &ln);
+
     if (buffer_flag(b, readonly))
     {
         ERR_NEW(medium, "Buffer is read-only",
@@ -125,12 +135,6 @@ int buffer_delete(buffer *b, lineno ln)
 
         return -1;
     }
-
-    /* Get the chunk, and depth into that chunk of where we want to delete. */
-    TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
-              return -1);
-    TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
-              return -1);
 
     buffer_flag_on(b, modified);
 
@@ -188,6 +192,8 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
 
     TRACE_INT(buffer_chunk_set_line(c, offset, v),
               return -1);
+
+    hook_call(buffer_line_on_change, &b, &ln);
 
     return 0;
 }
