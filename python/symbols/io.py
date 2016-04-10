@@ -1,7 +1,9 @@
 import ctypes
 from shared import lib as so
 
-from c.hook import hook_p
+from symbols.hook   import hook_p
+from symbols.vec    import vec_p
+from symbols.buffer import buffer_p
 
 keyname_len = ctypes.cast(so.io_keyname_len, ctypes.POINTER(ctypes.c_int)).contents.value
 
@@ -28,3 +30,16 @@ handle_chr.restype  = ctypes.c_int
 on_keypress  = ctypes.cast(so.io_on_keypress, hook_p)
 
 key_resize = ctypes.cast(so.io_key_resize, ctypes.POINTER(ctypes.c_int)).contents.value
+
+class file:
+    dump_vec = so.file_dump_vec
+    dump_vec.argtypes = [vec_p, ctypes.c_void_p]
+    dump_vec.restype  = ctypes.c_int
+
+    dump_buffer = so.file_dump_buffer
+    dump_buffer.argtypes = [buffer_p, ctypes.c_void_p]
+    dump_buffer.restype  = ctypes.c_int
+
+    read_buffer = so.file_read_buffer
+    read_buffer.argtypes = [buffer_p, ctypes.c_void_p]
+    read_buffer.restype  = ctypes.c_int

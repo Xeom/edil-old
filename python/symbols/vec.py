@@ -132,6 +132,14 @@ class Vec:
         ptr = self.getptr(value)
         insert(self.struct, index, 1, ptr)
 
+    def __iadd__(self, other):
+        if not other.__len__():
+            return self
+
+        insert(self.struct, self.__len__(), other.__len__(), item(other.struct, 0))
+
+        return self
+
     def delete(self, index, n):
         delete(self.struct, index, n)
 
@@ -151,4 +159,4 @@ def str2vec(s):
     return rtn
 
 def vec2str(v):
-    return b"".join(map(lambda c:c.value, v))
+    return b"".join(map(lambda c:symbols.value, v))

@@ -1,11 +1,11 @@
 import ctypes
 from shared import lib as so
 
-from c.hook     import hook_p
-from c.callback import callback_p
-from c.win      import win_p
+from symbols.hook     import hook_p
+from symbols.callback import callback_p
+from symbols.win      import win_p
 
-#from c.face     import face_p
+#from symbols.face     import face_p
 
 initsys = so.ui_initsys
 initsys.argtypes = []

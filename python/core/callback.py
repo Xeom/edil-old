@@ -1,17 +1,17 @@
 import ctypes
 
-import c.callback
+import symbols.callback
 
 class CallbackFunct:
     def __init__(self, struct, funct):
         self.struct  = struct
         self.pyfunct = funct
-        self.cfunct  = c.callback.callback_f(funct)
+        self.cfunct  = symbols.callback.callback_f(funct)
 
-        c.callback.mount(self.struct, self.cfunct)
+        symbols.callback.mount(self.struct, self.cfunct)
 
     def free(self):
-        c.callback.unmount(self.struct)
+        symbols.callback.unmount(self.struct)
 
     def __del__(self):
         self.free()
@@ -31,7 +31,7 @@ class Callback:
 
     def wrap(self, pyfunct):
         def f(args, cb):
-            cargs  = c.vec.Vec(args, ctypes.c_void_p)
+            cargs  = symbols.vec.Vec(args, ctypes.c_void_p)
             pyargs = []
 
             for type, arg in zip(self.types, cargs):

@@ -1,7 +1,7 @@
 import ctypes
 from shared import lib as so
 
-from c.vec import vec_p
+from symbols.vec import vec_p
 
 class callback_s(ctypes.Structure):
     pass

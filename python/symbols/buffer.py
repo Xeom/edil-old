@@ -1,8 +1,8 @@
 import ctypes
 from shared import lib as so
 
-from c.hook import hook_p
-from c.vec  import vec_p
+from symbols.hook import hook_p
+from symbols.vec  import vec_p
 
 class flag:
     readonly = 1

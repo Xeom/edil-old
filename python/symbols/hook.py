@@ -1,6 +1,6 @@
 import ctypes
 
-from c.vec import vec_p
+from symbols.vec import vec_p
 from shared import lib as so
 
 class hook_s(ctypes.Structure):

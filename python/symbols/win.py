@@ -1,9 +1,9 @@
 import ctypes
 from shared import lib as so
 
-from c.buffer import buffer_p
+from symbols.buffer import buffer_p
 
-from c.hook import hook_p
+from symbols.hook import hook_p
 
 class win_s(ctypes.Structure):
     pass
