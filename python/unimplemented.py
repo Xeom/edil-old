@@ -32,7 +32,7 @@ for file, fnames in symbolsbyfile.items():
         continue
 
     try:
-        module = "c." + file.split("/")[0]
+        module = "symbols." + file.split("/")[0]
         obj    = importlib.import_module(module)
 
     except ImportError:
