@@ -70,26 +70,25 @@ int hook_mount(hook *h, hook_f f, priority pri)
 
     return 0;
 }
-#include <stdio.h>
+
 int hook_unmount(hook *h, hook_f f)
 {
-    fputs(">HOOK_UNMOUNT\n", stderr);
     vec_foreach(h->functs, hook_fcont, cont,
-                if (cont.funct == f)
-                {
-                    fputs("Removed function\n", stderr);
-                    vec_delete(h->functs, _vec_index, 1);
-                    return 0;
-                }
+                if (cont.funct != f)
+                    continue;
+
+                vec_delete(h->functs, _vec_index, 1);
+
+                return 0;
         );
 
     return 0;
 }
-#include <stdio.h>
+
 int hook_call(hook h, ...)
 {
     va_list args;
-    vec    *argvec;
+    vec    *argvec, *completed;
     size_t  numargs;
 
     va_start(args, h);
@@ -107,12 +106,28 @@ int hook_call(hook h, ...)
         vec_insert_end(argvec, 1, &arg);
     }
 
-    vec_rforeach(h.functs, hook_fcont, cont,
-                 hook_call_funct(h, cont, argvec));
+    completed = vec_init(sizeof(hook_f));
 
+    /* Terrible O(n^2)-ness */
+start_search: /* hahahaahahahhahaahaohgod */
+    vec_foreach(h.functs, hook_fcont, cont,
+                if (vec_contains(completed, &(cont.funct)))
+                {
+                    puts("HI");
+                    continue;
+                }
+
+
+                vec_insert_end(completed, 1, &(cont.funct));
+                hook_call_funct(h, cont, argvec);
+
+                goto start_search;
+        )
 
     va_end(args);
+
     vec_free(argvec);
+    vec_free(completed);
 
     return 0;
 }
