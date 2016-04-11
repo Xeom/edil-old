@@ -106,7 +106,11 @@ char *io_key_str(io_key key)
 
 static int io_handle_completed_key(void)
 {
-    hook_call(io_on_keypress, &io_incomplete_key);
+    io_key *complete;
+
+    complete = &io_incomplete_key;
+
+    hook_call(io_on_keypress, complete);
 
     io_clear_incomplete_key();
 

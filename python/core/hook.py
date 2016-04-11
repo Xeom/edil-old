@@ -51,15 +51,15 @@ class HookFunct:
                 value = ctypes.cast(arg, ctypes.POINTER(type)).contents
 
             else:
-                # Otherwise, we dereference our argument to a void*
-                value = type(ctypes.cast(arg, ctypes.POINTER(ctypes.c_void_p)).contents)
+                # Otherwise, we simply hand the pointer to the class
+                value = type(arg)
 
             pyargs.append(value)
 
-        try:
-            pyfunct(*pyargs)
-        except:
-            pass # TODO: Something
+  #      try:
+        pyfunct(*pyargs)
+#        except:
+ #           pass # TODO: Something
 
 class Hook:
     def __init__(self, struct, *types):

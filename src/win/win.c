@@ -26,14 +26,14 @@ static void win_free(win *w);
 int win_initsys(void)
 {
     win_root = win_init_leaf();
-    hook_call(win_on_create, &win_root);
+    hook_call(win_on_create, win_root);
 
     return 0;
 }
 
 int win_killsys(void)
 {
-    hook_call(win_on_delete, &win_root);
+    hook_call(win_on_delete, win_root);
     win_free(win_root);
 
     return 0;
@@ -186,9 +186,9 @@ int win_split(win *w, win_dir d)
         w->cont.split.sub2offset = sizey / 2;
     }
 
-    hook_call(win_on_split, &w, &newleaf);
-    hook_call(win_on_create, &newleaf);
-    hook_call(win_on_create, &neww);
+    hook_call(win_on_split, w, newleaf);
+    hook_call(win_on_create, newleaf);
+    hook_call(win_on_create, neww);
 
     return 0;
 }
@@ -208,7 +208,7 @@ int win_delete(win *w)
     if (win_issub2(w))
         sister = par->cont.split.sub1;
 
-    hook_call(win_on_delete, &w);
+    hook_call(win_on_delete, w);
 
     win_move_contents(par, sister);
 

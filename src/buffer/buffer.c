@@ -57,7 +57,7 @@ buffer *buffer_init(void)
 
     rtn->flags = 0;
 
-    hook_call(buffer_on_create, &rtn);
+    hook_call(buffer_on_create, rtn);
 
     return rtn;
 }
@@ -66,7 +66,7 @@ void buffer_free(buffer *b)
 {
     if (!b) return;
 
-    hook_call(buffer_on_delete, &b);
+    hook_call(buffer_on_delete, b);
 
     /* Free the chunks (and lines) */
     buffer_chunk_free(b->currchunk);
@@ -100,7 +100,7 @@ int buffer_insert(buffer *b, lineno ln)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    hook_call(buffer_line_on_insert_pre, &b, &ln);
+    hook_call(buffer_line_on_insert_pre, b, &ln);
 
     if (buffer_flag(b, readonly))
     {
@@ -116,7 +116,7 @@ int buffer_insert(buffer *b, lineno ln)
     TRACE_INT(buffer_chunk_insert_line(c, offset),
               return -1);
 
-    hook_call(buffer_line_on_insert_post, &b, &ln);
+    hook_call(buffer_line_on_insert_post, b, &ln);
 
     return 0;
 }
@@ -135,7 +135,7 @@ int buffer_delete(buffer *b, lineno ln)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    hook_call(buffer_line_on_delete_pre, &b, &ln);
+    hook_call(buffer_line_on_delete_pre, b, &ln);
 
     if (buffer_flag(b, readonly))
     {
@@ -193,7 +193,7 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    hook_call(buffer_line_on_change_pre, &b, &ln, &v);
+    hook_call(buffer_line_on_change_pre, b, &ln, v);
 
     if (buffer_flag(b, readonly))
     {
@@ -208,7 +208,7 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     TRACE_INT(buffer_chunk_set_line(c, offset, v),
               return -1);
 
-    hook_call(buffer_line_on_change_post, &b, &ln, &v);
+    hook_call(buffer_line_on_change_post, b, &ln, v);
 
     return 0;
 }

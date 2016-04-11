@@ -77,9 +77,12 @@ int buffer_line_set_vec(line *l, vec *v)
 
     len = vec_char_len(v);
 
-    /* Resize line->text to fit the new text */
-    ASSERT_PTR(l->text   = realloc(l->text, len),
-               terminal, return -1);
+    if (len == 0)
+        l->text = NULL;
+    else
+        /* Resize line->text to fit the new text */
+        ASSERT_PTR(l->text   = realloc(l->text, len),
+                   terminal, return -1);
 
     l->length = len;
 
