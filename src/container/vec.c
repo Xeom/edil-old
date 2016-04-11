@@ -313,6 +313,37 @@ size_t vec_rfind(vec *v, const void *item)
     ERR(INVALID_VALUE, INVALID_INDEX);
 }
 
+int vec_contains(vec *v, const void *item)
+{
+    void *cmp, *last;
+    size_t width;
+
+    if (v == NULL)
+        ERR(NULL_VEC, 0);
+
+    if (item == NULL)
+        ERR(NULL_VALUE, 0);
+
+    /* Get the first item of the list, and *
+     * the one just past the end (invalid) */
+    width  = v->width;
+    cmp    = v->data;
+    last   = ADDPTR(cmp, v->length);
+
+    while (cmp != last)
+    {
+        /* If there's a match, return 1 */
+        if (memcmp(cmp, item, width) == 0)
+            ERR(OK, 1);
+        
+        /* Increment cmp by width */
+        cmp = ADDPTR(cmp, width);
+    }
+
+    /* No match */
+    ERR(OK, 0);
+}
+
 /* Yes I can make this from the others, but fuck it, *
  * this is way faster...                             */
 vec *vec_cut(vec *v, size_t index, size_t n)
