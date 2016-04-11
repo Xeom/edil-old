@@ -6,10 +6,28 @@
 # include "hook.h"
 # include "buffer/line.h"
 
-/* These hooks are all called with two parameters, a buffer and a linenumber                 */
-extern hook buffer_line_on_delete; /* This hook is called before a line is deleted           */
-extern hook buffer_line_on_insert; /* This hook is called when a new line is inserted        */
-extern hook buffer_line_on_change; /* This hook is called when the content of a line changes */
+
+/* Note that for buffer_line_on*_pre functions, an operation can be disabled by enabling the        *
+ * readonly flag of the buffer. This does not, of course, work for *_post functions.                */
+
+/* These hooks are all called with two parameters, a buffer and a     *
+ * linenumber. They are called before (_pre) and after (_post) a line *
+ * is deleted from a buffer.                                          */
+extern hook buffer_line_on_delete_pre;
+extern hook buffer_line_on_delete_post;
+
+/* These hooks are all called ith two parameters, a buffer and a     *
+ * linenumber. They are called before (_pre) and after (_post) a new *
+ * line is inserted into a buffer.                                   */
+extern hook buffer_line_on_insert_pre;
+extern hook buffer_line_on_insert_post;
+
+/* These hooks are called with three parameters, a buffer, a         *
+ * linenumber, and a vector of content they are called before (_pre) *
+ * and after (_post) the contents of a line are changed. The vector  *
+ * argument is the new contents of the line.                         */
+extern hook buffer_line_on_change_pre;
+extern hook buffer_line_on_change_post;
 
 /* These hooks are all called with one parameter, a buffer */
 extern hook buffer_on_create; /* This hook is called when a new buffer is created */

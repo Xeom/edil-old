@@ -18,12 +18,19 @@ struct buffer_s
     uint   flags;
 };
 
-hook_add(buffer_line_on_delete, 2);
-hook_add(buffer_line_on_insert, 2);
-hook_add(buffer_line_on_change, 2);
+hook_add(buffer_line_on_delete_pre,  2);
+hook_add(buffer_line_on_delete_post, 2);
+hook_add(buffer_line_on_insert_pre,  2);
+hook_add(buffer_line_on_insert_post, 2);
+
+hook_add(buffer_line_on_change_pre,  3);
+hook_add(buffer_line_on_change_post, 3);
 
 hook_add(buffer_on_create, 1);
 hook_add(buffer_on_delete, 1);
+
+uint buffer_readonly_flag = 0x01;
+uint buffer_modified_flag = 0x02;
 
 #define buffer_extern_flags buffer_readonly_flag || buffer_modified_flag
 #define buffer_flag(b, name)     (b->flags &   buffer_ ## name ## _flag)
@@ -87,6 +94,14 @@ int buffer_insert(buffer *b, lineno ln)
     ASSERT_PTR(b, high,
                return -1);
 
+    /* Get the chunk, and depth into that chunk of where we want to insert. */
+    TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
+              return -1);
+    TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
+              return -1);
+
+    hook_call(buffer_line_on_insert_pre, &b, &ln);
+
     if (buffer_flag(b, readonly))
     {
         ERR_NEW(medium, "Buffer is read-only",
@@ -95,19 +110,13 @@ int buffer_insert(buffer *b, lineno ln)
         return -1;
     }
 
-    /* Get the chunk, and depth into that chunk of where we want to insert. */
-    TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
-              return -1);
-    TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
-              return -1);
-
     buffer_flag_on(b, modified);
 
     /* Aaaaand we've abstracted over the rest cos we're useless. */
     TRACE_INT(buffer_chunk_insert_line(c, offset),
               return -1);
 
-    hook_call(buffer_line_on_insert, &b, &ln);
+    hook_call(buffer_line_on_insert_post, &b, &ln);
 
     return 0;
 }
@@ -126,7 +135,7 @@ int buffer_delete(buffer *b, lineno ln)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    hook_call(buffer_line_on_delete, &b, &ln);
+    hook_call(buffer_line_on_delete_pre, &b, &ln);
 
     if (buffer_flag(b, readonly))
     {
@@ -177,6 +186,15 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     ASSERT_PTR(b, high,
                return -1);
 
+
+    /* Get the chunk, and depth into that chunk of where we want to get. */
+    TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
+              return -1);
+    TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
+              return -1);
+
+    hook_call(buffer_line_on_change_pre, &b, &ln, &v);
+
     if (buffer_flag(b, readonly))
     {
         ERR_NEW(medium, "Buffer is read-only",
@@ -185,18 +203,12 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
         return -1;
     }
 
-    /* Get the chunk, and depth into that chunk of where we want to get. */
-    TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
-              return -1);
-    TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
-              return -1);
-
     buffer_flag_on(b, modified);
 
     TRACE_INT(buffer_chunk_set_line(c, offset, v),
               return -1);
 
-    hook_call(buffer_line_on_change, &b, &ln);
+    hook_call(buffer_line_on_change_post, &b, &ln, &v);
 
     return 0;
 }

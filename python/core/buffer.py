@@ -1,5 +1,6 @@
 import ctypes
 import symbols.buffer
+import core.hook
 import cutil
 
 from symbols.vec import VecFreeOnDel
@@ -7,6 +8,25 @@ from symbols.vec import VecFreeOnDel
 class Buffer:
     def __init__(self, ptr):
         self.struct = ctypes.cast(ptr, symbols.buffer.buffer_p)
+
+        @hooks.delete_struct(50)
+        def handle_delete(struct):
+            if struct == self.struct:
+                self.valid = False
+
+        self.handle_delete = handle_delete
+
+    @property
+    def struct(self):
+        if not self.valid:
+            raise Exception("Invalid buffer")
+
+        return self._struct
+
+    @struct.setter
+    def struct(self, value):
+        self.valid   = True
+        self._struct = value
 
     def __len__(self):
         return symbols.buffer.len(self.struct)
@@ -41,3 +61,52 @@ class Buffer:
     def push(self, s):
         self.insert(0)
         self[0] = s
+
+class hooks:
+    create = core.hook.Hook(
+        symbols.buffer.on_create,
+        Buffer,
+        symbols.buffer.lineno)
+
+    delete = core.hook.Hook(
+        symbols.buffer.on_delete,
+        Buffer,
+        symbols.buffer.lineno)
+
+    delete_struct = core.hook.Hook(
+        symbols.buffer.on_delete,
+        symbols.buffer.buffer_p,
+        symbols.buffer.lineno)
+    
+    class line:
+        change_pre  = core.hook.Hook(
+            symbols.buffer.line.on_change_pre,
+            Buffer,
+            symbols.buffer.lineno,
+            symbols.vec.Vec)
+
+        change_post = core.hook.Hook(
+            symbols.buffer.line.on_change_post,
+            Buffer,
+            symbols.buffer.lineno,
+            symbols.vec.Vec)
+
+        delete_pre  = core.hook.Hook(
+            symbols.buffer.line.on_delete_pre,
+            Buffer,
+            symbols.buffer.lineno)
+
+        delete_post = core.hook.Hook(
+            symbols.buffer.line.on_delete_post,
+            Buffer,
+            symbols.buffer.lineno)
+
+        insert_pre = core.hook.Hook(
+            symbols.buffer.line.on_insert_pre,
+            Buffer,
+            symbols.buffer.lineno)
+
+        insert_post = core.hook.Hook(
+            symbols.buffer.line.on_insert_post,
+            Buffer,
+            symbols.buffer.lineno)

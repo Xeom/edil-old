@@ -18,6 +18,16 @@ lineno = ctypes.c_size_t
 on_create = ctypes.cast(so.buffer_on_create, hook_p)
 on_delete = ctypes.cast(so.buffer_on_delete, hook_p)
 
+class line:
+    on_change_pre  = ctypes.cast(so.buffer_line_on_change_pre,  hook_p)
+    on_change_post = ctypes.cast(so.buffer_line_on_change_post, hook_p)
+
+    on_delete_pre  = ctypes.cast(so.buffer_line_on_delete_pre,  hook_p)
+    on_delete_post = ctypes.cast(so.buffer_line_on_delete_post, hook_p)
+
+    on_insert_pre  = ctypes.cast(so.buffer_line_on_insert_pre,  hook_p)
+    on_insert_post = ctypes.cast(so.buffer_line_on_insert_post, hook_p)
+
 init = so.buffer_init
 init.argtypes = []
 init.restype  = buffer_p
