@@ -95,7 +95,11 @@ class Vec:
 
     @classmethod
     def Type(cls, type):
-        return lambda struct:cls(struct, type)
+        class Rtn(cls):
+            def __init__(self, struct):
+                cls.__init__(self, struct, type)
+
+        return Rtn
 
     def getptr(self, value):
         if not isinstance(value, self.type):
