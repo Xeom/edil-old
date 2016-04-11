@@ -81,4 +81,4 @@ class Hook:
 
         self.functs.append(rtn)
 
-        return rtn
+        return funct

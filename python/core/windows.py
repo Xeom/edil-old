@@ -25,10 +25,9 @@ class Window:
         self.valid  = True
         self.struct = ctypes.cast(ptr, symbols.win.win_p)
 
-        @hooks.delete(900)
-        def handle_delete(window):
-            if window.struct == self.struct:
-                window.valid = False
+        @hooks.delete_struct(900)
+        def handle_delete(struct):
+            if struct == self.struct:
                 self.valid   = False
 
         self.handle_delete = handle_delete
@@ -136,6 +135,10 @@ class hooks:
     delete = core.hook.Hook(
         symbols.win.on_delete,
         Window)
+
+    delete_struct = core.hook.Hook(
+        symbols.win.on_delete,
+        symbols.win.win_p)
 
     create = core.hook.Hook(
         symbols.win.on_create,

@@ -8,26 +8,26 @@ class Point:
         self.cn     = 0
         self.ln     = 0
 
-#        @core.buffer.hooks.line.delete(500)
-#        def handle_line_delete(b, ln):
-#            if self.ln >= ln and self.buffer == b:
-#                    self.ln += 1
-#
-#        self.handle_line_delete = handle_line_delete
-#
-#        @core.buffer.hooks.line.change(500)
-#        def handle_line_change(b, ln):
-#            if self.ln == ln and self.buffer == b:
-#                self.correct_colpos()
-#
-#        self.handle_line_change = handle_line_change
-#
-#        @core.buffer.hooks.line.insert(500)
-#        def handle_line_insert(b, ln):
-#                if self.ln >= ln and self.buffer == b:
-#                    self.ln += 1
-#
-#        self.handle_line_insert = handle_line_insert
+        @core.buffer.hooks.line.delete_pre(500)
+        def handle_line_delete(b, ln):
+            if self.ln >= ln and self.buffer == b:
+                    self.ln += 1
+
+        self.handle_line_delete = handle_line_delete
+
+        @core.buffer.hooks.line.change_pre(500)
+        def handle_line_change(b, ln):
+            if self.ln == ln and self.buffer == b:
+                self.correct_colpos()
+
+        self.handle_line_change = handle_line_change
+
+        @core.buffer.hooks.line.insert_pre(500)
+        def handle_line_insert(b, ln):
+                if self.ln >= ln and self.buffer == b:
+                    self.ln += 1
+
+        self.handle_line_insert = handle_line_insert
 
     def move_cols(self, n):
         bufferlen = len(self.buffer)
