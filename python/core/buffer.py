@@ -77,19 +77,19 @@ class hooks:
         symbols.buffer.on_delete,
         symbols.buffer.buffer_p,
         symbols.buffer.lineno)
-    
+
     class line:
         change_pre  = core.hook.Hook(
             symbols.buffer.line.on_change_pre,
             Buffer,
             symbols.buffer.lineno,
-            symbols.vec.Vec)
+            symbols.vec.Vec.Type(ctypes.c_char))
 
         change_post = core.hook.Hook(
             symbols.buffer.line.on_change_post,
             Buffer,
             symbols.buffer.lineno,
-            symbols.vec.Vec)
+            symbols.vec.Vec.Type(ctypes.c_char))
 
         delete_pre  = core.hook.Hook(
             symbols.buffer.line.on_delete_pre,
