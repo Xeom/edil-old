@@ -9,22 +9,22 @@ class Point:
         self.ln     = 0
 
         @core.buffer.hooks.line.delete_pre(500)
-        def handle_line_delete(b, ln):
-            if self.ln >= ln and self.buffer == b:
+        def handle_line_delete(b, ln, v):
+            if self.ln >= ln.value and self.buffer == b:
                     self.ln += 1
 
         self.handle_line_delete = handle_line_delete
 
         @core.buffer.hooks.line.change_pre(500)
-        def handle_line_change(b, ln):
-            if self.ln == ln and self.buffer == b:
+        def handle_line_change(b, ln, v):
+            if self.ln == ln.value and self.buffer == b:
                 self.correct_colpos()
 
         self.handle_line_change = handle_line_change
 
         @core.buffer.hooks.line.insert_pre(500)
         def handle_line_insert(b, ln):
-                if self.ln >= ln and self.buffer == b:
+                if self.ln >= ln.value and self.buffer == b:
                     self.ln += 1
 
         self.handle_line_insert = handle_line_insert
@@ -72,6 +72,42 @@ class Point:
 
         self.line = l
 
+    def delete_char(self):
+        if not len(self.buffer):
+            return
+
+        if self.cn == 0:
+            if self.ln == 0:
+                return
+
+            l = self.line
+            self.buffer.delete(self.ln)
+            self.ln -= 1
+            prev     = self.line
+            prev    += l
+            self.line= prev
+
+            self.cn = len(self.line)
+
+            return
+
+        
+        self.cn -= 1
+
+        l = self.line
+        l.delete(self.cn, 1)
+        self.line = l
+
+    def insert_char(self, char):
+        if not len(self.buffer):
+            self.buffer.insert(0)
+
+        l = self.line
+        l.insert(self.cn, char)
+        self.line = l
+
+        self.cn += 1
+
     def insert(self, string):
         if not len(self.buffer):
             self.buffer.insert(0)
@@ -107,7 +143,7 @@ class Point:
         self.buffer.insert(self.ln)
         self.line = end
 
-        
+
     def correct_colpos(self):
         if len(self.buffer) == 0:
             self.cn = 0
