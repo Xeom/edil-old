@@ -49,7 +49,7 @@ chunk *buffer_chunk_init(void)
 
     /* We need to initialize a vector on the pointer we already *
      * allocated.                                               */
-    ASSERT_INT(vec_lines_create((vec_lines *)rtn), critical,
+    ASSERT_PTR(vec_lines_create((vec_lines *)rtn), critical,
                return NULL);
 
     /* NULL to show that these are ends of the chain */

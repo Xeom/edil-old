@@ -128,6 +128,9 @@ size_t vec_len(vec *v);
  */
 size_t vec_find(vec *v, const void *item);
 
+/*
+ */
+int vec_contains(vec *v, const void *item);
 
 /*
  * Find the index of an item in a vector, starting searching at the final item.
@@ -174,15 +177,15 @@ const char *vec_err_str(void);
  */
 #define vec_foreach(vec, type, name, code)               \
     {                                                    \
-        size_t _vec_len, _vec_index;                     \
-        _vec_len = vec_len(vec);                         \
-        _vec_index = 0;                                  \
-        while (_vec_index < _vec_len)                    \
+    size_t _vec_len, _vec_index, _vec_index_next;        \
+    _vec_len = vec_len(vec);                             \
+    _vec_index_next = 0;                                 \
+    while ((_vec_index = _vec_index_next) < _vec_len)    \
         {                                                \
+            _vec_index_next = _vec_index + 1;            \
             type name;                                   \
             name = *(type *)vec_item(vec, _vec_index);   \
             {code;}                                      \
-            _vec_index++;                                \
         }                                                \
     }
 

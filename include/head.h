@@ -2,7 +2,7 @@
 # define HEAD_H
 
 # define REALLY_STRIFY(a) #a
-# define STRIFY(a) REALLY_STRIFY()
+# define STRIFY(a) REALLY_STRIFY(a)
 
 # define REALLY_CONCAT(a, b) a ## b
 # define CONCAT(a, b) REALLY_CONCAT(a, b)
