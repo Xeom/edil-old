@@ -81,8 +81,8 @@ static inline chunk *buffer_get_containing_chunk(buffer *b, lineno ln)
 
 int buffer_insert(buffer *b, lineno ln)
 {
-    chunk *c;
     lineno offset;
+    chunk *c;
 
     ASSERT_PTR(b, high,
                return -1);
@@ -114,8 +114,8 @@ int buffer_insert(buffer *b, lineno ln)
 
 int buffer_delete(buffer *b, lineno ln)
 {
-    chunk *c;
     lineno offset;
+    chunk *c;
 
     ASSERT_PTR(b, high,
                return -1);
@@ -138,18 +138,21 @@ int buffer_delete(buffer *b, lineno ln)
 
     buffer_flag_on(b, modified);
 
-    /* Bla */
-    TRACE_INT(buffer_chunk_delete_line(c, offset),
+    /* Get a valid chunk */
+    TRACE_PTR(c = buffer_chunk_delete_line(c, offset),
               return -1);
+
+    /* Set the new current chunk to the valid chunk */
+    b->currchunk = c;
 
     return 0;
 }
 
 vec *buffer_get_line(buffer *b, lineno ln)
 {
-    chunk *c;
     lineno offset;
     vec  *rtn;
+    chunk *c;
 
     ASSERT_PTR(b, high,
                return NULL);
@@ -168,8 +171,8 @@ vec *buffer_get_line(buffer *b, lineno ln)
 
 int buffer_set_line(buffer *b, lineno ln, vec *v)
 {
-    chunk *c;
     lineno offset;
+    chunk *c;
 
     ASSERT_PTR(b, high,
                return -1);
