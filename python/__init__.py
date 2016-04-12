@@ -3,7 +3,7 @@
 import core.ui
 import core.windows
 import core.hook
-import core.io
+import core.key
 import time
 import ctypes
 import shared
@@ -32,15 +32,16 @@ from editor.cursor.point import Point
 core.windows.initsys()
 print("HI")
 core.ui.initsys()
-core.io.initsys()
+core.key.initsys()
 
 core.ui.refresh()
 alive = True
-@core.io.hooks.keypress(100)
+@core.key.hooks.key(100)
 def handle_keypress(key):
     pass
     print("Hi")
     print(str(key))
+
 
     char = str(key)
 
@@ -86,12 +87,12 @@ p = Point(core.windows.get_selected().buffer)
 while alive:
     char = symbols.lib.getch()
 
-    if char == symbols.io.key_resize:
+    if char == symbols.io.key.resize:
         core.ui.resize()
 
     else:
         print("HI")
-        symbols.io.handle_chr(char)
+        symbols.io.key.handle_chr(char)
         print("HO")
 
     core.ui.refresh()

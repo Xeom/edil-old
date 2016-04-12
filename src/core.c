@@ -12,7 +12,7 @@ int initsys(void)
     err_initsys();
     win_initsys();
     ui_initsys();
-    io_initsys();
+    io_key_initsys();
 
     return 0;
 }

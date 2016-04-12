@@ -25,7 +25,6 @@ SRC_NAMES=\
                            \
     err                    \
     hook                   \
-    io                     \
     callback               \
                            \
         win/label          \
@@ -51,7 +50,9 @@ SRC_NAMES=\
             ui/win/content \
             ui/win/frame   \
                            \
-        io/file
+        io/file            \
+        io/key
+
 
 DEPS_FILE=deps.mk
 
