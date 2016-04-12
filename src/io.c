@@ -99,7 +99,7 @@ char *io_key_str(io_key key)
         ptr += CTRL_STR_LEN;
     }
 
-    memcpy(ptr, key.keyname, len);
+    memcpy(ptr, key.keyname, KEYNAME_LEN);
 
     return rtn;
 }
