@@ -39,8 +39,7 @@ static int    table_key_isnull (table *t, char *k);
 static hash   table_key_hash   (table *t, char *k);
 static int    table_key_eq     (table *t, char *a, char *b);
 
-static size_t table_find_key_occ(table *t, char *k);
-static size_t table_find_key    (table *t, char *k);
+static size_t table_find_key    (table *t, char *k, int *new);
 
 table *table_init(size_t width, size_t keywidth, hashfunct hshf, keqfunct keqf, char *nullval)
 {
@@ -87,7 +86,6 @@ static inline size_t table_item_size(table *t)
     return t->keywidth + t->width;
 }
 
-
 static int table_realloc(table *t, size_t newcap)
 {
     size_t cap, ind;
@@ -111,7 +109,7 @@ static int table_realloc(table *t, size_t newcap)
         if (table_key_isnull(t, k))
             continue;
 
-        newind = table_find_key(t, k);
+        newind = table_find_key(t, k, NULL);
 
         if (newind == ind)
             continue;
@@ -162,13 +160,15 @@ static inline int table_key_eq(table *t, char *a, char *b)
         return (a == b);
 }
 
-static size_t table_find_key_occ(table *t, char *k)
+static size_t table_find_key(table *t, char *k, int *new)
 {
     size_t ind, cap;
     char  *compk;
 
-    cap = t->capacity;
-    ind = table_key_hash(t, k) % cap;
+    cap  = t->capacity;
+    ind  = table_key_hash(t, k) % cap;
+
+    if (new) *new = 1;
 
     for (compk = table_index_key(t, ind);
          !table_key_isnull(t, compk);
@@ -181,33 +181,14 @@ static size_t table_find_key_occ(table *t, char *k)
             return ind;
     }
 
-    return INVALID_INDEX;
-}
-
-static size_t table_find_key(table *t, char *k)
-{
-    size_t ind, cap;
-    char  *compk;
-
-    cap = t->capacity;
-    ind = table_key_hash(t, k) % cap;
-
-    for (compk = table_index_key(t, ind);
-         !table_key_isnull(t, compk);
-         compk += table_item_size(t))
-    {
-        if (ind >= cap)
-            ind = 0;
-
-        if (table_key_eq(t, k, compk))
-            return ind;
-    }
+    if (new) *new = 0;
 
     return ind;
 }
 
 int table_set(table *t, char *k, char *value)
 {
+    int    new;
     size_t ind;
 
     ASSERT_PTR(value, high,
@@ -216,12 +197,12 @@ int table_set(table *t, char *k, char *value)
     ASSERT_PTR((char *)k, high,
                return -1);
 
-    ind  = table_find_key(t, k);
+    ind  = table_find_key(t, k, &new);
 
     memcpy(table_index_key (t, ind), k, t->keywidth);
     memcpy(table_index_data(t, ind), k, t->width);
 
-    ++(t->usage);
+    if (new) ++(t->usage);
 
     TRACE_INT(table_resize_bigger(t),
               return -1);
@@ -231,21 +212,22 @@ int table_set(table *t, char *k, char *value)
 
 char *table_get(table *t, char *k)
 {
+    int    new;
     size_t ind;
 
     ASSERT_PTR((char *)k, high,
                return NULL);
 
-    ind = table_find_key_occ(t, k);
+    ind = table_find_key(t, k, &new);
 
-    if (ind == INVALID_INDEX)
-        return NULL;
+    if (new) return NULL;
 
     return table_index_data(t, ind);
 }
 
 int table_delete(table *t, char *k)
 {
+    int    new;
     char  *item, *previtem;
     size_t ind, modhsh;
 
@@ -253,10 +235,9 @@ int table_delete(table *t, char *k)
                return -1);
 
     modhsh   = table_key_hash(t, k) % t->capacity;
-    ind      = table_find_key_occ(t, k);
+    ind      = table_find_key(t, k, &new);
 
-    if (ind == INVALID_INDEX)
-        return -1;
+    if (new) return -1;
 
     previtem = table_index_key(t, ind);
 
