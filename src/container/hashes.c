@@ -1,4 +1,5 @@
-#include "container/table.h"
+#include <limits.h>
+
 #include "io/key.h"
 
 #include "container/hashes.h"
@@ -6,7 +7,7 @@
 #define hash_high_nibl_off (8 * (sizeof(hash)) - 4)
 #define hash_high_byte_off (8 * (sizeof(hash) - 1))
 
-hash hashes_str(void *k)
+hash hashes_key_str(void *k)
 {
     hash  hsh, high;
     char *str;
@@ -25,6 +26,24 @@ hash hashes_str(void *k)
 
     return hsh;
 }
+
+/* We need nested if/else cos all the elif values get evalulated *
+ * that causes warnings where the const value is larger than an  *
+ * actual long.                                                  */
+static const hash hashes_random_seed =
+#   if   ULONG_MAX == 0xffffffffl
+                      0xfc64c9bd;
+#   else
+#    if ULONG_MAX == 0xffffffffffffffffl
+                      0xfc64c9bd39ea2141;
+#    else
+#     if ULONG_MAX == 0xffffffffffffffffffffffffffffffffl
+                      0xfc64c9bd39ea214178c6a000618e9c51;
+#     else
+       (hash)0xfc64c9bd39ea214178c6a000618e9c51;
+#     endif
+#    endif
+#   endif
 
 static const unsigned char hashes_random_bytes[256] =
 {
@@ -46,13 +65,13 @@ static const unsigned char hashes_random_bytes[256] =
     0x01, 0xED, 0x86, 0x8B, 0xD3, 0xDE, 0x8A, 0x68, 0x15, 0xCE, 0x55, 0xD1, 0x23, 0xD5, 0x70, 0x52
 };
 
-hash hashes_str_trans(void *k)
+hash hashes_key_str_trans(void *k)
 {
     hash  hsh, high;
     char *str;
 
     str = *(char **)k;
-    hsh = 0;
+    hsh = hashes_random_seed;
 
     while (*str)
     {
@@ -64,15 +83,43 @@ hash hashes_str_trans(void *k)
     return hsh;
 }
 
-hash hashes_key(void *k)
+hash hashes_mem(char *mem, size_t n)
 {
-    hash hsh;
-    key  ki;
+    uint   charlen;
+    char  *end;
+    hash   hsh;
 
-    ki = *(key *)k;
+    charlen = n % sizeof(int);
+    hsh     = hashes_random_seed;
 
-    hsh  = hashes_str(ki.keyname);
-    hsh ^= hashes_random_bytes[(size_t)ki.modifiers];
+    for (end = mem + n - charlen;
+         mem < end;
+         mem += sizeof(int))
+    {
+        hash high;
+
+        hsh  = (hsh << 5) + (hash)(*(int *)mem);
+
+        high = (((hash)0x0f << hash_high_nibl_off) & hsh);
+
+        hsh ^= high >> hash_high_nibl_off;
+        hsh ^= hsh * 3;
+    }
+
+    for (end += charlen;
+         mem < end;
+         mem++)
+    {
+        hash high;
+
+        hsh  = (hsh << 4) + (hash)(*mem);
+
+        high = (((hash)0x0f << hash_high_nibl_off) & hsh);
+
+        hsh ^= high >> hash_high_nibl_off;
+    }
+
+    hsh ^= hsh * 3;
 
     return hsh;
 }

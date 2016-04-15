@@ -14,6 +14,8 @@ typedef int  (*keqfunct)(char *, char *);
 
 table *table_init(size_t width, size_t keywidth, hashfunct hshf, keqfunct keqf, char *nullval);
 
+void table_free(table *t);
+
 int table_set(table *t, char *k, char *value);
 
 char *table_get(table *t, char *k);

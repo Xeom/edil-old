@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "container/vec.h"
+#include "container/hashes.h"
 #include "err.h"
 
 #include "container/table.h"
@@ -61,6 +62,14 @@ table *table_init(size_t width, size_t keywidth, hashfunct hshf, keqfunct keqf, 
     return rtn;
 }
 
+void table_free(table *t)
+{
+    free(t->data);
+    free(t);
+}
+
+/* These functions get data and keys from tables at specific indexes */
+
 static inline char *table_index_key(table *t, size_t index)
 {
     return ADDPTR(t->data, table_item_size(t) * index);
@@ -71,19 +80,50 @@ static inline char *table_index_data(table *t, size_t index)
     return ADDPTR(t->data, table_item_size(t) * index + t->width);
 }
 
+static inline size_t table_item_size(table *t)
+{
+    return t->keywidth + t->width;
+}
+
 static inline int table_key_isnull(table *t, char *k)
 {
-    return memcmp(k, t->nullval, t->keywidth) == 0;
+    if (t->nullval)
+        return memcmp(k, t->nullval, t->keywidth) == 0;
+    else
+    {
+        size_t n;
+        n = t->keywidth;
+
+        while (n--)
+            if (*(k++))
+                return 0;
+
+        return 1;
+    }
 }
 
 static void table_key_setnull(table *t, char *k)
 {
-    memcpy(k, t->nullval, t->keywidth);
+    if (t->nullval)
+        memcpy(k, t->nullval, t->keywidth);
+    else
+        memset(k, 0, t->keywidth);
 }
 
-static inline size_t table_item_size(table *t)
+static inline hash table_key_hash(table *t, char *k)
 {
-    return t->keywidth + t->width;
+    if (t->hshf)
+        return (hash)((t->hshf)(k));
+    else
+        return hashes_mem(k, t->keywidth);
+}
+
+static inline int table_key_eq(table *t, char *a, char *b)
+{
+    if (t->keqf)
+        return (t->keqf)(a, b);
+    else
+        return memcmp(a, b, t->keywidth) == 0;
 }
 
 static int table_realloc(table *t, size_t newcap)
@@ -142,22 +182,6 @@ static int table_resize_smaller(table *t)
     table_realloc(t, t->capacity >> 1);
 
     return 0;
-}
-
-static inline hash table_key_hash(table *t, char *k)
-{
-    if (t->hshf)
-        return (hash)((t->hshf)(k));
-    else
-        return (hash)k;
-}
-
-static inline int table_key_eq(table *t, char *a, char *b)
-{
-    if (t->keqf)
-        return (t->keqf)(a, b);
-    else
-        return (a == b);
 }
 
 static size_t table_find_key(table *t, char *k, int *new)
