@@ -1,13 +1,17 @@
 #include "container/table.h"
+#include "io/key.h"
+
 #include "container/hashes.h"
 
 #define hash_high_nibl_off (8 * (sizeof(hash)) - 4)
 #define hash_high_byte_off (8 * (sizeof(hash) - 1))
 
-hash hashes_str(char *str)
+hash hashes_str(void *k)
 {
-    hash hsh, high;
+    hash  hsh, high;
+    char *str;
 
+    str = *(char **)k;
     hsh = 0;
 
     while (*str)
@@ -42,10 +46,12 @@ static const unsigned char hashes_random_bytes[256] =
     0x01, 0xED, 0x86, 0x8B, 0xD3, 0xDE, 0x8A, 0x68, 0x15, 0xCE, 0x55, 0xD1, 0x23, 0xD5, 0x70, 0x52
 };
 
-hash hashes_str_trans(char *str)
+hash hashes_str_trans(void *k)
 {
     hash  hsh, high;
+    char *str;
 
+    str = *(char **)k;
     hsh = 0;
 
     while (*str)
@@ -54,6 +60,19 @@ hash hashes_str_trans(char *str)
         high = (((hash)0xff << hash_high_byte_off) & hsh);
         hsh ^= high >> hash_high_byte_off;
     }
+
+    return hsh;
+}
+
+hash hashes_key(void *k)
+{
+    hash hsh;
+    key  ki;
+
+    ki = *(key *)k;
+
+    hsh  = hashes_str(ki.keyname);
+    hsh ^= hashes_random_bytes[(size_t)ki.modifiers];
 
     return hsh;
 }
