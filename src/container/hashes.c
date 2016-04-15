@@ -57,3 +57,30 @@ hash hashes_str_trans(char *str)
 
     return hsh;
 }
+
+hash hashes_mem(char *mem, size_t n)
+{
+    char  *end;
+    hash   rtn;
+    
+    charlen = n % sizeof(int);
+
+    for (end = mem + n - charlen; mem < end; mem += sizeof(int))
+    {
+        hsh  = (hsh << 5) + (hash)(*(int *)intmem);
+        high = (((hash)0x0f << hash_high_nibl_off) & hsh);
+        hsh ^= high >> hash_high_nibl_off;
+        hsh ^= hsh * 3;
+    }
+    
+    for (end += charlen; mem < end; mem++)
+    {
+        hsh  = (hsh << 4) + (hash)(*mem);
+        high = (((hash)0x0f << hash_high_nibl_off) & hsh);
+        hsh ^= high >> hash_high_nibl_off;
+    }
+    
+    hsh ^= hsh * 3;
+    
+    return hsh;
+}
