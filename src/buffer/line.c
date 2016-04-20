@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "container/vec.h"
 #include "buffer/chunk.h"

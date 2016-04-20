@@ -13,8 +13,11 @@ win *win_root;
 hook_add(win_on_resize_x, 3);
 hook_add(win_on_resize_y, 3);
 
-hook_add(win_on_split,  2);
-hook_add(win_on_delete, 1);
+hook_add(win_on_split, 2);
+
+hook_add(win_on_delete_pre,  1);
+hook_add(win_on_delete_post, 1);
+
 hook_add(win_on_create, 1);
 
 static win *win_init_leaf(void);
@@ -33,7 +36,7 @@ int win_initsys(void)
 
 int win_killsys(void)
 {
-    hook_call(win_on_delete, win_root);
+    hook_call(win_on_delete_pre, win_root);
     win_free(win_root);
 
     return 0;
@@ -208,12 +211,14 @@ int win_delete(win *w)
     if (win_issub2(w))
         sister = par->cont.split.sub1;
 
-    hook_call(win_on_delete, w);
+    hook_call(win_on_delete_pre, w);
 
     win_move_contents(par, sister);
 
     win_free(w);
     win_free_norecurse(sister);
+
+    hook_call(win_on_delete_post, par);
 
     return 0;
 }

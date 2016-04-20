@@ -57,6 +57,8 @@ int ui_win_content_draw(win *w)
 
     sizey--;
 
+    ui_util_clear_area(currx, curry, sizex, sizey);
+
     while (sizey--)
     {
         vec  *l;
