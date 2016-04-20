@@ -23,7 +23,6 @@ typedef enum
 
 struct keytree_s
 {
-    keytree *parent;
     union
     {
         table *subs;
@@ -169,7 +168,6 @@ int keymap_press(keymap *map, key k)
     hook     hk;
 
     vec_keys_insert(map->keys, vec_len(map->keys), 1, &k);
-
     sub = table_get(map->curr->cont.subs, &k);
 
     if (sub == NULL)
@@ -198,7 +196,6 @@ static hook *keytree_get(keytree *tree, vec_keys *keys, size_t index)
     if (tree->type == leaf)
     {
         ASSERT(vec_keys_len(keys) == index, high, return NULL);
-
         return &(tree->cont.h);
     }
 
@@ -207,7 +204,7 @@ static hook *keytree_get(keytree *tree, vec_keys *keys, size_t index)
     k   = vec_keys_get(keys, index);
     sub = table_get(tree->cont.subs, &k);
 
-    ASSERT_PTR(sub, high, return NULL);
+    if (!sub) return NULL;
 
     return keytree_get(sub, keys, index + 1);
 }
@@ -243,17 +240,20 @@ static int keytree_add(keytree *tree, vec_keys *keys, size_t index)
         return 0;
     }
 
-    if (sub)
-        return keytree_add(sub, keys, index + 1);
+    if (!sub)
+    {
+        sub = keytree_init();
+        keytree_create_map(sub);
 
-    sub = keytree_init();
-    keytree_create_map(sub);
+        table_set(tree->cont.subs, &k, sub);
 
-    table_set(tree->cont.subs, &k, sub);
+        free(sub);
 
-    free(sub);
+        sub = table_get(tree->cont.subs, &k);
+    }
 
-    return 0;
+    return keytree_add(sub, keys, index + 1);
+
 }
 
 int keymap_add(keymap *map, vec *keys)
@@ -261,7 +261,7 @@ int keymap_add(keymap *map, vec *keys)
     return keytree_add(map->root, (vec_keys *)keys, 0);
 }
 
-hook *keymap_get_unknown_hook(keymap *k)
+hook *keymap_get_unknown(keymap *k)
 {
     return &(k->unknown);
 }

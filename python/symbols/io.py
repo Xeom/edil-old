@@ -11,6 +11,11 @@ class key_s(ctypes.Structure):
                 ("keyname",   ctypes.c_char *
                  ctypes.cast(so.io_key_name_len, ctypes.POINTER(ctypes.c_int)).contents.value)]
 
+class keymap_s(ctypes.Structure):
+    pass
+
+keymap_p = ctypes.POINTER(keymap_s)
+
 class key:
     set_name = so.io_key_set_name
     set_name.argtypes = [key_s, ctypes.c_char_p]
@@ -37,6 +42,10 @@ class key:
 
     on_key = ctypes.cast(so.io_key_on_key, hook_p)
 
+    ign_mod = ord(ctypes.cast(so.io_key_ign_mod, ctypes.POINTER(ctypes.c_char))[0])
+    esc_mod = ord(ctypes.cast(so.io_key_esc_mod, ctypes.POINTER(ctypes.c_char))[0])
+    con_mod = ord(ctypes.cast(so.io_key_con_mod, ctypes.POINTER(ctypes.c_char))[0])
+
 class file:
     dump_vec = so.file_dump_vec
     dump_vec.argtypes = [vec_p, ctypes.c_void_p]
@@ -49,3 +58,31 @@ class file:
     read_buffer = so.file_read_buffer
     read_buffer.argtypes = [buffer_p, ctypes.c_void_p]
     read_buffer.restype  = ctypes.c_int
+
+class keymap:
+    init = so.keymap_init
+    init.argtypes = []
+    init.restype  = keymap_p
+
+    clear = so.keymap_clear
+    clear.argtypes = [keymap_p]
+
+    press = so.keymap_press
+    press.argtypes = [keymap_p, key_s]
+    press.restype  = ctypes.c_int
+
+    get_unknown = so.keymap_get_unknown
+    get_unknown.argtypes = [keymap_p]
+    get_unknown.restype  = hook_p
+
+    get = so.keymap_get
+    get.argtypes = [keymap_p, vec_p]
+    get.restype  = hook_p
+
+    add = so.keymap_add
+    add.argtypes = [keymap_p, vec_p]
+    add.restype  = ctypes.c_int
+
+    delete = so.keymap_delete
+    delete.argtypes = [keymap_p, vec_p]
+    delete.restype  = ctypes.c_int

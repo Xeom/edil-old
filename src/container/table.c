@@ -200,12 +200,11 @@ static size_t table_find_key(table *t, char *k, int *new)
     cap  = t->capacity;
     ind  = table_key_hash(t, k) % cap;
 
-    if (new) *new = 1;
+    if (new) *new = 0;
 
-    for (compk = table_index_key(t, ind);
-         !table_key_isnull(t, compk);
-         compk += table_item_size(t))
+    for (ind = 0; !table_key_isnull(t, table_index_key(t, ind)); ind++)
     {
+        compk = table_index_key(t, ind);
         if (ind >= cap)
             ind = 0;
 
@@ -213,7 +212,7 @@ static size_t table_find_key(table *t, char *k, int *new)
             return ind;
     }
 
-    if (new) *new = 0;
+    if (new) *new = 1;
 
     return ind;
 }
@@ -229,10 +228,10 @@ int table_set(table *t, void *k, void *value)
     ASSERT_PTR((char *)k, high,
                return -1);
 
-    ind  = table_find_key(t, k, &new);
+    ind = table_find_key(t, k, &new);
 
     memcpy(table_index_key (t, ind), k, t->keywidth);
-    memcpy(table_index_data(t, ind), k, t->width);
+    memcpy(table_index_data(t, ind), value, t->width);
 
     if (new) ++(t->usage);
 

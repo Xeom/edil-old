@@ -7,16 +7,16 @@ typedef struct keymap_s keymap;
 
 keymap *keymap_init(void);
 
-void keymap_clear(keymap *k);
+void keymap_clear(keymap *map);
 
-int keymap_press(keymap *km, key k);
+int keymap_press(keymap *map, key k);
 
-hook *keymap_get_unknown_hook(keymap *k);
+hook *keymap_get_unknown(keymap *map);
 
-hook *keymap_get(keymap *k, vec_keys *keys);
+hook *keymap_get(keymap *map, vec *keys);
 
-int keymap_add(keymap *k, vec_keys *keys);
+int keymap_add(keymap *map, vec *keys);
 
-int keymap_delete(keymap *k, vec *keys);
+int keymap_delete(keymap *map, vec *keys);
 
 #endif /* IO_KEYMAP_H */
