@@ -65,5 +65,25 @@ def refresh():
     symbols.lib.clear()
     symbols.ui.refresh()
 
+def nc_refresh():
+    symbols.lib.refresh()
+
 def killsys():
     symbols.ui.killsys()
+
+def draw_buffer_line(b, ln):
+    for w in core.windows.get_root():
+        if w.buffer == b:
+            symbols.ui.win.content.draw_line(w.struct, ln)
+
+def draw_buffer(b):
+    for w in core.windows.get_root():
+        if w.buffer == b:
+            symbols.ui.win.content.draw(w.struct)
+
+def draw_window(w):
+    symbols.ui.win.draw(w.struct)
+
+def draw_window_frame(w):
+    symbols.ui.win.frame.draw_subs(w.struct)
+

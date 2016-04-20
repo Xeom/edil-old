@@ -3,6 +3,11 @@ import os
 import ctypes
 from shared import lib as so
 
+
+def ptreq(a, b):
+    return ctypes.cast(a, ctypes.c_void_p).value == ctypes.cast(b, ctypes.c_void_p).value
+
+
 def isnull(ptr):
     return ctypes.cast(ptr, ctypes.c_void_p).value == None
 

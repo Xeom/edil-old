@@ -100,14 +100,14 @@ class Window:
 
     def __eq__(self, other):
         return self.struct == other.struct
-    
-    def __iter__(self):
-        sub = symbols.win.get_first(self.struct)
-        last = symbols.win.get_last(self.struct)
 
-        while sub != last:
+    def __iter__(self):
+        sub = symbols.win.iter.first(self.struct)
+        last = symbols.win.iter.last(self.struct)
+
+        while not cutil.ptreq(sub, last):
             yield Window(sub)
-            sub = symbols.win.get_next(sub)
+            sub = symbols.win.iter.next(sub)
 
         yield Window(sub)
 
@@ -142,4 +142,10 @@ class hooks:
 
     create = core.hook.Hook(
         symbols.win.on_create,
+        Window)
+
+
+    select = core.hook.Hook(
+        symbols.win.on_select,
+        Window,
         Window)

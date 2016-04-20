@@ -115,9 +115,41 @@ class Vec:
         return len(self.struct)
 
     def __getitem__(self, index):
+        import sys
+        if isinstance(index, slice):
+            start = index.start
+            stop  = index.stop
+
+            if index.step != None:
+                raise NotImplemented
+
+            if start == None:
+                start = 0
+
+            if stop == None:
+                stop = -1
+
+            return self.getslice(start, stop)
+
         ptr = item(self.struct, index)
         ptr = ctypes.cast(ptr, self.type_p)
         return ptr.contents
+
+    def getslice(self, start, end):
+        rtn    = VecFreeOnDel(init(ctypes.sizeof(self.type)), self.type)
+        length = self.__len__()
+
+        if start >= length:
+            return rtn
+
+        if end < 0:
+            end = length - end
+
+        amount = min(end, length - 1)
+
+        insert(rtn.struct, 0, amount, item(self.struct, start))
+
+        return rtn
 
     def __setitem__(self, index, value):
         ptr = ctypes.cast(item(self.struct, index), self.type_p)

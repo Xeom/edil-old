@@ -16,6 +16,8 @@ class dir:
     left  = 2
     right = 3
 
+root = ctypes.cast(so.win_root, ctypes.POINTER(win_p)).contents
+
 on_resize_x = ctypes.cast(so.win_on_resize_x, hook_p)
 on_resize_y = ctypes.cast(so.win_on_resize_y, hook_p)
 
@@ -81,6 +83,8 @@ class select:
     get = so.win_select_get
     get.argtypes = []
     get.restype  = win_p
+
+on_select = ctypes.cast(so.win_on_select, hook_p)
 
 class label:
     caption_set = so.win_label_caption_set

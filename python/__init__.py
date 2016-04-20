@@ -4,11 +4,11 @@ import core.ui
 import core.windows
 import core.hook
 import core.key
-import time
 import ctypes
 import shared
-import signal
 import symbols
+
+import editor.uiupdates
 from editor.cursor.point import Point
 
 
@@ -28,9 +28,7 @@ from editor.cursor.point import Point
 #def handle_created(w):
 #    b = w.buffer
 
-
 core.windows.initsys()
-print("HI")
 core.ui.initsys()
 core.key.initsys()
 
@@ -38,11 +36,6 @@ core.ui.refresh()
 alive = True
 @core.key.hooks.key(100)
 def handle_keypress(key):
-    pass
-    print("Hi")
-    print(str(key))
-
-
     char = str(key)
 
     if char == '^W':
@@ -91,11 +84,9 @@ while alive:
         core.ui.resize()
 
     else:
-        print("HI")
         symbols.io.key.handle_chr(char)
-        print("HO")
 
-    core.ui.refresh()
+#    core.ui.refresh()
 
 #k    core.windows.Window(symbols.win.select.get()).sidebar = "Hiiii"
 

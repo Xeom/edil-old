@@ -34,6 +34,9 @@ class Buffer:
     def __getitem__(self, index):
         struct = symbols.buffer.get_line(self.struct, index)
 
+        if cutil.isnull(struct):
+            return None
+
         return VecFreeOnDel(struct, ctypes.c_char)
 
     def __setitem__(self, index, vec):
@@ -43,7 +46,10 @@ class Buffer:
         symbols.buffer.set_line(self.struct, index, vec.struct)
 
     def __eq__(self, other):
-        return self.struct == other.struct
+        return cutil.ptreq(self.struct, other.struct)
+
+    def __hash__(self):
+        return ctypes.cast(self.struct, ctypes.c_void_p).values
 
     def insert(self, index):
         symbols.buffer.insert(self.struct, index)

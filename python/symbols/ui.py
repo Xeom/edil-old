@@ -76,6 +76,9 @@ class win:
         draw_subs.argtypes = [win_p]
         draw_subs.restype  = ctypes.c_int
 
+        draw_line = so.ui_win_content_draw_line
+        draw_line.argtypes = [win_p, ctypes.c_size_t]
+        draw_line.restype  = ctypes.c_int
 
     class frame:
         on_draw_pre  = ctypes.cast(so.ui_win_frame_on_draw_pre,  hook_p)
@@ -85,11 +88,11 @@ class win:
 #        faceify.argtypes = [win_p, face_p]
         faceify.restype  = ctypes.c_int
 
-        draw = so.ui_win_content_draw
+        draw = so.ui_win_frame_draw
         draw.argtypes = [win_p]
         draw.restype  = ctypes.c_int
 
-        draw_subs = so.ui_win_content_draw_subs
+        draw_subs = so.ui_win_frame_draw_subs
         draw_subs.argtypes = [win_p]
         draw_subs.restype  = ctypes.c_int
 
