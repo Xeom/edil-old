@@ -35,6 +35,11 @@ int hook_killsys(void)
     return 0;
 }
 
+void hook_free(hook h)
+{
+    vec_free(h.functs);
+}
+
 int hook_mount(hook *h, hook_f f, priority pri)
 {
     size_t     index;
@@ -110,18 +115,20 @@ int hook_call(hook h, ...)
 
     /* Terrible O(n^2)-ness */
 start_search: /* hahahaahahahhahaahaohgod */
+    /* Iterate across all functions */
     vec_foreach(h.functs, hook_fcont, cont,
+                /* See if we've already executed the function */
                 if (vec_contains(completed, &(cont.funct)))
-                {
-                    puts("HI");
                     continue;
-                }
 
-
+                /* If not, we add it to our list of completed functions,
+                 * and execute it */
                 vec_insert_end(completed, 1, &(cont.funct));
                 hook_call_funct(h, cont, argvec);
 
-                goto start_search;
+                /* We then go back to the start. Goto in order to break *
+                 * out of two loops                                     */
+                goto start_search; /* AAAAAA */
         )
 
     va_end(args);

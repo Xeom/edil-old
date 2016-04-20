@@ -22,6 +22,8 @@ int hook_initsys(void);
 
 int hook_killsys(void);
 
+void hook_free(hook h);
+
 int hook_mount(hook *h, hook_f f, priority pri);
 
 int hook_unmount(hook *h, hook_f f);
