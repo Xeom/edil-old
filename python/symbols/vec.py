@@ -97,7 +97,7 @@ class Vec:
     def Type(cls, type):
         class Rtn(cls):
             def __init__(self, struct):
-                cls.__init__(self, struct, type)
+                cls.__init__(self, ctypes.cast(struct, vec_p), type)
 
         return Rtn
 

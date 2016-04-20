@@ -22,7 +22,8 @@ on_resize_x = ctypes.cast(so.win_on_resize_x, hook_p)
 on_resize_y = ctypes.cast(so.win_on_resize_y, hook_p)
 
 on_split  = ctypes.cast(so.win_on_split,  hook_p)
-on_delete = ctypes.cast(so.win_on_delete, hook_p)
+on_delete_pre  = ctypes.cast(so.win_on_delete_pre,  hook_p)
+on_delete_post = ctypes.cast(so.win_on_delete_post, hook_p)
 on_create = ctypes.cast(so.win_on_create, hook_p)
 
 initsys = so.win_initsys
