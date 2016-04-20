@@ -182,8 +182,8 @@ const char *vec_err_str(void);
     _vec_index_next = 0;                                 \
     while ((_vec_index = _vec_index_next) < _vec_len)    \
         {                                                \
-            _vec_index_next = _vec_index + 1;            \
             type name;                                   \
+            _vec_index_next = _vec_index + 1;            \
             name = *(type *)vec_item(vec, _vec_index);   \
             {code;}                                      \
         }                                                \

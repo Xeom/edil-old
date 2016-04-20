@@ -2,7 +2,7 @@
 #include "err.h"
 #include "win/win.h"
 #include "ui/ui.h"
-#include "io.h"
+#include "io/key.h"
 
 #include "core.h"
 

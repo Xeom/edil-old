@@ -71,6 +71,7 @@ void err_new(errlvl level, const char *title, const char *detail)
     err  *e;
     puts(title);
     puts(detail);
+    return;
     e = malloc(sizeof(err));
 
     if (e == NULL)
@@ -97,7 +98,7 @@ void err_new(errlvl level, const char *title, const char *detail)
         FUCK_VEC_ERR("Error getting pointer to subqueue");
 
     subqueue = *subptr;
-    
+
     if (subqueue == NULL)
         FUCK_VEC_ERR("err_new: Error getting error subqueue");
 

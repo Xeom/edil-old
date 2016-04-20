@@ -1,5 +1,8 @@
 #if !defined(IO_KEY_H)
-#define IO_KEY_H
+# define IO_KEY_H
+# include "head.h"
+
+# include "hook.h"
 
 typedef struct key_s key;
 

@@ -10,6 +10,10 @@
 # error "typed_vec included with no VEC_TYPED_NAME defined"
 #endif
 
+#if !defined(VEC_TYPED_NULL)
+# define VEC_TYPED_NULL 0
+#endif
+
 #define VEC_TYPED_VNAME CONCAT(vec_,VEC_TYPED_NAME)
 #define VEC_TYPED_FNAME(name) CONCAT(VEC_TYPED_VNAME, _ ## name)
 
@@ -78,8 +82,11 @@ static inline VEC_TYPED_VNAME *VEC_TYPED_FNAME(cut)(VEC_TYPED_VNAME *v, size_t i
       rtnptr = VEC_TYPED_FNAME(item)(v, index);
 
       if (!rtnptr)
-          return 0;
-
+      {
+          VEC_TYPED_TYPE nullrtn = VEC_TYPED_NULL;
+          return nullrtn;
+      }
+      
       return *rtnptr;
   }
 
@@ -91,3 +98,4 @@ static inline VEC_TYPED_VNAME *VEC_TYPED_FNAME(cut)(VEC_TYPED_VNAME *v, size_t i
 
 #undef VEC_TYPED_TYPE
 #undef VEC_TYPED_NAME
+#undef VEC_TYPED_NULL

@@ -15,16 +15,13 @@ char ui_win_vertical_char    = '|';
 char ui_win_horizontal_char  = '-';
 char ui_win_corner_char      = '\'';
 
-face *ui_win_frame_face;
-face *ui_win_frame_sel_face;
+face ui_win_frame_face;
+face ui_win_frame_sel_face;
 
-int ui_win_frame_faceify(win *w, face *f)
+int ui_win_frame_faceify(win *w, face f)
 {
     int   posx,  posy;
     uint  sizex, sizey;
-
-    if (f == NULL)
-        return -1;
 
     posx  = win_pos_get_x(w);
     posy  = win_pos_get_y(w);
@@ -35,21 +32,15 @@ int ui_win_frame_faceify(win *w, face *f)
     ui_face_draw_at(f, posx, posy + (int)sizey - 1, sizex, 1);
     ui_face_draw_at(f, posx + (int)sizex - 1, posy, 1, sizey);
 
-    refresh();
-
     return 0;
 }
 
 int ui_win_frame_draw_subs(win *w)
 {
-    int borderattr;
     win *sub, *last;
 
     sub  = win_iter_first(w);
     last = win_iter_last(w);
-
-    borderattr = ui_face_get_attr(ui_win_frame_face);
-    attron(borderattr);
 
     while (sub != last)
     {
@@ -58,8 +49,6 @@ int ui_win_frame_draw_subs(win *w)
     }
 
     ui_win_frame_draw(sub);
-
-    attroff(borderattr);
 
     ui_win_frame_faceify(win_select_get(),
                          ui_win_frame_sel_face);
@@ -75,7 +64,7 @@ int ui_win_frame_draw(win *w)
 
     const char *caption, *sidebar;
 
-    hook_call(ui_win_frame_on_draw_pre, &w);
+    hook_call(ui_win_frame_on_draw_pre, w);
 
     posx = win_pos_get_x(w);
     posy = win_pos_get_y(w);
@@ -100,7 +89,9 @@ int ui_win_frame_draw(win *w)
 
     mvaddch(lastposy, lastposx, (uchar)ui_win_corner_char);
 
-    hook_call(ui_win_frame_on_draw_post, &w);
+    hook_call(ui_win_frame_on_draw_post, w);
+
+    ui_win_frame_faceify(w, ui_win_frame_face);
 
     return 0;
 }

@@ -33,6 +33,7 @@ uint buffer_readonly_flag = 0x01;
 uint buffer_modified_flag = 0x02;
 
 #define buffer_extern_flags buffer_readonly_flag || buffer_modified_flag
+
 #define buffer_flag(b, name)     (b->flags &   buffer_ ## name ## _flag)
 #define buffer_flag_on(b, name)  (b->flags |=  buffer_ ## name ## _flag)
 #define buffer_flag_off(b, name) (b->flags &= ~buffer_ ## name ## _flag)
@@ -220,6 +221,7 @@ int buffer_get_flag(buffer *b, uint flag)
 
 int buffer_enable_flag(buffer *b, uint flag)
 {
+    /* Check flag exists */
     if (flag & ~buffer_extern_flags)
     {
         ERR_NEW(high, "Invalid flag",
@@ -227,6 +229,7 @@ int buffer_enable_flag(buffer *b, uint flag)
         return -1;
     }
 
+    /* OR it in */
     b->flags |= flag;
 
     return 0;
@@ -234,6 +237,7 @@ int buffer_enable_flag(buffer *b, uint flag)
 
 int buffer_disable_flag(buffer *b, uint flag)
 {
+    /* Check flag exists */
     if (flag & ~buffer_extern_flags)
     {
         ERR_NEW(high, "Invalid flag",
@@ -241,6 +245,7 @@ int buffer_disable_flag(buffer *b, uint flag)
         return -1;
     }
 
+    /* IMPLIES it in */
     b->flags &= ~flag;
 
     return 0;

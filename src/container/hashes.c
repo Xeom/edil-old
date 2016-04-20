@@ -40,6 +40,7 @@ static const hash hashes_random_seed =
 #     if ULONG_MAX == 0xffffffffffffffffffffffffffffffffl
                       0xfc64c9bd39ea214178c6a000618e9c51;
 #     else
+       /* This will cause a warning, but meh */
        (hash)0xfc64c9bd39ea214178c6a000618e9c51;
 #     endif
 #    endif

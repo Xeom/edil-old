@@ -5,7 +5,10 @@
 # include "ui/face.h"
 # include "win/win.h"
 
-int ui_win_frame_faceify(win *w, face *f);
+extern face ui_win_frame_face;
+extern face ui_win_frame_sel_face;
+
+int ui_win_frame_faceify(win *w, face f);
 
 int ui_win_frame_draw_subs(win *w);
 

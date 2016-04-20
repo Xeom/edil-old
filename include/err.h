@@ -14,7 +14,9 @@ typedef enum
     errlvl_end
 } errlvl;
 
+/* A string saying where an error is from */
 #define ERRLOC " " __FILE__ ":" STRIFY(__LINE__)
+
 
 #define ASSERT(code, level, fail)                       \
     {                                                   \
@@ -67,6 +69,7 @@ typedef enum
         }                                               \
     }
 
+#define TRACE(code, fail)     ASSERT    (code, err_last_lvl, fail)
 #define TRACE_PTR(code, fail) ASSERT_PTR(code, err_last_lvl, fail)
 #define TRACE_INT(code, fail) ASSERT_INT(code, err_last_lvl, fail)
 #define TRACE_IND(code, fail) ASSERT_IND(code, err_last_lvl, fail)

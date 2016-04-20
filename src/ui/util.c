@@ -70,6 +70,8 @@ int ui_util_draw_text_limited_v(uint spacelim, uint strlim, char filler, const c
     currx = getcurx(stdscr);
     curry = getcury(stdscr);
 
+    ui_util_clear_area(currx, curry, 1, spacelim);
+
     while (spacelim && strlim--)
     {
         spacelim--;

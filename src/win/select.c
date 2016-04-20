@@ -1,10 +1,17 @@
 #include "win/util.h"
 #include "win/win.h"
+#include "hook.h"
 
 #include "win/select.h"
 
+hook_add(win_on_select, 2);
+
 int win_select_set(win *w)
 {
+    win *oldselect;
+
+    oldselect = win_select_get();
+
     if (win_issplit(w))
         w->cont.split.selected = none;
 
@@ -21,6 +28,8 @@ int win_select_set(win *w)
 
         w = par;
     }
+
+    hook_call(win_on_select, win_select_get(), oldselect);
 
     return 0;
 }
