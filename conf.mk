@@ -16,7 +16,7 @@ INC=include
 OBJ=obj
 
 STD=c99
-WARNINGS=all extra pedantic missing-prototypes fatal-errors format conversion declaration-after-statement
+WARNINGS=all extra pedantic missing-prototypes fatal-errors format conversion declaration-after-statement error
 LINKS=ncurses
 INCLUDES=include/ src/
 
@@ -40,6 +40,8 @@ SRC_NAMES=\
                            \
         container/table    \
         container/vec      \
+        container/hashes   \
+        container/bivec    \
                            \
         ui/ui              \
         ui/sbar            \
@@ -51,7 +53,8 @@ SRC_NAMES=\
             ui/win/frame   \
                            \
         io/file            \
-        io/key
+        io/key             \
+        io/keymap
 
 
 DEPS_FILE=deps.mk
