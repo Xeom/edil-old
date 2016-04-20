@@ -55,6 +55,8 @@ int ui_win_content_draw(win *w)
 
     ln = (size_t)offy;
 
+    sizey--;
+
     while (sizey--)
     {
         vec  *l;
@@ -73,8 +75,7 @@ int ui_win_content_draw(win *w)
             iter = vec_item(l, offx);
 
         move(curry++, currx);
-
-        ui_util_draw_text_limited_h(sizex, vec_len(l) - offx, ' ', iter);
+        ui_util_draw_text_limited_h(sizex - 1, (uint)vec_len(l) - offx, ' ', iter);
 
         hook_call(ui_win_content_on_draw_line_post, &w, &b, &ln, &l);
 
@@ -83,6 +84,52 @@ int ui_win_content_draw(win *w)
     }
 
     hook_call(ui_win_content_on_draw_post, &w, &b);
+
+    return 0;
+}
+
+int ui_win_content_draw_line(win *w, lineno ln)
+{
+    buffer *b;
+    vec    *l;
+    char   *iter;
+    size_t  numlines;
+    uint    sizex, sizey;
+    uint    offx,  offy;
+    int     currx, curry;
+
+    b    = win_get_buffer(w);
+
+    numlines = buffer_len(b);
+
+    offx = win_get_offsetx(w);
+    offy = win_get_offsety(w);
+
+    curry = win_pos_get_y(w) + (int)(ln - offy);
+    currx = win_pos_get_x(w);
+
+    sizex = win_size_get_x(w);
+    sizey = win_size_get_y(w);
+
+    if (ln >= numlines || ln >= offy + sizey - 1)
+        return 0;
+
+    l = buffer_get_line(b, ln);
+
+    hook_call(ui_win_content_on_draw_line_pre, &w, &b, &ln, &l);
+
+    if (vec_len(l) < offx)
+        iter = "";
+    else
+        iter = vec_item(l, offx);
+
+    move(curry++, currx);
+
+    ui_util_draw_text_limited_h(sizex - 1, (uint)vec_len(l) - offx, ' ', iter);
+
+    hook_call(ui_win_content_on_draw_line_post, &w, &b, &ln, &l);
+
+    vec_free(l);
 
     return 0;
 }
