@@ -11,14 +11,17 @@ typedef struct table_item_s table_item;
 
 struct table_s
 {
-    hashfunct   hshf;
-    keqfunct    keqf;
-    size_t      capacity;
-    size_t      usage;
-    size_t      width;
-    size_t      keywidth;
-    char       *nullval;
-    char       *data;
+    /* Both these function pointers can be null for default behavior                               */
+    hashfunct   hshf;     /* Function for hashing keys. Takes a pointer to the first byte of a key */
+    keqfunct    keqf;     /* Function for testing key equality. Takes a pointer to the first byte  *
+                           * of two keys, returns 1 if they are equal.                             */
+    size_t      capacity; /* Stores the total amount of space allocated for data in num of items.  */
+    size_t      usage;    /* Stores the total amount of items stored in the table.                 */
+    size_t      width;    /* Stores the size, in bytes, of the data for each item.                 */
+    size_t      keywidth; /* Stores the size, in bytes, of the key for each item.                  */
+    char       *nullval;  /* Stores a block of memory representing a null key value. Or NULL for   *
+                           * default behavior.                                                     */
+    char       *data;     /* All the data for the table, stored like [[key|data], [key|data], ...] */
 };
 
 #define TABLE_MAX_USAGE(cap) ((cap >> 2) + (cap >> 3))
@@ -66,6 +69,11 @@ void table_free(table *t)
 {
     free(t->data);
     free(t);
+}
+
+size_t table_len(table *t)
+{
+    return t->usage;
 }
 
 /* These functions get data and keys from tables at specific indexes */
@@ -210,7 +218,7 @@ static size_t table_find_key(table *t, char *k, int *new)
     return ind;
 }
 
-int table_set(table *t, char *k, char *value)
+int table_set(table *t, void *k, void *value)
 {
     int    new;
     size_t ind;
@@ -234,7 +242,7 @@ int table_set(table *t, char *k, char *value)
     return 0;
 }
 
-char *table_get(table *t, char *k)
+void *table_get(table *t, void *k)
 {
     int    new;
     size_t ind;
@@ -249,7 +257,7 @@ char *table_get(table *t, char *k)
     return table_index_data(t, ind);
 }
 
-int table_delete(table *t, char *k)
+int table_delete(table *t, void *k)
 {
     int    new;
     char  *item, *previtem;
