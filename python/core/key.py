@@ -31,12 +31,12 @@ class Key:
         return self.__bytes__().decode("ascii")
 
     def get_modifier(self, mod):
-        mods = self.struct.modifiers.value
+        mods = ord(self.struct.modifiers)
 
         return bool(mods & mod)
 
     def set_modifier(self, mod, value):
-        mods = self.struct.modifiers.value
+        mods = ord(self.struct.modifiers)
 
         if value:
             mods |= mod
@@ -44,8 +44,12 @@ class Key:
         else:
             mods &= ~mod
 
-        self.struct.modifiers.value = mods
+        self.struct.modifiers = mods
 
+    @property
+    def name(self):
+        return self.struct.keyname.decode("ascii")
+        
     @property
     def ignored(self):
         return self.get_modifier(symbols.io.key.ign_mod)

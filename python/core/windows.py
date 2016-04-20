@@ -27,6 +27,9 @@ class Window:
 
         @hooks.delete_struct(900)
         def handle_delete(struct):
+            if not self.valid:
+                return
+
             if struct == self.struct:
                 self.valid   = False
 
@@ -132,18 +135,21 @@ class hooks:
         Window,
         Window)
 
-    delete = core.hook.Hook(
-        symbols.win.on_delete,
+    delete_post = core.hook.Hook(
+        symbols.win.on_delete_post,
+        Window)
+
+    delete_pre = core.hook.Hook(
+        symbols.win.on_delete_pre,
         Window)
 
     delete_struct = core.hook.Hook(
-        symbols.win.on_delete,
+        symbols.win.on_delete_pre,
         symbols.win.win_p)
 
     create = core.hook.Hook(
         symbols.win.on_create,
         Window)
-
 
     select = core.hook.Hook(
         symbols.win.on_select,

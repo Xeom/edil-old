@@ -18,9 +18,9 @@ class HookFunct:
         self.pyfunct = weakref.ref(funct, self.free)
         # Wrap up self.call with ctypes
         self.cfunct  = symbols.hook.hook_f(self.call)
-
         symbols.hook.mount(self.struct, self.cfunct, priority)
-
+        self.parent.functs.append(self)
+        
     # Unmounts the function from its hook and removes the reference
     # to this hookfunct from the appropriate hook, allowing it to die.
     def free(self, obj=None):
@@ -77,8 +77,12 @@ class Hook:
         if isinstance(funct, HookFunct):
             funct = HookFunct.pyfunct
 
-        rtn = HookFunct(self, funct, priority)
+        hf = HookFunct(self, funct, priority)
 
-        self.functs.append(rtn)
+        if hasattr(funct, "__hookfunct__"):
+            funct.__hookfunct__.append(hf)
+
+        else:
+            funct.__hookfunct__ = [hf]
 
         return funct
