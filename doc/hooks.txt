@@ -1,0 +1,95 @@
+
+BUFFER HOOKS
+
+ BUFFER LINE HOOKS
+
+  All buffer line hooks are called with at least two arguments. The first is a
+  pointer to the buffer that the hook is being called with reference to. The
+  second is a pointer to a lineno integer, containing the linenumber of the line
+  the hook is being called with reference to.
+
+  The locked flag of the buffer is set before calling any of these hooks. This
+  flag prevents any modifying operations on the content of the buffer and
+  cannot be set by the buffer_disable_flag or buffer_enable_flag methods.
+
+  Using the chunk or line api to change the contents of a buffer will not call
+  these hooks, and so is strongly discouraged.
+
+  All buffer_line_*_pre hooks are called even when the readonly flag on the
+  buffer is enabled, and the corresponding operation will not be performed.
+
+  If the readonly flag is enabled by a function mounted on a buffer line hook,
+  then the corresponding operation will not take place. This allows for mounted
+  functions to abort operations.
+
+  All buffer_line_*_post hooks are only called if the corresponding operation
+  was performed sucessfully. This means that they may not necessarily be called
+  after a corresponding buffer_line_*_pre hook.
+
+  BUFFER LINE ON CHANGE HOOKS
+
+  |buffer_line_on_change_pre
+  |buffer_line_on_change_post
+  | (buffer *b, lineno *ln, vec *v)
+  |
+  | The buffer_line_on_change pair of hooks are called whenever the content of a
+  | line in a buffer is changed by buffer_set_line.
+  |
+  | A third parameter is passed to these functions. It is a vec containing the
+  | new contents of the line.
+  |
+  | The buffer_line_on_change_pre hook is called before the content is actually
+  | changed. This allows functions using the _pre hook to view the current
+  | contents of the line using buffer_get_line(b, *ln).
+  |
+  | Functions using the _pre hook also have the ability to change the contents
+  | of v, which will change what the contents of the line is set to. This can be
+  | useful, for example, to remove a certain type of character (such as '\n')
+  | from buffers that should not be there.
+  |
+  | Changing the contents of v in the _post hook will simply change it for
+  | subsequently called, less prioritized mounted functions.
+
+  BUFFER LINE ON DELETE HOOKS
+
+  |buffer_line_on_delete_post
+  |buffer_line_on_delete_pre
+  | (buffer *b, size_t *ln)
+  |
+  | The buffer_line_on_delete pair of hooks are called whenever a line is
+  | deleted from a buffer by buffer_delete.
+  |
+  | Note that for the _post function, *ln will no longer be the linenumber of
+  | the line being deleted. It will either be the line after the line that was
+  | deleted, or one more than the length of the buffer.
+
+  BUFFER LINE ON INSERT HOOKS
+
+  |buffer_line_on_insert_post
+  |buffer_line_on_insert_pre
+  | (buffer *, size_t *)
+  |
+  | The buffer_line_on_insert pair of hooks are called whenevr a line is
+  | inserted into a buffer by buffer_insert.
+  |
+  | Note that for the _pre function, there is not yet a new line. *ln the
+  | linenumber where the new line will be inserted.
+
+
+buffer_on_create
+buffer_on_delete
+io_key_on_key
+ui_on_resize
+ui_win_content_on_draw_line_post
+ui_win_content_on_draw_line_pre
+ui_win_content_on_draw_post
+ui_win_content_on_draw_pre
+ui_win_frame_on_draw_post
+ui_win_frame_on_draw_pre
+win_on_create
+win_on_delete_post
+win_on_delete_pre
+win_on_resize_x
+win_on_resize_y
+win_on_select
+win_on_split
