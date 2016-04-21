@@ -15,7 +15,8 @@ int ui_util_draw_vec_limited_h(uint spacelim, char filler, vec *v)
     char *iter;
     iter = vec_char_item((vec_char *)v, 0);
 
-    ui_util_draw_text_limited_h(spacelim, (uint)vec_char_len((vec_char *)v), filler, iter);
+    ui_util_draw_text_limited_h(spacelim, (uint)vec_char_len((vec_char *)v),
+                                filler, iter);
 
     return 0;
 }
@@ -26,7 +27,10 @@ int ui_util_draw_vec_limited_v(uint spacelim, char filler, vec *v)
 
 iter = vec_char_item((vec_char *)v, 0);
 
-    return ui_util_draw_text_limited_v(spacelim, (uint)vec_char_len((vec_char *)v), filler, iter);
+    ui_util_draw_text_limited_v(spacelim, (uint)vec_char_len((vec_char *)v),
+                                filler, iter);
+
+    return 0;
 }
 
 int ui_util_draw_str_limited_h(uint spacelim, char filler, const char *str)
@@ -49,7 +53,8 @@ int ui_util_draw_str_limited_v(uint spacelim, char filler, const char *str)
     return 0;
 }
 
-int ui_util_draw_text_limited_h(uint spacelim, uint strlim, char filler, const char *str)
+int ui_util_draw_text_limited_h(
+    uint spacelim, uint strlim, char filler, const char *str)
 {
     while (spacelim && strlim--)
     {
@@ -63,7 +68,8 @@ int ui_util_draw_text_limited_h(uint spacelim, uint strlim, char filler, const c
     return 0;
 }
 
-int ui_util_draw_text_limited_v(uint spacelim, uint strlim, char filler, const char *str)
+int ui_util_draw_text_limited_v(
+    uint spacelim, uint strlim, char filler, const char *str)
 {
     int currx, curry;
 

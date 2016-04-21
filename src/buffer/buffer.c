@@ -31,12 +31,18 @@ hook_add(buffer_on_delete, 1);
 
 uint buffer_readonly_flag = 0x01;
 uint buffer_modified_flag = 0x02;
+uint buffer_locked_flag   = 0x04;
 
-#define buffer_extern_flags buffer_readonly_flag || buffer_modified_flag
+#define buffer_settable_flags buffer_readonly_flag || buffer_modified_flag
 
 #define buffer_flag(b, name)     (b->flags &   buffer_ ## name ## _flag)
 #define buffer_flag_on(b, name)  (b->flags |=  buffer_ ## name ## _flag)
 #define buffer_flag_off(b, name) (b->flags &= ~buffer_ ## name ## _flag)
+
+#define hook_call_buf(hook, b, ...)             \
+    buffer_flag_on(b, locked);                  \
+    hook_call(hook, b, __VA_ARGS__);            \
+    buffer_flag_off(b, locked);                 \
 
 /* Function to get the chunk containinng a specific line in a buffer.   *
  * This function also moves the currchunk of that buffer to the one     *
@@ -67,6 +73,8 @@ void buffer_free(buffer *b)
 {
     if (!b) return;
 
+    ASSERT(buffer_flag(b, locked) == 0, high, return);
+
     hook_call(buffer_on_delete, b);
 
     /* Free the chunks (and lines) */
@@ -95,13 +103,15 @@ int buffer_insert(buffer *b, lineno ln)
     ASSERT_PTR(b, high,
                return -1);
 
+    ASSERT(buffer_flag(b, locked) == 0, high, return -1);
+
     /* Get the chunk, and depth into that chunk of where we want to insert. */
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
               return -1);
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    hook_call(buffer_line_on_insert_pre, b, &ln);
+    hook_call_buf(buffer_line_on_insert_pre, b, &ln);
 
     if (buffer_flag(b, readonly))
     {
@@ -117,7 +127,7 @@ int buffer_insert(buffer *b, lineno ln)
     TRACE_INT(buffer_chunk_insert_line(c, offset),
               return -1);
 
-    hook_call(buffer_line_on_insert_post, b, &ln);
+    hook_call_buf(buffer_line_on_insert_post, b, &ln);
 
     return 0;
 }
@@ -130,13 +140,15 @@ int buffer_delete(buffer *b, lineno ln)
     ASSERT_PTR(b, high,
                return -1);
 
+    ASSERT(buffer_flag(b, locked) == 0, high, return -1);
+
     /* Get the chunk, and depth into that chunk of where we want to delete. */
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
               return -1);
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    hook_call(buffer_line_on_delete_pre, b, &ln);
+    hook_call_buf(buffer_line_on_delete_pre, b, &ln);
 
     if (buffer_flag(b, readonly))
     {
@@ -154,6 +166,8 @@ int buffer_delete(buffer *b, lineno ln)
 
     /* Set the new current chunk to the valid chunk */
     b->currchunk = c;
+
+    hook_call_buf(buffer_line_on_delete_post, b, &ln);
 
     return 0;
 }
@@ -187,6 +201,7 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     ASSERT_PTR(b, high,
                return -1);
 
+    ASSERT(buffer_flag(b, locked) == 0, high, return -1);
 
     /* Get the chunk, and depth into that chunk of where we want to get. */
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
@@ -194,7 +209,7 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    hook_call(buffer_line_on_change_pre, b, &ln, v);
+    hook_call_buf(buffer_line_on_change_pre, b, &ln, v);
 
     if (buffer_flag(b, readonly))
     {
@@ -209,7 +224,7 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     TRACE_INT(buffer_chunk_set_line(c, offset, v),
               return -1);
 
-    hook_call(buffer_line_on_change_post, b, &ln, v);
+    hook_call_buf(buffer_line_on_change_post, b, &ln, v);
 
     return 0;
 }
@@ -222,7 +237,7 @@ int buffer_get_flag(buffer *b, uint flag)
 int buffer_enable_flag(buffer *b, uint flag)
 {
     /* Check flag exists */
-    if (flag & ~buffer_extern_flags)
+    if (flag & ~buffer_settable_flags)
     {
         ERR_NEW(high, "Invalid flag",
                 "Flag either does not exist or cannot be externally set");
@@ -238,7 +253,7 @@ int buffer_enable_flag(buffer *b, uint flag)
 int buffer_disable_flag(buffer *b, uint flag)
 {
     /* Check flag exists */
-    if (flag & ~buffer_extern_flags)
+    if (flag & ~buffer_settable_flags)
     {
         ERR_NEW(high, "Invalid flag",
                 "Flag either does not exist or cannot be externally set");

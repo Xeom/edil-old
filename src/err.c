@@ -13,8 +13,18 @@ struct err_s
     errlvl lvl;
 };
 
-#define FUCK_IT(err) {fputs("\n", stderr); fputs(err, stderr); fputs("\nFuck it.\n", stderr); abort();}
-#define FUCK_VEC_ERR(err) {fputs("\n", stderr); fputs(err, stderr); FUCK_IT(vec_err_str());}
+#define FUCK_IT(err)                                \
+    {                                               \
+        fputs("\n", stderr); fputs(err, stderr);    \
+        fputs("\nFuck it.\n", stderr); abort();     \
+    }
+
+#define FUCK_VEC_ERR(err)                                               \
+    {                                                                   \
+        fputs("\n", stderr);                                            \
+        fputs(err, stderr);                                             \
+        FUCK_IT(vec_err_str());                                         \
+    }
 
 /*
     [

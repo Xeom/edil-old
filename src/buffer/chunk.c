@@ -11,16 +11,27 @@
 
 #include "buffer/chunk.h"
 
-#define BUFFER_CHUNK_MAX_SIZE 512 /* The maximum size a buffer can be before it overflows            */
-#define BUFFER_CHUNK_MIN_SIZE 128 /* The minimum size a buffer can be if it is not the last buffer   */
-#define BUFFER_CHUNK_DEF_SIZE 256 /* The default size a buffer returns to after over or underflowing */
+#define BUFFER_CHUNK_MAX_SIZE 512 /* The maximum size a chunk can be before it
+                                     overflows into the next one.             */
+
+#define BUFFER_CHUNK_MIN_SIZE 128 /* The minimum size a chunk can be if it is
+                                     not the last chunk in the chain.         */
+
+#define BUFFER_CHUNK_DEF_SIZE 256 /* The default size a chunk returns to after
+                                     overflowing.                             */
 
 struct chunk_s
 {
-    vec_lines  lines;     /* chunk_s is an extention of vec_s. The vector stores pointers to every line */
-    lineno     startline; /* The line number of the first line of the chunk                             */
-    chunk     *next;      /* A link forward to the next chunk. NULL if this is the last chunk.          */
-    chunk     *prev;      /* A link backward to the last chunk. NULL if this is the first chunk.        */
+    vec_lines  lines;     /* chunk_s is an extention of vec_s. The vector
+                             stores pointers to every line.                   */
+
+    lineno     startline; /* The line number of the first line of the chunk   */
+
+    chunk     *next;      /* A link forward to the next chunk. NULL if this is 
+                             the last chunk.                                  */
+
+    chunk     *prev;      /* A link backward to the last chunk. NULL if this is 
+                             the first chunk.                                 */
 };
 
 /* Correct the starting lines of all the chunks after and including c */
@@ -166,7 +177,10 @@ static void buffer_chunk_delete(chunk *c)
     buffer_chunk_free_norecurse(c);
 }
 
-static chunk *buffer_chunk_insert_lines(chunk *c, size_t index, size_t n, line **lines)
+static chunk *buffer_chunk_insert_lines(chunk *c,
+                                        size_t index,
+                                        size_t n,
+                                        line **lines)
 {
     ASSERT_INT(vec_lines_insert((vec_lines *)c, index, n, lines),
                high, return NULL);

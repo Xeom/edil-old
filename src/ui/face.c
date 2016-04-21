@@ -4,11 +4,11 @@
 
 #include "ui/face.h"
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
- * If I ever meet whatever idiotic arseholes designed ncurses' color system... *
- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ * If I ever meet whatever idiotic arseholes designed ncurses' color system  *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* This translates an fg and bg into the pairid it should be allocated 
+/* This translates an fg and bg into the pairid it should be allocated
  * It's a bit odd since id 0 must be white fg, black bg
  */
 #define colours_get_pairid(fg, bg) (short)(7 - (fg % 8) + (bg % 8) * 8)
@@ -32,9 +32,10 @@ int ui_face_initsys(void)
     short id;
     id = 0;
 
-    /* 0 is white on black. We set up colour pairs from 1 to 63 (black on white) */
+    /* 0 is white on black. We set up colour pairs from 1 to 63 (b on w) */
     while (++id < 64)
-        ASSERT_NCR(init_pair(id, pairid_get_fg(id), pairid_get_bg(id)), critical, return -1);
+        ASSERT_NCR(init_pair(id, pairid_get_fg(id), pairid_get_bg(id)),
+                   critical, return -1);
 
     return 0;
 }
@@ -84,7 +85,8 @@ int ui_face_draw_at(face f, int x, int y, uint sizex, uint sizey)
     pairid = colours_get_pairid(f.fg, f.bg);
 
     while (sizey--)
-        ASSERT_NCR(mvchgat(y + (int)sizey, x, (int)sizex, attr, pairid, NULL), high, return -1);
+        ASSERT_NCR(mvchgat(y + (int)sizey, x, (int)sizex, attr, pairid, NULL),
+                   high, return -1);
 
     return 0;
 }

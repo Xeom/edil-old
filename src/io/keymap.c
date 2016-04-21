@@ -165,27 +165,29 @@ void keymap_clear(keymap *map)
 int keymap_press(keymap *map, key k)
 {
     keytree *sub;
-    hook     hk;
 
     vec_keys_insert(map->keys, vec_len(map->keys), 1, &k);
     sub = table_get(map->curr->cont.subs, &k);
 
     if (sub == NULL)
-        hk = map->unknown;
+    {
+        hook_call(map->unknown, map->keys);
+        keymap_clear(map);
+
+        return 0;
+    }
 
     else if (sub->type == kmap)
     {
         map->curr = sub;
-        return 0;
+
+        return 1;
     }
 
-    else if (sub->type == leaf)
-        hk = sub->cont.h;
-
-    hook_call(hk, map->keys);
+    hook_call(sub->cont.h, map->keys);
     keymap_clear(map);
 
-    return 0;
+    return 2;
 }
 
 static hook *keytree_get(keytree *tree, vec_keys *keys, size_t index)

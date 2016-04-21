@@ -7,6 +7,12 @@
 
 static const char *blank = "";
 
+hook_add(win_label_on_caption_set_pre,  2);
+hook_add(win_label_on_caption_set_post, 2);
+
+hook_add(win_label_on_sidebar_set_pre,  2);
+hook_add(win_label_on_sidebar_set_post, 2);
+
 int win_label_caption_set(win *w, const char *caption)
 {
     size_t len;
