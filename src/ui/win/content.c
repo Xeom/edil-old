@@ -32,60 +32,13 @@ int ui_win_content_draw_subs(win *w)
 
 int ui_win_content_draw(win *w)
 {
-    buffer *b;
-    size_t ln, numlines;
-    uint sizex, sizey;
-    uint offx,  offy;
-    int  currx, curry;
+    uint currln, maxln;
 
-    b    = win_get_buffer(w);
+    currln = win_get_offsety(w);
+    maxln  = win_size_get_y(w) + currln;
 
-    hook_call(ui_win_content_on_draw_pre, &w, &b);
-
-    numlines = buffer_len(b);
-
-    offx = win_get_offsetx(w);
-    offy = win_get_offsety(w);
-
-    curry = win_pos_get_y(w);
-    currx = win_pos_get_x(w);
-
-    sizex = win_size_get_x(w);
-    sizey = win_size_get_y(w);
-
-    ln = (size_t)offy;
-
-    sizey--;
-
-    ui_util_clear_area(currx, curry, sizex, sizey);
-
-    while (sizey--)
-    {
-        vec  *l;
-        char *iter;
-
-        if (ln >= numlines)
-            break;
-
-        l = buffer_get_line(b, ln);
-
-        hook_call(ui_win_content_on_draw_line_pre, &w, &b, &ln, &l);
-
-        if (vec_len(l) < offx)
-            iter = "";
-        else
-            iter = vec_item(l, offx);
-
-        move(curry++, currx);
-        ui_util_draw_text_limited_h(sizex - 1, (uint)vec_len(l) - offx, ' ', iter);
-
-        hook_call(ui_win_content_on_draw_line_post, &w, &b, &ln, &l);
-
-        vec_free(l);
-        ln++;
-    }
-
-    hook_call(ui_win_content_on_draw_post, &w, &b);
+    for (; currln < maxln; ++currln)
+        ui_win_content_draw_line(w, (lineno)currln);
 
     return 0;
 }
@@ -113,14 +66,17 @@ int ui_win_content_draw_line(win *w, lineno ln)
     sizex = win_size_get_x(w);
     sizey = win_size_get_y(w);
 
-    if (ln >= numlines || ln >= offy + sizey - 1)
+    if (ln >= offy + sizey - 1)
         return 0;
 
-    l = buffer_get_line(b, ln);
+    if (ln >= numlines)
+        l = NULL;
+    else
+        l = buffer_get_line(b, ln);
 
     hook_call(ui_win_content_on_draw_line_pre, &w, &b, &ln, &l);
 
-    if (vec_len(l) < offx)
+    if (l == NULL || vec_len(l) < offx)
         iter = "";
     else
         iter = vec_item(l, offx);
