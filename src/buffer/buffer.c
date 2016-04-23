@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "container/table.h"
+#include "container/hashes.h"
 #include "buffer/chunk.h"
 #include "buffer/line.h"
 #include "err.h"
@@ -16,6 +18,7 @@ struct buffer_s
 {
     chunk *currchunk; /* Linked list (most recent link) of chunks */
     uint   flags;
+    table *properties;
 };
 
 hook_add(buffer_line_on_delete_pre,  2);
@@ -60,13 +63,25 @@ buffer *buffer_init(void)
 
     /* We need to initialize a new chunk for the buffer as well */
     TRACE_PTR(rtn->currchunk = buffer_chunk_init(),
+              free(rtn);
               return NULL);
 
     rtn->flags = 0;
 
+    TRACE_PTR(rtn->properties = table_init(sizeof(void *), sizeof(void *),
+                                           hashes_key_str, hashes_eq_str, NULL),
+              free(rtn->currchunk);
+              free(rtn);
+              return NULL);
+
     hook_call(buffer_on_create, rtn);
 
     return rtn;
+}
+
+table *buffer_get_properties(buffer *b)
+{
+    return b->properties;
 }
 
 void buffer_free(buffer *b)

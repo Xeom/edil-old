@@ -1,8 +1,9 @@
 import ctypes
 from shared import lib as so
 
-from symbols.hook import hook_p
-from symbols.vec  import vec_p
+from symbols.hook  import hook_p
+from symbols.vec   import vec_p
+from symbols.table import table_p
 
 class flag:
     readonly = 1
@@ -67,3 +68,7 @@ disable_flag.restype  = ctypes.c_int
 len = so.buffer_len
 len.argtypes = [buffer_p]
 len.restype  = lineno
+
+get_properties = so.buffer_get_properties
+get_properties.argtypes = [buffer_p]
+get_properties.restype  = table_p

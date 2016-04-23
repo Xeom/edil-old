@@ -2,8 +2,11 @@
 # define BUFFER_CORE_H
 # include "head.h"
 
+# include "container/table.h"
 # include "container/vec.h"
+
 # include "hook.h"
+
 # include "buffer/line.h"
 
 
@@ -64,7 +67,8 @@ void buffer_free(buffer *b);
 int buffer_insert(buffer *b, lineno ln);
 
 /*
- * Delete a specific line from a buffer. Subsequent lines are shifted accordingly.
+ * Delete a specific line from a buffer. Subsequent lines are shifted 
+ * accordingly.
  *
  * b is the buffer to delete from.
  *
@@ -74,8 +78,9 @@ int buffer_insert(buffer *b, lineno ln);
 int buffer_delete(buffer *b, lineno ln);
 
 /*
- * Get a vector containing the contents of a particular line. The vector will not be linked
- * to the line in any way, and must be freed by the caller of this function.
+ * Get a vector containing the contents of a particular line. The vector will
+ * not be linked to the line in any way, and must be freed by the caller of this
+ * function.
  *
  * b is the buffer to get a line from.
  *
@@ -134,5 +139,7 @@ int buffer_enable_flag(buffer *b, uint flag);
  *
  */
 lineno buffer_len(buffer *b);
+
+table *buffer_get_properties(buffer *b);
 
 #endif /* BUFFER_CORE_H */

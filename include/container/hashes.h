@@ -4,6 +4,8 @@
 
 # include "container/table.h"
 
+int hashes_eq_str(void *a, void *b);
+
 hash hashes_key_str(void *k);
 
 hash hashes_key_str_trans(void *k);

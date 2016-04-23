@@ -7,6 +7,11 @@
 #define hash_high_nibl_off (8 * (sizeof(hash)) - 4)
 #define hash_high_byte_off (8 * (sizeof(hash) - 1))
 
+int hashes_eq_str(void *a, void *b)
+{
+    return strcmp(*(char **)a, *(char **)b) == 0;
+}
+
 hash hashes_key_str(void *k)
 {
     hash  hsh, high;
