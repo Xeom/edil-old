@@ -70,6 +70,7 @@ class Keymap:
 class KeyFrame:
     def __init__(self):
         self.maps = []
+        self.last = None
 
     def push(self, mapname, priority=0):
         m = maps[mapname]
@@ -77,9 +78,41 @@ class KeyFrame:
         self.maps.append(m)
 
     def press(self, key):
+        # If there is a semicomplete key sequence
+        if self.last != None:
+            # Try entering the next key to the last keymap
+            rtn = self.last.press(key)
+
+            # If the sequence is still incomplete, return.
+            if rtn == 1:
+                return
+
+            # If the sequence is now complete, set
+            # the last keymap to None
+            if rtn == 2:
+                self.last = None
+                return
+
+        # If we have not added to an existing key sequence,
+        # we need to find a relevant map.
         for map in self.maps:
-            if map.press(key) in (1, 2):
-                break
+            # Make sure we don't call this map twice
+            if map == self.last:
+                continue
+
+            rtn = map.press(key)
+
+            # If this map recognises the key, but the
+            # sequence is incomplete, set it as last map.
+            if rtn == 1:
+                self.last = map
+                return
+
+            # If this map completes this key sequence with
+            # just this one key, return.
+            if rtn == 2:
+                self.last = None
+                return
 
     def clear(self):
         for map in self.maps:
