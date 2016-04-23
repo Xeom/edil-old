@@ -1,12 +1,35 @@
 
 BUFFER HOOKS
 
+ Buffer hooks are hooks defined in the buffer system, (buffer/buffer.c ...)
+
+ They are all called with at least one argument. This argument is a pointer to
+ the buffer that is being referenced by the hook.
+
+ BUFFER ON CREATE HOOK
+
+ |buffer_on_create
+ | (buffer *b)
+ |
+ | This hook is called when a new buffer is created. The single argument is a
+ | pointer to the new buffer.
+ |
+ | The buffer will be empty, and default values for all flags.
+
+ BUFFER ON DELETE HOOK
+
+ |buffer_on_delete
+ | (buffer *b)
+ |
+ | This hook is called before when a buffer is deleted. The single argument is
+ | the buffer that will be deleted.
+
+
  BUFFER LINE HOOKS
 
-  All buffer line hooks are called with at least two arguments. The first is a
-  pointer to the buffer that the hook is being called with reference to. The
-  second is a pointer to a lineno integer, containing the linenumber of the line
-  the hook is being called with reference to.
+  All buffer line hooks are called with at least two arguments. The second is a
+  pointer to a lineno integer, containing the linenumber of the line the hook is
+  being called with reference to.
 
   The locked flag of the buffer is set before calling any of these hooks. This
   flag prevents any modifying operations on the content of the buffer and
@@ -30,7 +53,7 @@ BUFFER HOOKS
 
   |buffer_line_on_change_pre
   |buffer_line_on_change_post
-  | (buffer *b, lineno *ln, vec *v)
+  | (buffer *b, const lineno *ln, vec *v)
   |
   | The buffer_line_on_change pair of hooks are called whenever the content of a
   | line in a buffer is changed by buffer_set_line.
@@ -54,7 +77,7 @@ BUFFER HOOKS
 
   |buffer_line_on_delete_post
   |buffer_line_on_delete_pre
-  | (buffer *b, size_t *ln)
+  | (buffer *b, const size_t *ln)
   |
   | The buffer_line_on_delete pair of hooks are called whenever a line is
   | deleted from a buffer by buffer_delete.
@@ -67,7 +90,7 @@ BUFFER HOOKS
 
   |buffer_line_on_insert_post
   |buffer_line_on_insert_pre
-  | (buffer *, size_t *)
+  | (buffer *b, size_t *ln)
   |
   | The buffer_line_on_insert pair of hooks are called whenevr a line is
   | inserted into a buffer by buffer_insert.
@@ -75,21 +98,62 @@ BUFFER HOOKS
   | Note that for the _pre function, there is not yet a new line. *ln the
   | linenumber where the new line will be inserted.
 
+IO HOOKS
+ IO KEY HOOKS
+  IO KEY ON KEY HOOK
+  |io_key_on_key
+  | (key *k)
+  |
+  | This hook is called by io_key_handle_completed is called. This is whenever
+  | the io_key system recieves a full keypress through io_key_handle_chr. A
+  | complete keypress is a keypress terminated by a non-modifier key, such as
+  | ^A, a, DOWN, E-DOWN, E-^A.
+  |
+  | This hook is called with a single argument - a key object representing the
+  | keystroke.
+  |
+  | This hook provides lower level access to keypresses than keymaps, which
+  | should be used for most things.
+  |
+  | *key can be modified, changing its value for subsequently called, lower
+  | priority functions mounted on this hook. This could be used to fix key names
+  | or attributes being incorrectly reported.
 
-buffer_on_create
-buffer_on_delete
-io_key_on_key
-ui_on_resize
-ui_win_content_on_draw_line_post
-ui_win_content_on_draw_line_pre
-ui_win_content_on_draw_post
-ui_win_content_on_draw_pre
-ui_win_frame_on_draw_post
-ui_win_frame_on_draw_pre
-win_on_create
-win_on_delete_post
-win_on_delete_pre
-win_on_resize_x
-win_on_resize_y
-win_on_select
-win_on_split
+UI HOOKS
+
+ ui hooks are defined in the ui system (ui/*).
+
+ UI ON RESIZE HOOK
+ |ui_on_resize_pre
+ |ui_on_resize_post
+ | (const unsigned int *x, const unsigned int *y)
+ |
+ | These hooks are called whenever ui_resize is called.
+ |
+ | x and y are the new dimensions of the screen in numbers of characters.
+ |
+ | The _pre hook is called before the root window is resized to the new screen
+ | size, while the _post hook is called after resizing the root window and
+ | redrawing the screen.
+
+ UI WIN HOOKS
+  UI WIN CONTENT HOOKS
+   UI WIN CONTENT ON DRAW LINE HOOKS
+   |ui_win_content_on_draw_line_post
+   |ui_win_content_on_draw_line_pre
+   UI WIN CONTENT ON DRAW HOOKS
+   |ui_win_content_on_draw_post
+   |ui_win_content_on_draw_pre
+  UI WIN FRAME HOOKS
+   UI WIN FRAME ON DRAW HOOKS
+   |ui_win_frame_on_draw_post
+   |ui_win_frame_on_draw_pre
+
+WIN HOOKS
+ |win_on_create
+ |win_on_delete_post
+ |win_on_delete_pre
+ |win_on_resize_x
+ |win_on_resize_y
+ |win_on_select
+ |win_on_split
