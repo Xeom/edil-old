@@ -151,37 +151,49 @@ hash hashes_mem(char *mem, size_t n)
 
     while (n >= sizeof(int))
     {
-        uint i, den, num;
-        float recp;
+        uint i, den;
+        double recp;
         void *fptr;
 
         i    = *(uint *)mem;
         mem += sizeof(int);
         n   -= sizeof(int);
 
+        /* We use floats rather than divide a  *
+         * large integer for a couple reasons. *
+         *                                     *
+         * - Their fraction never changes in   *
+         *   size by more than a bit.          *
+         * - They can easily handle divisions  *
+         *   below 1 / 2^64 and produce noise  *
+         *   in their fractions. Integers      *
+         *   just produce 0 in that situation. */
+
         /* 2n - 1 is not a multiple of 2 */
         den  = (i << 1) - 1;
 
         /* Get the 1/(2n - 1) as a float */
-        recp = 1 / (float)den;
+        recp = 1 / (double)den;
         fptr = &recp;
 
         /* Take the lower 22 bits of the float *
          * (the fractional part). This should  *
          * be a randomish reccurring sequence  */
-        hsh ^= ((1 << 23) - 1) & *(int *)fptr;
+        hsh ^= ((1l << 52) - 1) & *(long *)fptr;
 
         /* The upper bits lack entropy, they   *
          * form triangles. So xor them with    *
          * the lower bits. This is also how we *
          * smoosh out the hash to higher bits. */
-        hsh ^= (hsh << 11);
+        hsh ^= (hsh << 40);
 
-        /* xor in the original value. This is  *
-         * faster than shifting it, and stops  *
-         * certain common sequences in the     *
-         * fractional part from causing strong *
-         * bias.                               */
+        /* xor in the original value. This to  *
+         * some degree stops values of the     *
+         * hash acting proportional to 1/n     *
+         * for periods.                        *
+         * It also decreases collisions a lot, *
+         * notice that we're using under 23    *
+         * bits of float to hash 32 bits.      */
         hsh ^= i;
     }
 
