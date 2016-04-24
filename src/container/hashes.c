@@ -159,41 +159,48 @@ hash hashes_mem(char *mem, size_t n)
         mem += sizeof(int);
         n   -= sizeof(int);
 
-        /* We use floats rather than divide a  *
+        /* We use doubles rather than divide a *
          * large integer for a couple reasons. *
          *                                     *
          * - Their fraction never changes in   *
-         *   size by more than a bit.          *
-         * - They can easily handle divisions  *
-         *   below 1 / 2^64 and produce noise  *
-         *   in their fractions. Integers      *
-         *   just produce 0 in that situation. */
+         *   magnitude by more than 2x.        *
+         * - They can easily divide by values  *
+         *   above 2^64 and produce useful     *
+         *   sequences of bits. Integers just  *
+         *   produce 0 in that situation.      *
+         *                                     *
+         * Overall, they produce consistent    *
+         * and useful values with any input.   */
 
-        /* 2n - 1 is not a multiple of 2 */
+        /* 2n - 1 is not a multiple of two.    *
+         *                                     *
+         * The fractional portion of 1/(2^n)k  *
+         * is the same as 1/k, so by making    *
+         * the denominator not a multiple of   *
+         * 2, there should be far fewer        *
+         * collisions. It also avoids numbers  *
+         * that are represented well in binary *
+         * 1/2, 1/4 etc, and makes division    *
+         * by zero a nonissue.                 */
         den  = (i << 1) - 1;
 
-        /* Get the 1/(2n - 1) as a float */
+        /* Find the reciprocal as a double.    */
         recp = 1 / (double)den;
         fptr = &recp;
 
-        /* Take the lower 22 bits of the float *
-         * (the fractional part). This should  *
-         * be a randomish reccurring sequence  */
+        /* xor the lower 52 bits of the double *
+         * (the fractional part).              */
         hsh ^= ((1l << 52) - 1) & *(long *)fptr;
 
-        /* The upper bits lack entropy, they   *
-         * form triangles. So xor them with    *
-         * the lower bits. This is also how we *
-         * smoosh out the hash to higher bits. */
-        hsh ^= (hsh << 40);
+        /* The upper bits lack entropy, as     *
+         * they change slowly with 1/n. This   *
+         * also serves to smoosh the hash      *
+         * to higher bits.                     */
+        hsh ^= (hsh << 36);
 
         /* xor in the original value. This to  *
          * some degree stops values of the     *
-         * hash acting proportional to 1/n     *
-         * for periods.                        *
-         * It also decreases collisions a lot, *
-         * notice that we're using under 23    *
-         * bits of float to hash 32 bits.      */
+         * hash acting proportional to 1/n.    */
         hsh ^= i;
     }
 
