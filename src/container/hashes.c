@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <string.h>
 
 #include "io/key.h"
 
@@ -35,21 +36,21 @@ hash hashes_key_str(void *k)
 /* We need nested if/else cos all the elif values get evalulated *
  * that causes warnings where the const value is larger than an  *
  * actual long.                                                  */
-static const hash hashes_random_seed =
-#   if   ULONG_MAX == 0xffffffffl
-                      0xfc64c9bd;
-#   else
-#    if ULONG_MAX == 0xffffffffffffffffl
-                      0xfc64c9bd39ea2141;
-#    else
-#     if ULONG_MAX == 0xffffffffffffffffffffffffffffffffl
-                      0xfc64c9bd39ea214178c6a000618e9c51;
-#     else
-       /* This will cause a warning, but meh */
-       (hash)0xfc64c9bd39ea214178c6a000618e9c51;
-#     endif
-#    endif
-#   endif
+
+#if   ULONG_MAX == 0xffffffffl
+# define hashes_random_seed 0xfc64c9bd;
+#else
+# if ULONG_MAX == 0xffffffffffffffffl
+#   define hashes_random_seed 0xfc64c9bd39ea2141;
+# else
+#  if ULONG_MAX == 0xffffffffffffffffffffffffffffffffl
+#   define hashes_random_seed 0xfc64c9bd39ea214178c6a000618e9c51;
+#  else
+    /* This will cause a warning, but meh */
+#   define hashes_random_seed (hash)0xfc64c9bd39ea214178c6a000618e9c51;
+#  endif
+# endif
+#endif
 
 static const unsigned char hashes_random_bytes[256] =
 {
@@ -107,41 +108,37 @@ hash hashes_key_str_trans(void *k)
 
 hash hashes_mem(char *mem, size_t n)
 {
-    uint   charlen;
-    char  *end;
-    hash   hsh;
+    hash hsh;
+    size_t ints;/*, bytes; */
 
-    charlen = n % sizeof(int);
-    hsh     = hashes_random_seed;
+    ints  = n / sizeof(int);
+/*    bytes = n % sizeof(int); To be used later */
 
-    for (end = mem + n - charlen;
-         mem < end;
-         mem += sizeof(int))
+    hsh = hashes_random_seed;
+
+    while (ints--)
     {
-        hash high;
+        uint i, den, num;
+        float fract;
+        void *fptr;
 
-        hsh  = (hsh << 5) + (hash)(*(int *)mem);
+        i    = *(uint *)mem;
+        mem += sizeof(int);
 
-        high = (((hash)0x0f << hash_high_nibl_off) & hsh);
+        den  = (i << 1) - 1;
 
-        hsh ^= high >> hash_high_nibl_off;
-        hsh ^= hsh * 3;
+        i   += (i & 0xc00ffc00) >> 10;
+        i   += (i & 0x3e0f83e0) >> 5;
+
+        num  = (uint)1 << (i & 31);
+
+        fract = (float)num / (float)den;
+        fptr  = &fract;
+
+        hsh ^= ((1 << 23) - 1) & *(int *)fptr;
     }
-
-    for (end += charlen;
-         mem < end;
-         mem++)
-    {
-        hash high;
-
-        hsh  = (hsh << 4) + (hash)(*mem);
-
-        high = (((hash)0x0f << hash_high_nibl_off) & hsh);
-
-        hsh ^= high >> hash_high_nibl_off;
-    }
-
-    hsh ^= hsh * 3;
 
     return hsh;
 }
+
+
