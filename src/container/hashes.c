@@ -145,34 +145,44 @@ hash hashes_mem_long(char *mem, size_t n)
 hash hashes_mem(char *mem, size_t n)
 {
     hash hsh;
-    size_t ints;/*, bytes; */
 
-    /*    bytes = n % sizeof(int); To be used later */
-
+    /* Start with a const random seed */
     hsh = hashes_random_seed;
 
     while (n >= sizeof(int))
     {
         uint i, den, num;
-        float fract;
+        float recp;
         void *fptr;
 
         i    = *(uint *)mem;
         mem += sizeof(int);
         n   -= sizeof(int);
 
+        /* 2n - 1 is not a multiple of 2 */
         den  = (i << 1) - 1;
 
-        i   += (i & 0xc00ffc00) >> 10;
-        i   += (i & 0x3e0f83e0) >> 5;
+        /* Get the 1/(2n - 1) as a float */
+        recp = 1 / (float)den;
+        fptr = &recp;
 
-        num  = (uint)1 << (i & 31);
-
-        fract = (float)num / (float)den;
-        fptr  = &fract;
-
-        hsh += (hsh << 6);
+        /* Take the lower 22 bits of the float *
+         * (the fractional part). This should  *
+         * be a randomish reccurring sequence  */
         hsh ^= ((1 << 23) - 1) & *(int *)fptr;
+
+        /* The upper bits lack entropy, they   *
+         * form triangles. So xor them with    *
+         * the lower bits. This is also how we *
+         * smoosh out the hash to higher bits. */
+        hsh ^= (hsh << 11);
+
+        /* xor in the original value. This is  *
+         * faster than shifting it, and stops  *
+         * certain common sequences in the     *
+         * fractional part from causing strong *
+         * bias.                               */
+        hsh ^= i;
     }
 
     return hsh;
