@@ -16,9 +16,11 @@ INC=include
 OBJ=obj
 
 STD=c99
-WARNINGS=all extra pedantic missing-prototypes fatal-errors format conversion declaration-after-statement error
+WARNINGS=all extra pedantic missing-prototypes fatal-errors format conversion declaration-after-statement
 LINKS=ncurses
-INCLUDES=include/ src/
+INCLUDES=include/ src/ test/
+
+TEST_NAMES=table
 
 SRC_NAMES=\
     core                   \
