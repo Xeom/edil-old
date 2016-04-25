@@ -2,6 +2,7 @@ include conf.mk
 include common.mk
 
 $(shell $(call pinfo,"Making dependencies..."))
+
 $(shell make -f deps.mk deps >/dev/null)
 $(shell $(call pinfo,"Done"))
 
@@ -10,16 +11,21 @@ include $(DEP_FILES)
 lib.so: $(OBJ_FILES)
 	@$(call pinfo,"Linking...")
 	gcc -shared $(W_FLAGS) $(I_FLAGS) $(L_FLAGS) $^ -o lib.so
+	@$(call psucc,"Linked into lib.so")
+	@$(call pinfo,"Copying lib.so to python...")
 	cp $@ python/lib.so
+	@$(call psucc,"Copied lib.so to python")
 
 obj/%.o: src/%.c
-	@$(call pinfo,"Creating object file $@")
+	@$(call pinfo,"Creating object file $@...")
 	mkdir -p $(@D)
 	gcc -c -O2 -g -fPIC $(W_FLAGS) $(I_FLAGS) --std=$(STD) $< -o $@
+	@$(call psucc,"Created object file $@")
 
 test/%.out: test/%.c $(OBJ_FILES)
-	@$(call pinfo,"Creating test executable $@")
+	@$(call pinfo,"Creating test executable $@...")
 	gcc -g $(W_FLAGS) $(L_FLAGS) $(I_FLAGS) --std=$(STD)  $^ -o $@
+	@$(call psucc,"Created test executable $@")
 
 clean_dep:
 	@$(call pinfo,"Removing dep/*")

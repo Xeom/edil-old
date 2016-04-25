@@ -15,6 +15,7 @@ TEST_FILES = $(call testify,$(TEST_NAMES))
 
 DEP_FILES = $(call depify,$(SRC_FILES)) $(call depify,$(TEST_FILES))
 
-beginfo="\033[0;32m[\033[1;32mi\033[0;32m]\033[1;32m"
-endinfo="\033[0m"
-pinfo=echo $(beginfo) $(1) $(endinfo) 1>&2
+pinfo=echo "./bracket.sh 35 i;echo '' $(1)" | bash 1>&2
+perr= echo "./bracket.sh 31 !;echo '' $(1)" | bash 1>&2
+pwarn=echo "./bracket.sh 33 w;echo '' $(1)" | bash 1>&2
+psucc=echo "./bracket.sh 32 .;echo '' $(1)" | bash 1>&2
