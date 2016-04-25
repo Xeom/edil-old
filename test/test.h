@@ -24,5 +24,5 @@ int test_count;
         end   = clock();                                                \
         dt    = ((double)end - (double)start) / (double)CLOCKS_PER_SEC; \
         fprintf(stderr,                                                 \
-                BRACKET(32, .) "Ran tests for " #funct " in %fs\n", dt);  \
+                BRACKET(32, .) "Ran tests for " #funct " in %.4fs\n", dt);  \
     }

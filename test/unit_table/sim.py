@@ -1,5 +1,5 @@
 TEST_LEN = 46341
-a
+
 def test_print_table(tbl):
     for ind in range(1, TEST_LEN):
         val = tbl.get(ind)
