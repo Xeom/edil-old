@@ -17,3 +17,6 @@ __pycache__
 # Valgrind
 callgrind.out*
 *.supp
+
+# Testing
+test/diff

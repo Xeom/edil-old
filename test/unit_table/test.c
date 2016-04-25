@@ -1,14 +1,14 @@
 #include "test.h"
 #include "container/table.h"
 
-#define TEST_LEN 10000
+#define TEST_LEN 46341
 
 void test_set(void);
 void test_del(void);
 
 static void test_print_table(table *tbl)
 {
-    size_t ind;
+    int ind;
 
     for (ind = 1; ind < TEST_LEN; ind++)
     {
@@ -27,7 +27,7 @@ void test_set(void)
     int    ind;
     table *tbl;
 
-    tbl = table_init(sizeof(int), sizeof(int),
+    tbl = table_init(sizeof(int), sizeof(unsigned int),
                      NULL, NULL, NULL);
 
     for (ind = 1; ind < TEST_LEN; ind++)
@@ -85,6 +85,6 @@ void test_del(void)
 
 int main(void)
 {
-    test_set();
-    test_del();
+    RUNTEST(set);
+    RUNTEST(del);
 }
