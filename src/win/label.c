@@ -20,6 +20,8 @@ int win_label_caption_set(win *w, const char *caption)
     if (!win_isleaf(w))
         return 0;
 
+//    hook_call(win_label_on_caption_set_pre, w, &caption);
+
     len = strlen(caption) + 1;
 
     if (w->cont.leaf.caption)
@@ -28,6 +30,8 @@ int win_label_caption_set(win *w, const char *caption)
     w->cont.leaf.caption = malloc(len);
 
     strcpy(w->cont.leaf.caption, caption);
+
+    hook_call(win_label_on_caption_set_post, w, &caption);
 
     return 0;
 }
@@ -39,6 +43,8 @@ int win_label_sidebar_set(win *w, const char *sidebar)
     if (!win_isleaf(w))
         return 0;
 
+//    hook_call(win_label_on_sidebar_set_pre, w, &sidebar);
+
     len = strlen(sidebar) + 1;
 
     if (w->cont.leaf.sidebar)
@@ -47,6 +53,8 @@ int win_label_sidebar_set(win *w, const char *sidebar)
     w->cont.leaf.sidebar = malloc(len);
 
     strcpy(w->cont.leaf.sidebar, sidebar);
+
+//    hook_call(win_label_on_sidebar_set_post, w, &sidebar);
 
     return 0;
 }

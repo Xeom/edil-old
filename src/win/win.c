@@ -10,9 +10,6 @@
 
 win *win_root;
 
-hook_add(win_on_resize_x, 3);
-hook_add(win_on_resize_y, 3);
-
 hook_add(win_on_split, 2);
 
 hook_add(win_on_delete_pre,  1);
@@ -166,8 +163,7 @@ int win_split(win *w, win_dir d)
         nsub2 = neww;
         w->cont.split.selected = sub1;
     }
-
-    if (d == right || d == down)
+    else
     {
         nsub1 = neww;
         nsub2 = newleaf;
@@ -210,6 +206,9 @@ int win_delete(win *w)
 
     if (win_issub2(w))
         sister = par->cont.split.sub1;
+
+    else
+        return -1;
 
     hook_call(win_on_delete_pre, w);
 

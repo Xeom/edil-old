@@ -14,6 +14,12 @@ typedef enum
     right
 } win_dir;
 
+extern hook win_on_split;
+extern hook win_on_create;
+
+extern hook win_on_delete_pre;
+extern hook win_on_delete_post;
+
 extern win *win_root;
 
 int win_initsys(void);
