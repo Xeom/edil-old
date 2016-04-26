@@ -26,16 +26,17 @@ struct table_s
     size_t      usage;    /* Stores the total amount of items stored in the 
                              table.                                           */
 
+
     size_t      width;    /* Stores the size, in bytes, of the data for each 
                              item.                                            */
 
-    size_t      keywidth; /* Stores the size, in bytes, of the key for each 
+    size_t      keywidth; /* Stores the size, in bytes, of the key for each
                              item.                                            */
 
-    char       *nullval;  /* Stores a block of memory representing a null key 
+    char       *nullval;  /* Stores a block of memory representing a null key
                              value. Or NULL for default behavior.             */
 
-    char       *data;     /* All the data for the table, stored like 
+    char       *data;     /* All the data for the table, stored like
                              [[key|data], [key|data], ...]                    */
 };
 
@@ -44,8 +45,8 @@ struct table_s
 
 #define TABLE_MIN_CAP 16
 
-static char *table_index_key (table *t, size_t index);
-static char *table_index_data(table *t, size_t index);
+static inline char *table_index_key (table *t, size_t index);
+static inline char *table_index_data(table *t, size_t index);
 
 static int table_realloc       (table *t, size_t newcap);
 static int table_resize_bigger (table *t);
@@ -58,13 +59,10 @@ static int    table_key_isnull (table *t, char *k);
 static hash   table_key_hash   (table *t, char *k);
 static int    table_key_eq     (table *t, char *a, char *b);
 
-static size_t table_find_key    (table *t, char *k, int *new);
+static size_t table_find_key(table *t, char *k, int *new);
 
-table *table_init(size_t width,
-                  size_t keywidth,
-                  hashfunct hshf,
-                  keqfunct keqf,
-                  char *nullval)
+table *table_init(
+    size_t width, size_t keywidth, hashfunct hshf, keqfunct keqf, char *nullval)
 {
     table *rtn;
 
@@ -104,7 +102,7 @@ static inline char *table_index_key(table *t, size_t index)
 
 static inline char *table_index_data(table *t, size_t index)
 {
-    return ADDPTR(t->data, table_item_size(t) * index + t->width);
+    return ADDPTR(t->data, table_item_size(t) * index + t->keywidth);
 }
 
 static inline size_t table_item_size(table *t)
@@ -112,12 +110,12 @@ static inline size_t table_item_size(table *t)
     return t->keywidth + t->width;
 }
 
-static inline int table_key_isnull(table *t, char *k)
+int table_key_isnull(table *t, char *k)
 {
     if (t->nullval)
         return memcmp(k, t->nullval, t->keywidth) == 0;
     else
-    {
+    {/* TODO: Optimize the fuck outta this cunt */
         size_t n;
         n = t->keywidth;
 
@@ -181,7 +179,8 @@ static int table_realloc(table *t, size_t newcap)
         if (newind == ind)
             continue;
 
-        memcpy(k, table_index_key(t, newind), table_item_size(t));
+        memcpy(table_index_key(t, newind), k, table_item_size(t));
+        table_key_setnull(t, k);
     }
 
     if (cap > newcap)
@@ -221,14 +220,19 @@ static size_t table_find_key(table *t, char *k, int *new)
 
     if (new) *new = 0;
 
-    for (ind = 0; !table_key_isnull(t, table_index_key(t, ind)); ind++)
+    for (;;)
     {
         compk = table_index_key(t, ind);
-        if (ind >= cap)
-            ind = 0;
+
+        if (table_key_isnull(t, compk))
+            break;
 
         if (table_key_eq(t, k, compk))
             return ind;
+
+        ind++;
+        if (ind >= cap)
+            ind = 0;
     }
 
     if (new) *new = 1;
@@ -265,7 +269,9 @@ void *table_get(table *t, void *k)
     int    new;
     size_t ind;
 
-    ASSERT_PTR((char *)k, high,
+    ASSERT_PTR(t, high,
+               return NULL);
+    ASSERT_PTR(k, high,
                return NULL);
 
     ind = table_find_key(t, k, &new);
@@ -278,33 +284,45 @@ void *table_get(table *t, void *k)
 int table_delete(table *t, void *k)
 {
     int    new;
-    char  *item, *previtem;
-    size_t ind, modhsh;
+    char  *item, *open, *last;
+    size_t ind;
 
     ASSERT_PTR((char *)k, high,
                return -1);
 
-    modhsh   = table_key_hash(t, k) % t->capacity;
-    ind      = table_find_key(t, k, &new);
+    ind = table_find_key(t, k, &new);
 
     if (new) return -1;
 
-    previtem = table_index_key(t, ind);
+    open = table_index_key(t, ind);
+    last = table_index_key(t, t->capacity - 1);
+    item = open + table_item_size(t);
 
-    for (item = previtem + table_item_size(t);
-         !table_key_isnull(t, item);
-         item += table_item_size(t))
-        if (table_key_hash(t, item) % t->capacity
-            == modhsh)
+    for (;;item += table_item_size(t))
+    {
+        char  *moditem;
+
+        if (item > last)
+            item = table_index_key(t, 0);
+
+        if (table_key_isnull(t, item))
+            break;
+
+        moditem = table_index_key(t, table_key_hash(t, item) % t->capacity);
+
+
+        if ((moditem <= open    && open    < item)    ||
+            (open    <  item    && item    < moditem) ||
+            (item    <  moditem && moditem < open))
         {
-            memcpy(previtem, item, table_item_size(t));
-            previtem = item;
+            memcpy(open, item, table_item_size(t));
+            open = item;
         }
+    }
 
-    table_key_setnull(t, previtem);
+    table_key_setnull(t, open);
 
     (t->usage)--;
-
     table_resize_smaller(t);
 
     return 0;
