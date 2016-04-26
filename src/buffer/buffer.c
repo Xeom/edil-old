@@ -17,7 +17,6 @@
 struct buffer_s
 {
     chunk *currchunk; /* Linked list (most recent link) of chunks */
-    uint   flags;
     table *properties;
 };
 
@@ -32,25 +31,93 @@ hook_add(buffer_line_on_change_post, 3);
 hook_add(buffer_on_create, 1);
 hook_add(buffer_on_delete, 1);
 
-uint buffer_readonly_flag = 0x01;
-uint buffer_modified_flag = 0x02;
-uint buffer_locked_flag   = 0x04;
+/* buffer_prop_set sets properties to these values */
+const char *buffer_property_true  = "TRUE";
+const char *buffer_property_false = "FALSE";
 
-#define buffer_settable_flags buffer_readonly_flag || buffer_modified_flag
+/* The properties managed by the buffer system, and set/get'd by *
+ * buffer_prop[get/set]                                          */
+const char *buffer_readonly_property = "__READONLY";
+const char *buffer_modified_property = "__MODIFIED";
+const char *buffer_locked_property   = "__LOCKED";
 
-#define buffer_flag(b, name)     (b->flags &   buffer_ ## name ## _flag)
-#define buffer_flag_on(b, name)  (b->flags |=  buffer_ ## name ## _flag)
-#define buffer_flag_off(b, name) (b->flags &= ~buffer_ ## name ## _flag)
+/*
+ * Set a one of the properties defined by const chars above to either true
+ * or false. (readonly, modified, or locked)
+ *
+ * @param b     A pointer to the buffer to set a property of.
+ * @param name  The name of the property to set. The part of its
+ *              buffer_*_property name that replaces the wildcard.
+ * @param value Either true or false (literal, not strings or values) - The
+ *              new value for this property.
+ *
+ * @return       0 on sucess, -1 on error.
+ *
+ */
+#define buffer_prop_set(b, name, value)         \
+    table_set(b->properties,                    \
+              &buffer_ ## name ## _property,    \
+              &buffer_property_ ## value);
 
-#define hook_call_buf(hook, b, ...)             \
-    buffer_flag_on(b, locked);                  \
+/* Inline function wrapped by buffer_prop_get */
+static inline int buffer_prop_get_(buffer *b, const char *property)
+{
+    char **val;
+
+    val = table_get(b->properties, &property);
+
+    if (!val)
+        return 0;
+
+    return strcmp(*val, buffer_property_true) == 0;
+}
+
+/*
+ * Get the value of one of the properties defined by the const chars above, as a
+ * bool. If the value is defined as FALSE or simply not defined, 0 is returned.
+ *
+ * @param b    A pointer to the buffer to get a property from.
+ * @param name The name of the property to get. The part of its buffer_*property
+ *             name that replaces the wildcard.
+ *
+ * @return     1 if the property is defined as "TRUE", 0 otherwise.
+ *
+ */
+#define buffer_prop_get(b, name) \
+    buffer_prop_get_(b, buffer_ ## name ## _property)
+
+/*
+ * Call a buffer hook with any number of arguments. This function sets the
+ * buffer_locked_property property to buffer_property_true before calling the
+ * hook, and buffer_property_false after it returns. This prevents hooks
+ * calling more buffer functions recursively, or at least warns users if they
+ * try and do it.
+ *
+ * @param hook A struct hook_s to call.
+ * @param b    A pointer to the buffer to set lock flags on. The hook is called
+ *             with a pointer to this buffer as its first argument.
+ * @param ...  Any further arguments to call the hook with. Like all hook
+ *             parameters, they should all be the size of a void*.
+ *
+ */
+#define hook_call_buf(hook, b, ...)                \
+    buffer_prop_set(b, locked, true);           \
     hook_call(hook, b, __VA_ARGS__);            \
-    buffer_flag_off(b, locked);                 \
+    buffer_prop_set(b, locked, false);
 
-/* Function to get the chunk containinng a specific line in a buffer.   *
- * This function also moves the currchunk of that buffer to the one     *
- * containing the line, which is why I use it instead of simply calling *
- * the chunk API.                                                       */
+/*
+ * Gets the chunk containing a specific line in a buffer. This function also
+ * moves the currchunk of that buffer to the one containing the line, which is
+ * why it is used in this file in place of chunk functions.
+ *
+ * @param b  The buffer to get a chunk from.
+ * @param ln The linenumber to search for - a chunk will be returned that
+ *           contains this linenumber. If the linenumber is greater than the
+ *           number of lines in the buffer, the last chunk is returned.
+ *
+ * @return   A pointer to the relevant chunk.
+ *
+ */
 static inline chunk *buffer_get_containing_chunk(buffer *b, lineno ln);
 
 /* Initialize and return a new and empty buffer */
@@ -66,13 +133,16 @@ buffer *buffer_init(void)
               free(rtn);
               return NULL);
 
-    rtn->flags = 0;
-
     TRACE_PTR(rtn->properties = table_init(sizeof(void *), sizeof(void *),
                                            hashes_key_str, hashes_eq_str, NULL),
               free(rtn->currchunk);
               free(rtn);
               return NULL);
+
+    /* Default states of buffer properties */
+    buffer_prop_set(rtn, readonly, false);
+    buffer_prop_set(rtn, modified, false);
+    buffer_prop_set(rtn, locked,   false);
 
     hook_call(buffer_on_create, rtn);
 
@@ -88,7 +158,7 @@ void buffer_free(buffer *b)
 {
     if (!b) return;
 
-    ASSERT(buffer_flag(b, locked) == 0, high, return);
+    ASSERT(buffer_prop_get(b, locked) == 0, high, return);
 
     hook_call(buffer_on_delete, b);
 
@@ -118,7 +188,7 @@ int buffer_insert(buffer *b, lineno ln)
     ASSERT_PTR(b, high,
                return -1);
 
-    ASSERT(buffer_flag(b, locked) == 0, high, return -1);
+    ASSERT(buffer_prop_get(b, locked) == 0, high, return -1);
 
     /* Get the chunk, and depth into that chunk of where we want to insert. */
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
@@ -128,7 +198,7 @@ int buffer_insert(buffer *b, lineno ln)
 
     hook_call_buf(buffer_line_on_insert_pre, b, &ln);
 
-    if (buffer_flag(b, readonly))
+    if (buffer_prop_get(b, readonly))
     {
         ERR_NEW(medium, "Buffer is read-only",
                 "Cannot insert to read-only buffer.");
@@ -136,7 +206,7 @@ int buffer_insert(buffer *b, lineno ln)
         return -1;
     }
 
-    buffer_flag_on(b, modified);
+    buffer_prop_set(b, modified, true);
 
     /* Aaaaand we've abstracted over the rest cos we're useless. */
     TRACE_INT(buffer_chunk_insert_line(c, offset),
@@ -155,7 +225,7 @@ int buffer_delete(buffer *b, lineno ln)
     ASSERT_PTR(b, high,
                return -1);
 
-    ASSERT(buffer_flag(b, locked) == 0, high, return -1);
+    ASSERT(buffer_prop_get(b, locked) == 0, high, return -1);
 
     /* Get the chunk, and depth into that chunk of where we want to delete. */
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
@@ -165,7 +235,7 @@ int buffer_delete(buffer *b, lineno ln)
 
     hook_call_buf(buffer_line_on_delete_pre, b, &ln);
 
-    if (buffer_flag(b, readonly))
+    if (buffer_prop_get(b, readonly))
     {
         ERR_NEW(medium, "Buffer is read-only",
                 "Cannot delete from read-only buffer.");
@@ -173,7 +243,7 @@ int buffer_delete(buffer *b, lineno ln)
         return -1;
     }
 
-    buffer_flag_on(b, modified);
+    buffer_prop_set(b, modified, true);
 
     /* Get a valid chunk */
     TRACE_PTR(c = buffer_chunk_delete_line(c, offset),
@@ -216,7 +286,7 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     ASSERT_PTR(b, high,
                return -1);
 
-    ASSERT(buffer_flag(b, locked) == 0, high, return -1);
+    ASSERT(buffer_prop_get(b, locked) == 0, high, return -1);
 
     /* Get the chunk, and depth into that chunk of where we want to get. */
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
@@ -226,7 +296,7 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
 
     hook_call_buf(buffer_line_on_change_pre, b, &ln, v);
 
-    if (buffer_flag(b, readonly))
+    if (buffer_prop_get(b, readonly))
     {
         ERR_NEW(medium, "Buffer is read-only",
                 "Cannot set in read-only buffer.");
@@ -234,7 +304,7 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
         return -1;
     }
 
-    buffer_flag_on(b, modified);
+    buffer_prop_set(b, modified, true);
 
     TRACE_INT(buffer_chunk_set_line(c, offset, v),
               return -1);
@@ -244,45 +314,10 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     return 0;
 }
 
-int buffer_get_flag(buffer *b, uint flag)
-{
-    return (b->flags & flag) != 0;
-}
-
-int buffer_enable_flag(buffer *b, uint flag)
-{
-    /* Check flag exists */
-    if (flag & ~buffer_settable_flags)
-    {
-        ERR_NEW(high, "Invalid flag",
-                "Flag either does not exist or cannot be externally set");
-        return -1;
-    }
-
-    /* OR it in */
-    b->flags |= flag;
-
-    return 0;
-}
-
-int buffer_disable_flag(buffer *b, uint flag)
-{
-    /* Check flag exists */
-    if (flag & ~buffer_settable_flags)
-    {
-        ERR_NEW(high, "Invalid flag",
-                "Flag either does not exist or cannot be externally set");
-        return -1;
-    }
-
-    /* IMPLIES it in */
-    b->flags &= ~flag;
-
-    return 0;
-}
-
 lineno buffer_len(buffer *b)
 {
-    /* Just wrap the chunk function */
+    ASSERT(b, high, return 0);
+
+    /* Wrap the chunk function */
     return buffer_chunk_get_total_len(b->currchunk);
 }

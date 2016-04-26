@@ -53,18 +53,6 @@ set_line = so.buffer_set_line
 set_line.argtypes = [buffer_p, lineno, vec_p]
 set_line.restype  = ctypes.c_int
 
-get_flag = so.buffer_get_flag
-get_flag.argtypes = [buffer_p, ctypes.c_uint]
-get_flag.restype  = ctypes.c_int
-
-enable_flag = so.buffer_enable_flag
-enable_flag.argtypes = [buffer_p, ctypes.c_uint]
-enable_flag.restype  = ctypes.c_int
-
-disable_flag = so.buffer_disable_flag
-disable_flag.argtypes = [buffer_p, ctypes.c_uint]
-disable_flag.restype  = ctypes.c_int
-
 len = so.buffer_len
 len.argtypes = [buffer_p]
 len.restype  = lineno

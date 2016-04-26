@@ -9,9 +9,9 @@
 
 # include "buffer/line.h"
 
-
-/* Note that for buffer_line_on*_pre functions, an operation can be disabled by enabling the        *
- * readonly flag of the buffer. This does not, of course, work for *_post functions.                */
+/* Note that for buffer_line_on*_pre functions, an operation can be   *
+ * aborted by enabling the __READONLY property of the buffer. This    *
+ * does not, of course, work for *_post functions.                    */
 
 /* These hooks are all called with two parameters, a buffer and a     *
  * linenumber. They are called before (_pre) and after (_post) a line *
@@ -33,16 +33,18 @@ extern hook buffer_line_on_change_pre;
 extern hook buffer_line_on_change_post;
 
 /* These hooks are all called with one parameter, a buffer */
-extern hook buffer_on_create; /* This hook is called when a new buffer is created */
-extern hook buffer_on_delete; /* This hook is called before a buffer is deleted   */
 
-extern uint buffer_readonly_flag;
-extern uint buffer_modified_flag;
+/* This hook is called when a new buffer is created */
+extern hook buffer_on_create;
+/* This hook is called before a buffer is deleted */
+extern hook buffer_on_delete;
 
 typedef struct buffer_s buffer;
 
 /*
  * Initialize and return a new buffer.
+ *
+ * @return A pointer to the new buffer
  *
  */
 buffer *buffer_init(void);
@@ -50,7 +52,7 @@ buffer *buffer_init(void);
 /*
  * Free a buffer, it's chunks and lines.
  *
- * b is the buffer to free.
+ * @param b A pointer to the buffer to free.
  *
  */
 void buffer_free(buffer *b);
@@ -59,20 +61,22 @@ void buffer_free(buffer *b);
  * Create and insert a new line into a buffer at a particular line number.
  * Subsequent lines are shifted accordingly.
  *
- * b is the buffer to insert into.
+ * @param b  A pointer to buffer to insert into.
+ * @param ln The linenumber of the new line.
  *
- * ln is the linenumber of the new line.
+ * @return   0 on success, -1 on error.
  *
  */
 int buffer_insert(buffer *b, lineno ln);
 
 /*
- * Delete a specific line from a buffer. Subsequent lines are shifted 
+ * Delete a specific line from a buffer. Subsequent lines are shifted
  * accordingly.
  *
- * b is the buffer to delete from.
+ * @param b  A pointer to the buffer to delete a line from.
+ * @param ln The linenumber of the line to delete.
  *
- * ln is the linenumber of the line to delete.
+ * @return   0 on success, -1 on error.
  *
  */
 int buffer_delete(buffer *b, lineno ln);
@@ -80,66 +84,60 @@ int buffer_delete(buffer *b, lineno ln);
 /*
  * Get a vector containing the contents of a particular line. The vector will
  * not be linked to the line in any way, and must be freed by the caller of this
- * function.
+ * function. The vector will be initialized with width sizeof(char), and should
+ * be read as chars.
  *
- * b is the buffer to get a line from.
+ * @param b  A pointer to the buffer to return the contents of a line from.
+ * @param ln The linenumber of the line to get.
  *
- * ln is the linenumber of the line whose contents we want.
+ * @return   A pointer to a vector containing the contents of the line. NULL on
+ *           error.
  *
  */
 vec *buffer_get_line(buffer *b, lineno ln);
 
 /*
- * Set the contents of a line to contents provided in a vector.
+ * Set the contents of a line to contents provided in a vector. The vector must
+ * be of width sizeof(char)
  *
- * b is the buffer to set a line in.
+ * Note that it is entirely possible to pass '\n' and other characters to
+ * buffers with this method that will break things like UI and saving to files.
+ * The buffer does not care about this, as it is a container of arbitrarydata.
+ * Measures to prevent this from happening should be added via a hook or similar
+ * if necessary.
  *
- * ln is the linenumber of the line to set contents of.
+ * @param b  A pointer to the buffer to set the contents of a line in.
+ * @param ln The linenumber of the line to set contents of. This line must have
+ *           already been created with buffer_insert or equivilent.
+ *
+ * @return   0 on success, -1 on error.
  *
  */
 int buffer_set_line(buffer *b, lineno ln, vec *l);
 
 /*
- * Get the value (0 or 1) of a particular flag in a buffer.
+ * Get the number of lines in a buffer.
  *
- * b is the buffer to find the value of a flag for.
+ * @param b A pointer to the buffer to count lines in.
  *
- * flag is the value of the buffer_*_flag variable that relates
- * to the flag we want to get.
- *
- */
-int buffer_get_flag(buffer *b, uint flag);
-
-/*
- * Disable a flag (set it to 0) of a particular buffer.
- *
- * b is the buffer to disable a flag for.
- *
- * flag is the value of the buffer_*_flag variable that relates
- * to the flag we want to disable.
- *
- */
-int buffer_disable_flag(buffer *b, uint flag);
-
-/*
- * Enable a flag (set it to 0) of a particular buffer.
- *
- * b is the buffer to disable a flag for.
- *
- * flag is the value of the buffer_*_flag variable that relates
- * to the flag we want to enable.
- *
- */
-int buffer_enable_flag(buffer *b, uint flag);
-
-/*
- * Get number of lines in a buffer.
- *
- * b is the buffer to count lines in.
+ * @return  The number of lines in the buffer. If there is an error, 0.
  *
  */
 lineno buffer_len(buffer *b);
 
+/*
+ * Get the table of properties from a buffer. The table will be indexed with
+ * strings, so table_get/table_set should be called with a char** as keys.
+ * Values are pointers, but are assumed to be strings, though nothing in the
+ * buffer system relies on this. Higher level systems may well rely on this, so
+ * values should be set to valid char**s.
+ *
+ * @param b A pointer to the buffer to get the table of properties from.
+ *
+ * @return  A pointer to the table of properties for this particular buffer,
+ *          NULL on error.
+ *
+ */
 table *buffer_get_properties(buffer *b);
 
 #endif /* BUFFER_CORE_H */
