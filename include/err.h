@@ -23,7 +23,7 @@ typedef enum
         if ( ! (code) )                                 \
         {                                               \
             err_new(level, "Assertion failed",          \
-                    #code " returneed 0" ERRLOC);       \
+                    #code " returned 0" ERRLOC);        \
         }                                               \
     }
 

@@ -4,7 +4,8 @@
 
 # include "hook.h"
 
-extern hook ui_on_resize;
+extern hook ui_on_resize_pre;
+extern hook ui_on_resize_post;
 
 int ui_initsys(void);
 

@@ -19,7 +19,7 @@ lib.so: $(OBJ_FILES)
 obj/%.o: src/%.c
 	@$(call pinfo,"Creating object file $@...")
 	mkdir -p $(@D)
-	gcc -c -O2 -g -fPIC $(W_FLAGS) $(I_FLAGS) --std=$(STD) $< -o $@
+	gcc -c -g -fPIC $(W_FLAGS) $(I_FLAGS) --std=$(STD) $< -o $@
 	@$(call psucc,"Created object file $@")
 
 test/%.out: test/%.c $(OBJ_FILES)

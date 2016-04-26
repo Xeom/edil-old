@@ -240,6 +240,9 @@ size_t vec_len(vec *v)
     if (v == NULL)
         ERR(NULL_VEC, 0);
 
+    if (v->width == 0)
+        ERR(INVALID_WIDTH, 0);
+
     /* To get the number of items, divide *
      * length in bytes by width in bytes  */
     ERR(OK, v->length / v->width);

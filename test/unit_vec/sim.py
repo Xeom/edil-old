@@ -14,7 +14,9 @@ def test_insert_end():
         print("ind ->", ind)
         print("inv ->", inv)
         print("vec_len(v) ->", len(v))
+
         v.insert(ind, inv)
+
         print("vec_insert(v, vec_len(v), 1, &inv) -> 0")
 
     test_print_vec(v)
@@ -28,7 +30,9 @@ def test_insert_start():
         print("ind ->", ind)
         print("inv ->", inv)
         print("vec_len(v) ->", len(v))
+
         v.insert(0, inv)
+
         print("vec_insert(v, 0, 1, &inv) -> 0")
 
     test_print_vec(v)

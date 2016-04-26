@@ -13,17 +13,17 @@ struct table_s
 {
     /* Both these function pointers can be null for default behavior          */
 
-    hashfunct   hshf;     /* Function for hashing keys. Takes a pointer to the 
+    hashfunct   hshf;     /* Function for hashing keys. Takes a pointer to the
                              first byte of a key.                             */
 
-    keqfunct    keqf;     /* Function for testing key equality. Takes a 
-                             pointer to the first byte of two keys, returns 1 
+    keqfunct    keqf;     /* Function for testing key equality. Takes a
+                             pointer to the first byte of two keys, returns 1
                              if they are equal.                               */
 
     size_t      capacity; /* Stores the total amount of space allocated for
                              data in num of items.                            */
 
-    size_t      usage;    /* Stores the total amount of items stored in the 
+    size_t      usage;    /* Stores the total amount of items stored in the
                              table.                                           */
 
 

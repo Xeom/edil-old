@@ -20,7 +20,7 @@ WARNINGS=all extra pedantic missing-prototypes fatal-errors format conversion de
 LINKS=ncurses
 INCLUDES=include/ src/ test/
 
-TEST_NAMES=table
+TEST_NAMES=unit_table unit_vec
 
 SRC_NAMES=\
     core                   \

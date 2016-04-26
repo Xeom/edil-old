@@ -3,6 +3,7 @@
 #include <stdio.h>
 
 #include "container/vec.h"
+#include "err.h"
 
 #include "hook.h"
 
@@ -46,6 +47,7 @@ int hook_mount(hook *h, hook_f f, priority pri)
     vec       *functs;
     hook_fcont cont;
 
+    ASSERT_PTR(h, high, return -1);
     cont.funct = f;
     cont.pri   = pri;
 

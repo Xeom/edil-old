@@ -79,8 +79,10 @@ void err_new(errlvl level, const char *title, const char *detail)
 {
     vec **subptr, *subqueue;
     err  *e;
-    puts(title);
-    puts(detail);
+    fputs(title,  stderr);
+    fputs("\n",   stderr);
+    fputs(detail, stderr);
+    fputs("\n",   stderr);
     return;
     e = malloc(sizeof(err));
 
