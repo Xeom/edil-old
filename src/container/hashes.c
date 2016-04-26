@@ -106,42 +106,6 @@ hash hashes_key_str_trans(void *k)
     return hsh;
 }
 
-hash hashes_mem_long(char *mem, size_t n)
-{
-    hash hsh;
-    size_t ints;/*, bytes; */
-
-/*    bytes = n % sizeof(int); To be used later */
-
-    hsh = hashes_random_seed;
-
-    while (n >= sizeof(int))
-    {
-        uint i, den, num;
-        long double fract;
-        void *fptr;
-
-        i    = *(uint *)mem;
-        n   -= sizeof(int);
-        mem += sizeof(int);
-
-        den  = (i << 1) - 1;
-
-        i   += (i & 0xc00ffc00) >> 10;
-        i   += (i & 0x3e0f83e0) >> 5;
-
-        num  = 1u << (i & 31);
-
-        fract = (long double)num / (long double)den;
-        fptr  = &fract;
-
-        hsh += (hsh << 6);
-        hsh ^= *(int *)fptr;
-    }
-
-    return hsh;
-}
-
 hash hashes_mem(char *mem, size_t n)
 {
     hash hsh;
