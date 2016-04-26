@@ -158,6 +158,8 @@ keymap *keymap_init(void)
 
 void keymap_clear(keymap *map)
 {
+    ASSERT_PTR(map, high, NULL);
+
     vec_keys_delete(map->keys, 0, vec_len(map->keys));
     map->curr = map->root;
 }
@@ -165,6 +167,8 @@ void keymap_clear(keymap *map)
 int keymap_press(keymap *map, key k)
 {
     keytree *sub;
+
+    ASSERT_PTR(map, high, NULL);
 
     vec_keys_insert(map->keys, vec_len(map->keys), 1, &k);
     sub = table_get(map->curr->cont.subs, &k);
@@ -213,6 +217,8 @@ static hook *keytree_get(keytree *tree, vec_keys *keys, size_t index)
 
 hook *keymap_get(keymap *map, vec *keys)
 {
+    ASSERT_PTR(map, high, return NULL);
+
     return keytree_get(map->root, (vec_keys *)keys, 0);
 }
 
@@ -250,7 +256,6 @@ static int keytree_add(keytree *tree, vec_keys *keys, size_t index)
         table_set(tree->cont.subs, &k, sub);
 
         free(sub);
-
         sub = table_get(tree->cont.subs, &k);
     }
 

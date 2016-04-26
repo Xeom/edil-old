@@ -39,30 +39,48 @@ core.keymap.maps.add("win")
 
 winmap = core.keymap.maps["win"]
 
-@winmap.add(Key("UP"))
+@winmap.add(Key("s"), Key("UP"))
 def winsplitup(keys):
     core.windows.get_selected().split(core.windows.direction.up)
 
-@winmap.add(Key("DOWN"))
+@winmap.add(Key("s"), Key("DOWN"))
 def winsplitdown(keys):
     core.windows.get_selected().split(core.windows.direction.down)
 
-@winmap.add(Key("LEFT"))
+@winmap.add(Key("s"), Key("LEFT"))
 def winsplitleft(keys):
     core.windows.get_selected().split(core.windows.direction.left)
 
-@winmap.add(Key("RIGHT"))
+@winmap.add(Key("s"), Key("RIGHT"))
 def winsplitright(keys):
     core.windows.get_selected().split(core.windows.direction.right)
 
-@winmap.add(Key("c"))
+@winmap.add(Key("x"))
 def windel(keys):
     core.windows.get_selected().delete()
 
-@winmap.add(Key("e"))
+@winmap.add(Key("RIGHT"))
 def winnext(keys):
     core.windows.get_selected().next().select()
 
+@winmap.add(Key("LEFT"))
+def winprev(keys):
+    core.windows.get_selected().prev().select()
+
+#@winmap.add(Key("UP"))
+#def winup(keys):
+#    core.windows.get_selected().parent.select()
+#
+##@winmap.add(Key("DOWN",  esc=True))
+#@winmap.add(Key("RIGHT", esc=True))
+#def winadjplus(keys):
+#    core.windows.get_selected().adj(1)
+#
+##@winmap.add(Key("UP",   esc=True))
+#@winmap.add(Key("LEFT", esc=True))
+#def winadjminus(keys):
+#    core.windows.get_selected().adj(-1)
+#
 core.keymap.maps.add("master")
 mastermap = core.keymap.maps["master"]
 
@@ -70,18 +88,20 @@ mastermap = core.keymap.maps["master"]
 def masterwinon(keys):
     core.keymap.frames.switch("winf")
 
-@mastermap.add(Key("w", esc=True))
+@winmap.add(Key("w", esc=True))
 def masterwinoff(keys):
     core.keymap.frames.switch("masterf")
+
+@mastermap.add(Key("x"))
+def masterexit(keys):
+    global alive
+    alive = False
 
 core.keymap.frames.add("masterf")
 core.keymap.frames.add("winf")
 core.keymap.frames["masterf"].push("master")
-core.keymap.frames["winf"].push("master")
 core.keymap.frames["winf"].push("win")
 core.keymap.frames.switch("masterf")
-
-
 
 #################################################################################
 

@@ -8,7 +8,8 @@
 
 #include "ui/ui.h"
 
-hook_add(ui_on_resize, 2);
+hook_add(ui_on_resize_pre,  2);
+hook_add(ui_on_resize_post, 2);
 
 int ui_initsys(void)
 {
@@ -58,11 +59,13 @@ int ui_resize(void)
 
     getmaxyx(stdscr, termy, termx);
 
-    hook_call(ui_on_resize, &termy, &termx);
+    hook_call(ui_on_resize_pre, &termy, &termx);
 
     win_size_set_root((uint)termx, (uint)termy - 1);
 
     ui_refresh();
+
+    hook_call(ui_on_resize_post, &termy, &termx);
 
     return 0;
 }

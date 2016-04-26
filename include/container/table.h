@@ -9,10 +9,11 @@ typedef struct table_s table;
 
 typedef long unsigned hash;
 
-typedef hash (*hashfunct)(char *);
-typedef int  (*keqfunct)(char *, char *);
+typedef hash (*hashfunct)(void *);
+typedef int  (*keqfunct)(void *, void *);
 
-table *table_init(size_t width, size_t keywidth, hashfunct hshf, keqfunct keqf, char *nullval);
+table *table_init(
+    size_t width, size_t keywidth, hashfunct hshf, keqfunct keqf, char *nullval);
 
 size_t table_len(table *t);
 
