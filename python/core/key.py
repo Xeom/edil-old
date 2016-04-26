@@ -14,7 +14,6 @@ class Key:
             name = name.encode("ascii")
 
         self.struct = symbols.io.key_s(0, name)
-
         self.ignored = ign
         self.control = con
         self.escaped = esc
@@ -49,7 +48,7 @@ class Key:
     @property
     def name(self):
         return self.struct.keyname.decode("ascii")
-        
+
     @property
     def ignored(self):
         return self.get_modifier(symbols.io.key.ign_mod)

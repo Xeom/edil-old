@@ -18,13 +18,12 @@ class dir:
 
 root = ctypes.cast(so.win_root, ctypes.POINTER(win_p)).contents
 
-on_resize_x = ctypes.cast(so.win_on_resize_x, hook_p)
-on_resize_y = ctypes.cast(so.win_on_resize_y, hook_p)
 
 on_split  = ctypes.cast(so.win_on_split,  hook_p)
 on_delete_pre  = ctypes.cast(so.win_on_delete_pre,  hook_p)
 on_delete_post = ctypes.cast(so.win_on_delete_post, hook_p)
 on_create = ctypes.cast(so.win_on_create, hook_p)
+on_select = ctypes.cast(so.win_on_select, hook_p)
 
 initsys = so.win_initsys
 initsys.argtypes = []
@@ -67,6 +66,9 @@ class size:
     get_y.argtypes = [win_p]
     get_y.restype  = ctypes.c_uint
 
+    on_adj_pre  = ctypes.cast(so.win_size_on_adj_pre, hook_p)
+    on_adj_post = ctypes.cast(so.win_size_on_adj_post, hook_p)
+
 class pos:
     get_x = so.win_pos_get_x
     get_x.argtypes = [win_p]
@@ -85,8 +87,6 @@ class select:
     get.argtypes = []
     get.restype  = win_p
 
-on_select = ctypes.cast(so.win_on_select, hook_p)
-
 class label:
     caption_set = so.win_label_caption_set
     caption_set.argtypes = [win_p, ctypes.c_char_p]
@@ -104,6 +104,12 @@ class label:
     sidebar_get.argtypes = [win_p]
     sidebar_get.restype  = ctypes.c_char_p
 
+    on_sidebar_set_pre  = ctypes.cast(so.win_label_on_sidebar_set_pre,  hook_p)
+    on_sidebar_set_post = ctypes.cast(so.win_label_on_sidebar_set_post, hook_p)
+
+    on_caption_set_pre  = ctypes.cast(so.win_label_on_caption_set_pre,  hook_p)
+    on_caption_set_post = ctypes.cast(so.win_label_on_caption_set_post, hook_p)
+
 class iter:
     first = so.win_iter_first
     first.argtypes = [win_p]
@@ -116,3 +122,7 @@ class iter:
     next = so.win_iter_next
     next.argtypes = [win_p]
     next.restype  = win_p
+
+    prev = so.win_iter_prev
+    prev.argtypes = [win_p]
+    prev.restype  = win_p

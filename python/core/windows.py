@@ -117,18 +117,24 @@ class Window:
     def next(self):
         return Window(symbols.win.iter.next(self.struct))
 
-class hooks:
-    resize_x = core.hook.Hook(
-        symbols.win.on_resize_x,
-        Window,
-        ctypes.c_uint,
-        ctypes.c_uint)
+    def prev(self):
+        return Window(symbols.win.iter.prev(self.struct))
 
-    resize_y = core.hook.Hook(
-        symbols.win.on_resize_y,
-        Window,
-        ctypes.c_uint,
-        ctypes.c_uint)
+    def adj(self, n):
+        symbols.win.size.adj_splitter(self.struct, n)
+
+class hooks:
+    class size:
+        adj_pre = core.hook.Hook(
+            symbols.win.size.on_adj_pre,
+            Window,
+            ctypes.c_int)
+
+        adj_post = core.hook.Hook(
+            symbols.win.size.on_adj_post,
+            Window,
+            ctypes.c_uint,
+            ctypes.c_uint)
 
     split = core.hook.Hook(
         symbols.win.on_split,
@@ -155,3 +161,25 @@ class hooks:
         symbols.win.on_select,
         Window,
         Window)
+
+    class sidebar:
+        set_pre = core.hook.Hook(
+            symbols.win.label.on_sidebar_set_pre,
+            Window,
+            ctypes.c_char_p)
+
+        set_post = core.hook.Hook(
+            symbols.win.label.on_sidebar_set_post,
+            Window,
+            ctypes.c_char_p)
+
+    class caption:
+        set_pre = core.hook.Hook(
+            symbols.win.label.on_caption_set_pre,
+            Window,
+            ctypes.c_char_p)
+
+        set_post = core.hook.Hook(
+            symbols.win.label.on_caption_set_post,
+            Window,
+            ctypes.c_char_p)

@@ -1,6 +1,7 @@
 import ctypes
 import symbols.buffer
 import core.hook
+import core.properties
 import cutil
 
 from symbols.vec import VecFreeOnDel
@@ -27,6 +28,8 @@ class Buffer:
     def struct(self, value):
         self.valid   = True
         self._struct = value
+        propptr = symbols.buffer.get_properties(value)
+        self.properties = core.properties.Properties(propptr)
 
     def __len__(self):
         return symbols.buffer.len(self.struct)

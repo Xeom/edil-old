@@ -96,7 +96,8 @@ class win:
         draw_subs.argtypes = [win_p]
         draw_subs.restype  = ctypes.c_int
 
-on_resize  = ctypes.cast(so.ui_on_resize,  hook_p)
+on_resize_pre  = ctypes.cast(so.ui_on_resize_pre,  hook_p)
+on_resize_post = ctypes.cast(so.ui_on_resize_post, hook_p)
 
 def set_more_left(char):
     so.ui_more_left_char         = ctypes.c_char_p(ctypes.c_char(char))

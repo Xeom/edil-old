@@ -13,8 +13,12 @@ class callbacks:
     pass
 
 class hooks:
-    resize = core.hook.Hook(
-        symbols.ui.on_resize,
+    resize_pre =  core.hook.Hook(
+        symbols.ui.on_resize_pre,
+        ctypes.c_size_t,
+        ctypes.c_size_t)
+    resize_post = core.hook.Hook(
+        symbols.ui.on_resize_post,
         ctypes.c_size_t,
         ctypes.c_size_t)
 
