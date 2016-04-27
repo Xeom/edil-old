@@ -19,6 +19,7 @@ core.key.initsys()
 core.ui.refresh()
 
 import editor.uiupdates
+from editor.subcaption   import SubCaption
 from editor.cursor.point import Point
 from core.key import Key
 from core.keymap import Keymap
@@ -33,6 +34,20 @@ signal.signal(signal.SIGINT,  death_by_gentle_suffocation)
 signal.signal(signal.SIGTERM, death_by_gentle_suffocation)
 
 p  = Point(core.windows.get_selected().buffer)
+
+@SubCaption
+def getsize(win):
+    x, y = win.size
+
+    return "{}x{}".format(x, y)
+
+@SubCaption
+def getselected(win):
+    if win.selected:
+        return "*"
+
+    return ""
+
 
 ################################################################################
 core.keymap.maps.add("win")
