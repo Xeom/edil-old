@@ -19,21 +19,21 @@ core.key.initsys()
 core.ui.refresh()
 
 import editor.uiupdates
+
+import editor.cursor.keymap
+
 from editor.subcaption   import SubCaption
-from editor.cursor.point import Point
 from core.key import Key
 from core.keymap import Keymap
 
 alive = True
 
-def death_by_gentle_suffocation( signum, frame):
+def death_by_gentle_suffocation(signum, frame):
     global alive
     alive = False
 
 signal.signal(signal.SIGINT,  death_by_gentle_suffocation)
 signal.signal(signal.SIGTERM, death_by_gentle_suffocation)
-
-p  = Point(core.windows.get_selected().buffer)
 
 @SubCaption
 def getsize(win):
@@ -47,7 +47,6 @@ def getselected(win):
         return "*"
 
     return ""
-
 
 ################################################################################
 core.keymap.maps.add("win")
@@ -114,6 +113,7 @@ def masterexit(keys):
 
 core.keymap.frames.add("masterf")
 core.keymap.frames.add("winf")
+core.keymap.frames["masterf"].push("cursor-default")
 core.keymap.frames["masterf"].push("master")
 core.keymap.frames["winf"].push("win")
 core.keymap.frames.switch("masterf")
