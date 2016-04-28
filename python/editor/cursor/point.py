@@ -4,7 +4,6 @@ from symbols.vec import str2vec
 
 import sys
 
-
 class Point:
     def __init__(self, buffer):
         self.buffer = buffer
@@ -39,7 +38,27 @@ class Point:
 
                 self.correct_linepos()
                 self.correct_colpos()
+
         self.handle_line_insert = handle_line_insert
+
+    def __lt__(self, other):
+        return self.ln  < other.ln \
+            or (self.ln == other.ln and self.cn < other.cn)
+
+    def __gt__(self, other):
+        return other.__lt__(self)
+
+    def __eq__(self, other):
+        return self.ln == other.ln \
+            and self.cn == other.cn
+
+    def __le__(self, other):
+        return self.__lt__(other) \
+            or self.__eq__(other)
+
+    def __ge__(self, other):
+        return self.__gt__(other) \
+            or self.__eq__(other)
 
     def move_cols(self, n):
         bufferlen = len(self.buffer)
