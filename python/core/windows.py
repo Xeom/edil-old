@@ -59,7 +59,8 @@ class Window:
 
     @property
     def selected(self):
-        return symbols.win.select.get() == self.struct
+        return cutil.ptreq(symbols.win.select.get(),
+                           self.struct)
 
     def select(self):
         symbols.win.select.set(self.struct)
