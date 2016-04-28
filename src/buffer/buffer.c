@@ -180,6 +180,19 @@ static inline chunk *buffer_get_containing_chunk(buffer *b, lineno ln)
     return c;
 }
 
+line *buffer_get_line_struct(buffer *b, lineno ln)
+{
+    lineno offset;
+    chunk *c;
+
+    TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
+              return -1);
+    TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
+              return -1);
+
+    return vec_lines_get(c, offset);
+}
+
 int buffer_insert(buffer *b, lineno ln)
 {
     lineno offset;

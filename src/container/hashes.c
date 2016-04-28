@@ -1,5 +1,6 @@
 #include <limits.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "io/key.h"
 
@@ -109,19 +110,20 @@ hash hashes_key_str_trans(void *k)
 hash hashes_mem(char *mem, size_t n)
 {
     hash hsh;
+    char *end;
 
     /* Start with a const random seed */
     hsh = hashes_random_seed;
 
-    while (n >= sizeof(int))
+    while (n >= 4)
     {
-        uint i, den;
-        double recp;
-        void *fptr;
+        uint32_t i, den;
+        double   recp;
+        void    *fptr;
 
-        i    = *(uint *)mem;
-        mem += sizeof(int);
-        n   -= sizeof(int);
+        i    = *(uint32_t *)mem;
+        mem += 4;
+        n   -= 4;
 
         /* We use doubles rather than divide a *
          * large integer for a couple reasons. *
@@ -154,7 +156,7 @@ hash hashes_mem(char *mem, size_t n)
 
         /* xor the lower 52 bits of the double *
          * (the fractional part).              */
-        hsh ^= ((1l << 52) - 1) & *(long *)fptr;
+        hsh ^= ((1l << 52) - 1) & *(long long *)fptr;
 
         /* The upper bits lack entropy, as     *
          * they change slowly with 1/n. This   *

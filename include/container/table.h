@@ -7,12 +7,16 @@
 
 typedef struct table_s table;
 
-typedef long unsigned hash;
+typedef long long unsigned hash;
 
 typedef hash (*hashfunct)(void *);
 typedef int  (*keqfunct)(void *, void *);
 
 table *table_init(
+    size_t width, size_t keywidth, hashfunct hshf, keqfunct keqf, char *nullval);
+
+table *table_create(
+    void *mem,
     size_t width, size_t keywidth, hashfunct hshf, keqfunct keqf, char *nullval);
 
 size_t table_len(table *t);

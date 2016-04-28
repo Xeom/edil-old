@@ -68,6 +68,21 @@ table *table_init(
 
     rtn = malloc(sizeof(table));
 
+    ASSERT_PTR(rtn, terminal, return NULL);
+
+    return table_create(rtn, width, keywidth, hshf, keqf, nullval);
+}
+
+table *table_create(
+    void *mem,
+    size_t width, size_t keywidth, hashfunct hshf, keqfunct keqf, char *nullval)
+{
+    table *rtn;
+
+    rtn = (table *)mem;
+
+    ASSERT_PTR(rtn, high, return NULL);
+
     rtn->hshf     = hshf;
     rtn->keqf     = keqf;
     rtn->capacity = 0;
@@ -77,19 +92,24 @@ table *table_init(
     rtn->nullval  = nullval;
     rtn->data     = NULL;
 
-    table_realloc(rtn, TABLE_MIN_CAP);
+    TRACE_INT(table_realloc(rtn, TABLE_MIN_CAP),
+              return NULL);
 
     return rtn;
 }
 
 void table_free(table *t)
 {
+    if (!t) return;
+
     free(t->data);
     free(t);
 }
 
 size_t table_len(table *t)
 {
+    ASSERT_PTR(t, high, return 0);
+
     return t->usage;
 }
 
@@ -110,7 +130,7 @@ static inline size_t table_item_size(table *t)
     return t->keywidth + t->width;
 }
 
-int table_key_isnull(table *t, char *k)
+static int table_key_isnull(table *t, char *k)
 {
     if (t->nullval)
         return memcmp(k, t->nullval, t->keywidth) == 0;
@@ -159,7 +179,8 @@ static int table_realloc(table *t, size_t newcap)
     t->capacity = newcap;
 
     if (newcap > cap)
-        t->data = realloc(t->data, table_item_size(t) * newcap);
+        ASSERT_PTR(t->data = realloc(t->data, table_item_size(t) * newcap),
+                   terminal, return -1);
 
     for (ind = cap; ind < newcap; ++ind)
         table_key_setnull(t, table_index_key(t, ind));
