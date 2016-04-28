@@ -92,13 +92,13 @@ static vec *vec_init_raw(size_t width)
     if (rtn == NULL)
         ERR(NO_MEMORY, NULL);
 
-    vec_create(width, rtn);
+    vec_create(rtn, width);
     /* Data must be null so realloc will malloc */
 
     ERR(OK, rtn);
 }
 
-vec *vec_create(size_t width, void *mem)
+vec *vec_create(void *mem, size_t width)
 {
     vec *rtn;
 

@@ -51,7 +51,7 @@ vec *vec_init(size_t width);
  *
  * mem is a pointer to memory. It must be at least sizeof(vec) bytes long.
  */
-vec *vec_create(size_t width, void *mem);
+vec *vec_create(void *mem, size_t width);
 
 /*
  * Free a vector's contents, and pointer.

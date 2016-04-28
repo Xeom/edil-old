@@ -21,7 +21,7 @@ typedef vec VEC_TYPED_VNAME;
 
 static inline VEC_TYPED_VNAME *VEC_TYPED_FNAME(create)(void *mem)
 {
-    return vec_create(sizeof(VEC_TYPED_TYPE), mem);
+    return vec_create(mem, sizeof(VEC_TYPED_TYPE));
 }
 
 static inline VEC_TYPED_VNAME *VEC_TYPED_FNAME(init)(void)
