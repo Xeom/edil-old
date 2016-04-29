@@ -125,10 +125,14 @@ class KeyCont:
     def __getitem__(self, name):
         return self.items[name]
 
+    def __contains__(self, name):
+        return name in self.items
+
 class KeyFrameCont(KeyCont):
     def __init__(self):
         KeyCont.__init__(self)
         self.active = None
+
 
     def add(self, name):
         if name not in self.items:

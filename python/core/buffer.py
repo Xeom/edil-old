@@ -52,7 +52,7 @@ class Buffer:
         return cutil.ptreq(self.struct, other.struct)
 
     def __hash__(self):
-        return ctypes.cast(self.struct, ctypes.c_void_p).value
+        return cutil.ptr2int(self.struct)
 
     def insert(self, index):
         symbols.buffer.insert(self.struct, index)

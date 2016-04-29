@@ -4,6 +4,9 @@ import ctypes
 from shared import lib as so
 
 
+def ptr2int(p):
+    return ctypes.cast(p, ctypes.c_void_p).value
+
 def ptreq(a, b):
     return ctypes.cast(a, ctypes.c_void_p).value == ctypes.cast(b, ctypes.c_void_p).value
 
