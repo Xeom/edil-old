@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include "test.h"
 #include "container/table.h"
 
@@ -6,15 +8,23 @@
 void test_set(void);
 void test_del(void);
 
+/*
+ * Prints out the contents of the current table to std
+ */
 static void test_print_table(table *tbl)
 {
     int ind;
 
+    PINFO("Printing items...");
+
     for (ind = 1; ind < TEST_LEN; ind++)
     {
         int *val;
+
         val = table_get(tbl, &ind);
+
         TEST(ind, d);
+
         if (!val)
             puts("table_get(tbl, &ind) -> NULL");
         else
@@ -29,6 +39,8 @@ void test_set(void)
 
     tbl = table_init(sizeof(int), sizeof(unsigned int),
                      NULL, NULL, NULL);
+
+    PINFO("Inserting items...");
 
     for (ind = 1; ind < TEST_LEN; ind++)
     {
@@ -52,11 +64,16 @@ void test_del(void)
     tbl = table_init(sizeof(int), sizeof(int),
                      NULL, NULL, NULL);
 
+    PINFO("Inserting items...");
+
     for (ind = 1; ind < TEST_LEN; ind++)
     {
         TEST(ind, d);
         TEST(table_set(tbl, &ind, &ind), d);
+        TEST(table_len(tbl), lu);
     }
+
+    PINFO("Deleting items sparsely...");
 
     for (ind = 1; ind < TEST_LEN; ind++)
     {
@@ -65,9 +82,12 @@ void test_del(void)
 
         TEST(ind, d);
         TEST(table_delete(tbl, &ind), d);
+        TEST(table_len(tbl), lu);
     }
 
     test_print_table(tbl);
+
+    PINFO("Deleting all items...");
 
     for (ind = 1; ind < TEST_LEN; ind++)
     {
@@ -76,6 +96,7 @@ void test_del(void)
 
         TEST(ind, d);
         TEST(table_delete(tbl, &ind), d);
+        TEST(table_len(tbl), lu);
     }
 
     test_print_table(tbl);
@@ -83,8 +104,30 @@ void test_del(void)
     table_free(tbl);
 }
 
+void test_init(void)
+{
+    table *tbl;
+
+    PINFO("Initializing with table_init...");
+
+    tbl = table_init(sizeof(char), sizeof(char), NULL, NULL, NULL);
+    TEST(tbl == NULL, d);
+
+    table_free(tbl);
+    tbl = malloc(sizeof(table));
+    TEST(tbl == NULL, d);
+
+    PINFO("Initializing with table_create...");
+
+    tbl = table_create(tbl, sizeof(char), sizeof(char), NULL, NULL, NULL);
+    TEST(tbl == NULL, d);
+
+    table_free(tbl);
+}
+
 int main(void)
 {
+    RUNTEST(init);
     RUNTEST(set);
     RUNTEST(del);
 }

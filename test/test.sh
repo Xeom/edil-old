@@ -57,7 +57,7 @@ function run_test {
         perr "Error simulating $1."
     fi
 
-    diff $realfile $simfile > $difffile
+    diff -I "LINE: *" -B $realfile $simfile > $difffile
 
     if [[ -s $difffile ]]; then
         pwarn "Difference found in results of $1 tests"

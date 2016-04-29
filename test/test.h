@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <time.h>
+#include "head.h"
 
 int test_count;
 
@@ -10,19 +11,44 @@ int test_count;
 #define BRACKET(col, symbol) \
     COL_B(col) "[" COL_D(col) #symbol COL_B(col) "] " COL_END
 
-#define TEST(expression, rtntype)               \
-    printf(#expression                          \
-           " -> %" #rtntype "\n", expression);
+#define TEST(expression, rtntype)                        \
+    {                                                    \
+        puts("LINE: " STRIFY(__LINE__));                 \
+        printf(#expression                               \
+               " -> %" #rtntype "\n\n", expression);     \
+    }
 
 #define RUNTEST(funct)                                                  \
     {                                                                   \
         double  dt;                                                     \
         clock_t start, end;                                             \
-        fputs(BRACKET(35, i) "Testing " #funct "... \n", stderr);       \
+        PINFO("Testing " #funct "...");                              \
         start = clock();                                                \
         test_ ## funct ();                                              \
         end   = clock();                                                \
         dt    = ((double)end - (double)start) / (double)CLOCKS_PER_SEC; \
-        fprintf(stderr,                                                 \
-                BRACKET(32, .) "Ran tests for " #funct " in %.4fs\n", dt);  \
+        PSUCC("Ran tests for " #funct " in %.4fs", dt);               \
+    }
+
+#define PINFO(...)                                          \
+    {                                                       \
+        fprintf(stderr, BRACKET(35, i) __VA_ARGS__);    \
+        fputs("\n", stderr);                                \
+    }
+
+#define PWARN(...)                                          \
+    {                                                       \
+        fprintf(stderr, BRACKET(33, w) __VA_ARGS__);    \
+        fputs("\n", stderr);                                \
+    }
+#define PSUCC(...) \
+    {                                                       \
+        fprintf(stderr, BRACKET(32, .) __VA_ARGS__);    \
+        fputs("\n", stderr);                                \
+    }
+
+#define PERR(...) \
+    {                                                       \
+        fprintf(stderr, BRACKET(31, !) __VA_ARGS__);    \
+        fputs("\n", stderr);                                \
     }
