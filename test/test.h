@@ -22,33 +22,34 @@ int test_count;
     {                                                                   \
         double  dt;                                                     \
         clock_t start, end;                                             \
-        PINFO("Testing " #funct "...");                              \
+        PINFO("Testing " #funct "...");                                 \
         start = clock();                                                \
         test_ ## funct ();                                              \
         end   = clock();                                                \
-        dt    = ((double)end - (double)start) / (double)CLOCKS_PER_SEC; \
-        PSUCC("Ran tests for " #funct " in %.4fs", dt);               \
+        dt    = ((double)end - (double)start) /(double)CLOCKS_PER_SEC;  \
+        PSUCC("Ran tests for " #funct " in %.4fs", dt);                 \
     }
 
 #define PINFO(...)                                          \
     {                                                       \
-        fprintf(stderr, BRACKET(35, i) __VA_ARGS__);    \
+        fprintf(stderr, BRACKET(35, i) __VA_ARGS__);        \
         fputs("\n", stderr);                                \
     }
 
 #define PWARN(...)                                          \
     {                                                       \
-        fprintf(stderr, BRACKET(33, w) __VA_ARGS__);    \
-        fputs("\n", stderr);                                \
-    }
-#define PSUCC(...) \
-    {                                                       \
-        fprintf(stderr, BRACKET(32, .) __VA_ARGS__);    \
+        fprintf(stderr, BRACKET(33, w) __VA_ARGS__);        \
         fputs("\n", stderr);                                \
     }
 
-#define PERR(...) \
+#define PSUCC(...)                                          \
     {                                                       \
-        fprintf(stderr, BRACKET(31, !) __VA_ARGS__);    \
+        fprintf(stderr, BRACKET(32, .) __VA_ARGS__);        \
+        fputs("\n", stderr);                                \
+    }
+
+#define PERR(...)                                           \
+    {                                                       \
+        fprintf(stderr, BRACKET(31, !) __VA_ARGS__);        \
         fputs("\n", stderr);                                \
     }

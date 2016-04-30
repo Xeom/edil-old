@@ -57,6 +57,7 @@ function run_test {
         perr "Error simulating $1."
     fi
 
+    pinfo "Comparing simulated and real outputs"
     diff -I "LINE: *" -B $realfile $simfile > $difffile
 
     if [[ -s $difffile ]]; then
@@ -64,6 +65,7 @@ function run_test {
         pinfo "Saving diff to diff/$1, diff/$1.sim diff/$1.real"
 
         [[ -d diff ]] || mkdir diff
+
         cp $difffile diff/$1
         cp $realfile diff/$1.real
         cp $simfile  diff/$1.sim

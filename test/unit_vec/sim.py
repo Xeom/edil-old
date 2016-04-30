@@ -1,4 +1,5 @@
-TEST_LEN = 100000
+TEST_LEN = 20000
+TEST_FIND_LEN = 2000
 
 def test(*args):
     print("LINE: N/A")
@@ -22,7 +23,7 @@ def test_insert_end():
 
         v.insert(ind, inv)
 
-        test("vec_insert(v, vec_len(v), 1, &inv) -> 0")
+        test("vec_insert(v, ind, 1, &inv) -> 0")
 
     test_print_vec(v)
 
@@ -42,6 +43,64 @@ def test_insert_start():
 
     test_print_vec(v)
 
+def test_for():
+    v = []
+
+    for ind in range(TEST_LEN):
+        v.insert(ind, ind)
+
+    for index, item in enumerate(v):
+        test("_vec_index ->", index)
+        test("item ->", item)
+
+    for item in reversed(v):
+        test("_vec_index ->", item)
+        test("item ->", item)
+
+def test_del():
+    v = []
+
+    for ind in range(TEST_LEN):
+        v.insert(ind, ind)
+
+    ind = 0
+    while ind < len(v):
+        if not (ind // 20 % 2 and ind % 7 and ind % 11):
+            test("ind ->", ind)
+            test("vec_delete(v, ind, 1) -> 0")
+            del v[ind]
+            test("vec_len(v) ->", len(v))
+
+        ind += 1
+
+    test_print_vec(v)
+
+    while v:
+        test("vec_delete(v, 0, 1) -> 0")
+        del v[0]
+        test("vec_len(v) ->", len(v))
+
+    test_print_vec(v)
+
+def test_find():
+    v = []
+
+    for ind in range(TEST_FIND_LEN):
+        v.insert(ind, ind)
+
+    for item in range(TEST_FIND_LEN):
+        test("item ->", item)
+        test("vec_find(v, &item) ->", v.index(item))
+        test("vec_rfind(v, &item) ->", v.index(item))
+        test("vec_contains(v, &item) -> 1")
+
+    test("item -> -1")
+    test("vec_contains(v, &item) -> 0")
+    test("item ->", TEST_FIND_LEN + 1)
+    test("vec_contains(v, &item) -> 0")
+
 test_insert_end()
 test_insert_start()
-
+test_for()
+test_del()
+test_find()

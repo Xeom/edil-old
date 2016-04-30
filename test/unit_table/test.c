@@ -5,12 +5,10 @@
 
 #define TEST_LEN 46341
 
+void test_init(void);
 void test_set(void);
 void test_del(void);
 
-/*
- * Prints out the contents of the current table to std
- */
 static void test_print_table(table *tbl)
 {
     int ind;
@@ -130,4 +128,6 @@ int main(void)
     RUNTEST(init);
     RUNTEST(set);
     RUNTEST(del);
+
+    return 0;
 }

@@ -1,14 +1,20 @@
 #include "test.h"
 #include "container/vec.h"
 
-#define TEST_LEN 100000
+#define TEST_LEN 20000
+#define TEST_FIND_LEN 2000
 
 void test_insert_end(void);
 void test_insert_start(void);
+void test_del(void);
+void test_for(void);
+void test_find(void);
 
 static void test_print_vec(vec *v)
 {
     size_t ind;
+
+    PINFO("Printing items...");
 
     for (ind = 0; ind < vec_len(v); ind++)
     {
@@ -35,6 +41,8 @@ void test_insert_end(void)
 
     v = vec_init(sizeof(int));
 
+    PINFO("Inserting items...");
+
     for (ind = 0; ind < TEST_LEN; ind++)
     {
         int inv;
@@ -43,7 +51,7 @@ void test_insert_end(void)
         TEST(ind, lu);
         TEST(inv, d);
         TEST(vec_len(v), lu);
-        TEST(vec_insert(v, vec_len(v), 1, &inv), d);
+        TEST(vec_insert(v, ind, 1, &inv), d);
     }
 
     test_print_vec(v);
@@ -57,6 +65,8 @@ void test_insert_start(void)
     size_t ind;
 
     v = vec_init(sizeof(int));
+
+    PINFO("Inserting items...");
 
     for (ind = 0; ind < TEST_LEN; ind++)
     {
@@ -74,8 +84,129 @@ void test_insert_start(void)
     vec_free(v);
 }
 
+void test_for(void)
+{
+    vec *v;
+    size_t ind;
+    int    item;
+
+    v = vec_init(sizeof(int));
+
+    PINFO("Inserting items...");
+
+    for (ind = 0; ind < TEST_LEN; ind++)
+    {
+        item = (int)ind;
+        vec_insert(v, ind, 1, &item);
+    }
+
+    PINFO("Doing vec_foreach...");
+
+    vec_foreach(v, int, item,
+                TEST(_vec_index, lu);
+                TEST(item,        d);
+        );
+
+    PINFO("Doing vec_rforeach...");
+
+    vec_rforeach(v, int, item,
+                 TEST(_vec_index, lu);
+                 TEST(item,        d);
+        );
+
+    vec_free(v);
+}
+
+void test_del(void)
+{
+    vec *v;
+    size_t ind;
+
+    v = vec_init(sizeof(int));
+
+    PINFO("Inserting items...");
+
+    for (ind = 0; ind < TEST_LEN; ind++)
+    {
+        int item;
+
+        item = (int)ind;
+        vec_insert(v, ind, 1, &item);
+    }
+
+    PINFO("Doing sparse delete...");
+
+    ind = 0;
+    while (ind < vec_len(v))
+    {
+        if (!(ind / 20 % 2 && ind % 7 && ind % 11))
+        {
+            TEST(ind, lu);
+            TEST(vec_delete(v, ind, 1), d);
+            TEST(vec_len(v),           lu);
+        }
+
+        ++ind;
+    }
+
+    test_print_vec(v);
+
+    PINFO("Doing full delete...");
+
+    while (vec_len(v))
+    {
+        TEST(vec_delete(v, 0, 1),  d);
+        TEST(vec_len(v),          lu);
+    }
+
+    test_print_vec(v);
+
+    vec_free(v);
+}
+
+void test_find(void)
+{
+    vec *v;
+    int item;
+    size_t ind;
+
+    v = vec_init(sizeof(int));
+
+    PINFO("Inserting items...");
+
+    for (ind = 0; ind < TEST_FIND_LEN; ind++)
+    {
+        item = (int)ind;
+        vec_insert(v, ind, 1, &item);
+    }
+
+    PINFO("Searching vector...");
+
+    for (item = 0; item < TEST_FIND_LEN; item++)
+    {
+        TEST(item, d);
+        TEST(vec_find(v, &item),     lu);
+        TEST(vec_rfind(v, &item),    lu);
+        TEST(vec_contains(v, &item),  d);
+    }
+
+    PINFO("Trying vec_contains with out of bounds values...");
+
+    item = -1;
+    TEST(item, d);
+    TEST(vec_contains(v, &item), d);
+
+    item = TEST_FIND_LEN + 1;
+    TEST(item, d);
+    TEST(vec_contains(v, &item), d);
+    vec_free(v);
+}
+
 int main(void)
 {
     RUNTEST(insert_end);
     RUNTEST(insert_start);
+    RUNTEST(for);
+    RUNTEST(del);
+    RUNTEST(find);
 }
