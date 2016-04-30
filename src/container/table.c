@@ -9,37 +9,6 @@
 
 typedef struct table_item_s table_item;
 
-struct table_s
-{
-    /* Both these function pointers can be null for default behavior          */
-
-    hashfunct   hshf;     /* Function for hashing keys. Takes a pointer to the
-                             first byte of a key.                             */
-
-    keqfunct    keqf;     /* Function for testing key equality. Takes a
-                             pointer to the first byte of two keys, returns 1
-                             if they are equal.                               */
-
-    size_t      capacity; /* Stores the total amount of space allocated for
-                             data in num of items.                            */
-
-    size_t      usage;    /* Stores the total amount of items stored in the
-                             table.                                           */
-
-
-    size_t      width;    /* Stores the size, in bytes, of the data for each 
-                             item.                                            */
-
-    size_t      keywidth; /* Stores the size, in bytes, of the key for each
-                             item.                                            */
-
-    char       *nullval;  /* Stores a block of memory representing a null key
-                             value. Or NULL for default behavior.             */
-
-    char       *data;     /* All the data for the table, stored like
-                             [[key|data], [key|data], ...]                    */
-};
-
 #define TABLE_MAX_USAGE(cap) ((cap >> 2) + (cap >> 3))
 #define TABLE_MIN_USAGE(cap) ((cap >> 3) + (cap >> 6))
 
