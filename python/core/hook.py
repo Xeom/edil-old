@@ -20,7 +20,7 @@ class HookFunct:
         self.cfunct  = symbols.hook.hook_f(self.call)
         symbols.hook.mount(self.struct, self.cfunct, priority)
         self.parent.functs.append(self)
-        
+
     # Unmounts the function from its hook and removes the reference
     # to this hookfunct from the appropriate hook, allowing it to die.
     def free(self, obj=None):
@@ -74,9 +74,6 @@ class Hook:
         return lambda funct:self.mount(funct, priority)
 
     def mount(self, funct, priority):
-        if isinstance(funct, HookFunct):
-            funct = HookFunct.pyfunct
-
         hf = HookFunct(self, funct, priority)
 
         if hasattr(funct, "__hookfunct__"):
@@ -86,3 +83,46 @@ class Hook:
             funct.__hookfunct__ = [hf]
 
         return funct
+
+class NativeHookFunct:
+    def __init__(self, parent, funct, priority):
+        self.parent = parent
+        self.pyfunct = weakref.ref(funct, self.free)
+
+        for index, val in parent.functs:
+            if val.priority <= priority:
+                self.parent.functs.insert(index, self)
+                return
+
+        self.parent.functs.append(self)
+
+    def free(self, obj=None):
+        self.parent.functs.remove(self)
+
+    def call(self, args):
+        pyfunct = self.pyfunct()
+
+        if pyfunct == None:
+            self.free()
+            return
+
+        pyfunct(*args)
+
+class NativeHook:
+    def __init__(self):
+        self.functs = []
+
+    def __call__(self, priority=0):
+        if not isinstance(priority, int):
+            raise Exception("Priority must be an integer")
+
+        return lambda funct:self.mount(funct, priority)
+
+    def mount(self, funct, priority):
+        NativeHookFunct(self, funct, priority)
+
+        return funct
+
+    def call(self, args):
+        for funct in self.functs:
+            funct.call(args)
