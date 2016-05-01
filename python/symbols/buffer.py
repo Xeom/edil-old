@@ -16,6 +16,8 @@ buffer_p = ctypes.POINTER(buffer_s)
 
 lineno = ctypes.c_size_t
 
+on_batch_region = ctypes.cast(so.buffer_on_batch_region, hook_p)
+
 on_create = ctypes.cast(so.buffer_on_create, hook_p)
 on_delete = ctypes.cast(so.buffer_on_delete, hook_p)
 
@@ -36,6 +38,14 @@ init.restype  = buffer_p
 free = so.buffer_free
 free.argtypes = [buffer_p]
 free.restype  = None
+
+batch_start = so.buffer_batch_start
+batch_start.argtypes = [buffer_p]
+batch_start.restype  = ctypes.c_int
+
+batch_end = so.buffer_batch_end
+batch_end.argtypes = [buffer_p]
+batch_end.restype  = ctypes.c_int
 
 insert = so.buffer_insert
 insert.argtypes = [buffer_p, lineno]

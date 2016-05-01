@@ -19,3 +19,6 @@ clear.restype  = ctypes.c_int
 
 free = so.free
 free.argtypes = [ctypes.c_void_p]
+
+move = so.move
+move.argtypes = [ctypes.c_int, ctypes.c_int]

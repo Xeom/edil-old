@@ -76,6 +76,10 @@ class win:
         draw_subs.argtypes = [win_p]
         draw_subs.restype  = ctypes.c_int
 
+        draw_lines_after = so.ui_win_content_draw_lines_after
+        draw_lines_after.argtypes = [win_p, ctypes.c_size_t]
+        draw_lines_after.restype  = ctypes.c_int
+
         draw_line = so.ui_win_content_draw_line
         draw_line.argtypes = [win_p, ctypes.c_size_t]
         draw_line.restype  = ctypes.c_int

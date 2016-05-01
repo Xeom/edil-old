@@ -114,8 +114,10 @@ class Vec:
     def __len__(self):
         return len(self.struct)
 
+    def __delitem__(self, index):
+        self.delete(index, 1)
+
     def __getitem__(self, index):
-        import sys
         if isinstance(index, slice):
             start = index.start
             stop  = index.stop
@@ -167,6 +169,12 @@ class Vec:
     def insert(self, index, value):
         ptr = self.getptr(value)
         insert(self.struct, index, 1, ptr)
+
+    def insert_bytes(self, index, data):
+        width = ctypes.sizeof(self.type)
+        num   = data.__len__() // width
+
+        insert(self.struct, index, num, data)
 
     def __iadd__(self, other):
         if not other.__len__():
