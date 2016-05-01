@@ -1,4 +1,7 @@
 #!/bin/python
+#import cProfile, pstats, io
+#pr = cProfile.Profile()
+#pr.enable()
 
 import core.ui
 import core.windows
@@ -6,6 +9,7 @@ import core.hook
 import core.key
 import core.keymap
 import core.table
+import core.buffer
 import ctypes
 import shared
 import symbols
@@ -20,7 +24,10 @@ core.ui.refresh()
 
 import editor.uiupdates
 
+import editor.cursor.regioncursor
+import editor.cursor.cursor
 import editor.keymap.keymap
+import editor.clipboard
 
 from editor.subcaption   import SubCaption
 from core.key import Key
@@ -48,13 +55,33 @@ def getselected(win):
 
     return ""
 
-mastermap = core.keymap.maps["master"]
+@SubCaption
+def getlen(win):
+    return str(len(win.buffer))
 
-@mastermap.add(Key("x", con=True))
+@core.ui.hooks.win.content.draw_line_pre(800)
+def addlineno(w, b, ln, v):
+    string = "\x0a\x80\x81\x84\x80\x80"
+    string += hex(ln.value)[2:].zfill(4) + " "
+
+    for c in reversed(string):
+        v.insert(0, ord(c))
+
+mastermap = core.keymap.maps["master"]
+@mastermap.add(Key("V", con=True))
+def paste(keys):
+    editor.clipboard.do_paste(editor.cursor.cursor.cursors.current)
+
+@mastermap.add(Key("X", con=True))
 def masterexit(keys):
     global alive
     alive = False
 
+@mastermap.add(Key("F", con=True))
+def masterexit(keys):
+    core.windows.get_selected().buffer.read("testfile.txt")
+
+    
 while alive:
     char = symbols.lib.getch()
 
@@ -66,4 +93,11 @@ while alive:
 
 core.ui.killsys()
 
-symbols.hook.killsys()
+#symbols.hook.killsys()
+#pr.disable()
+#s = io.StringIO()
+#sortby = 'cumulative'
+#ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
+#ps.print_stats()
+#import sys
+#print(s.getvalue(), file=sys.stderr)

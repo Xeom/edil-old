@@ -43,6 +43,20 @@ int ui_win_content_draw(win *w)
     return 0;
 }
 
+int ui_win_content_draw_lines_after(win *w, lineno ln)
+{
+    lineno curr, max;
+    buffer *b;
+
+    curr = MAX(ln, win_get_offsety(w));
+    max  = win_size_get_y(w) + ln;
+
+    for (; curr < max; curr++)
+        ui_win_content_draw_line(w, curr);
+
+    return 0;
+}
+
 int ui_win_content_draw_line(win *w, lineno ln)
 {
     buffer *b;
@@ -74,7 +88,8 @@ int ui_win_content_draw_line(win *w, lineno ln)
     else
         l = buffer_get_line(b, ln);
 
-    hook_call(ui_win_content_on_draw_line_pre, &w, &b, &ln, &l);
+    if (l)
+        hook_call(ui_win_content_on_draw_line_pre, w, b, &ln, l);
 
     if (l == NULL || vec_len(l) < offx)
         iter = "";
