@@ -49,7 +49,8 @@ class Buffer:
         symbols.buffer.set_line(self.struct, index, vec.struct)
 
     def __eq__(self, other):
-        return cutil.ptreq(self.struct, other.struct)
+        return  isinstance(other, Buffer) and \
+            cutil.ptreq(self.struct, other.struct)
 
     def __hash__(self):
         return cutil.ptr2int(self.struct)
@@ -72,6 +73,12 @@ class Buffer:
         self[0] = s
 
 class hooks:
+    batch_region = core.hook.Hook(
+        symbols.buffer.on_batch_region,
+        Buffer,
+        symbols.buffer.lineno,
+        symbols.buffer.lineno)
+
     create = core.hook.Hook(
         symbols.buffer.on_create,
         Buffer,

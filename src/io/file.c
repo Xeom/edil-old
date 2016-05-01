@@ -82,14 +82,24 @@ static int file_read_buffer_line(buffer *b, FILE *stream)
 int file_read_buffer(buffer *b, FILE *stream)
 {
     int val;
+    buffer_batch_start(b);
+
     for (;;) /* You're here, forever */
     {
         val = file_read_buffer_line(b, stream);
 
         if (val == EOF)
+        {
+            buffer_batch_end(b);
             return 0;
+        }
 
         if (val != 0)
+        {
+            buffer_batch_end(b);
             return -1;
+        }
     }
+
+
 }

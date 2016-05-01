@@ -9,6 +9,7 @@
 
 # include "buffer/line.h"
 
+
 /* Note that for buffer_line_on*_pre functions, an operation can be   *
  * aborted by enabling the __READONLY property of the buffer. This    *
  * does not, of course, work for *_post functions.                    */
@@ -39,6 +40,13 @@ extern hook buffer_on_create;
 /* This hook is called before a buffer is deleted */
 extern hook buffer_on_delete;
 
+
+/* This hook is called with three parameters, a buffer, and two      *
+ * linenumbers, a start and an end. It is called whenever            *
+ * buffer_batch_end is successfully called. The content in between   *
+ * and including the two linenumbers can be anything.                */
+extern hook buffer_on_batch_region;
+
 typedef struct buffer_s buffer;
 
 /*
@@ -56,6 +64,28 @@ buffer *buffer_init(void);
  *
  */
 void buffer_free(buffer *b);
+
+int buffer_batch_start(buffer *b);
+
+int buffer_batch_end(buffer *b);
+
+line *buffer_get_line_struct(buffer *b, lineno ln);
+
+/*
+ * Get the table of properties from a buffer. The table will be indexed with
+ * strings, so table_get/table_set should be called with a char** as keys.
+ * Values are pointers, but are assumed to be strings, though nothing in the
+ * buffer system relies on this. Higher level systems may well rely on this, so
+ * values should be set to valid char**s.
+ *
+ * @param b A pointer to the buffer to get the table of properties from.
+ *
+ * @return  A pointer to the table of properties for this particular buffer,
+ *          NULL on error.
+ *
+ */
+table *buffer_get_properties(buffer *b);
+
 
 /*
  * Create and insert a new line into a buffer at a particular line number.
@@ -124,20 +154,5 @@ int buffer_set_line(buffer *b, lineno ln, vec *l);
  *
  */
 lineno buffer_len(buffer *b);
-
-/*
- * Get the table of properties from a buffer. The table will be indexed with
- * strings, so table_get/table_set should be called with a char** as keys.
- * Values are pointers, but are assumed to be strings, though nothing in the
- * buffer system relies on this. Higher level systems may well rely on this, so
- * values should be set to valid char**s.
- *
- * @param b A pointer to the buffer to get the table of properties from.
- *
- * @return  A pointer to the table of properties for this particular buffer,
- *          NULL on error.
- *
- */
-table *buffer_get_properties(buffer *b);
 
 #endif /* BUFFER_CORE_H */

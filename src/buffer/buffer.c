@@ -18,7 +18,12 @@ struct buffer_s
 {
     chunk *currchunk; /* Linked list (most recent link) of chunks */
     table *properties;
+    int    batch_enabled;
+    lineno batch_start;
+    lineno batch_end;
 };
+
+hook_add(buffer_on_batch_region, 3);
 
 hook_add(buffer_line_on_delete_pre,  2);
 hook_add(buffer_line_on_delete_post, 2);
@@ -101,9 +106,11 @@ static inline int buffer_prop_get_(buffer *b, const char *property)
  *
  */
 #define hook_call_buf(hook, b, ...)                \
-    buffer_prop_set(b, locked, true);           \
-    hook_call(hook, b, __VA_ARGS__);            \
-    buffer_prop_set(b, locked, false);
+    do {                                           \
+        buffer_prop_set(b, locked, true);          \
+        hook_call(hook, b, __VA_ARGS__);           \
+        buffer_prop_set(b, locked, false);         \
+    } while (0)
 
 /*
  * Gets the chunk containing a specific line in a buffer. This function also
@@ -144,14 +151,11 @@ buffer *buffer_init(void)
     buffer_prop_set(rtn, modified, false);
     buffer_prop_set(rtn, locked,   false);
 
+    rtn->batch_enabled = 0;
+
     hook_call(buffer_on_create, rtn);
 
     return rtn;
-}
-
-table *buffer_get_properties(buffer *b)
-{
-    return b->properties;
 }
 
 void buffer_free(buffer *b)
@@ -167,6 +171,30 @@ void buffer_free(buffer *b)
 
     /* Free the actual buffer */
     free(b);
+}
+
+int buffer_batch_start(buffer *b)
+{
+    b->batch_enabled = 1;
+    b->batch_start   = INVALID_INDEX;
+    b->batch_end     = INVALID_INDEX;
+}
+
+int buffer_batch_end(buffer *b)
+{
+    b->batch_enabled = 0;
+
+    if (b->batch_start == INVALID_INDEX)
+        return 0;
+
+    hook_call(buffer_on_batch_region, b, &(b->batch_start), &(b->batch_end));
+
+    return 0;
+}
+
+table *buffer_get_properties(buffer *b)
+{
+    return b->properties;
 }
 
 static inline chunk *buffer_get_containing_chunk(buffer *b, lineno ln)
@@ -186,11 +214,11 @@ line *buffer_get_line_struct(buffer *b, lineno ln)
     chunk *c;
 
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
-              return -1);
+              return NULL);
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
-              return -1);
+              return NULL);
 
-    return vec_lines_get(c, offset);
+    return vec_lines_get((vec_lines *)c, offset);
 }
 
 int buffer_insert(buffer *b, lineno ln)
@@ -209,7 +237,8 @@ int buffer_insert(buffer *b, lineno ln)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    hook_call_buf(buffer_line_on_insert_pre, b, &ln);
+    if (!b->batch_enabled)
+        hook_call_buf(buffer_line_on_insert_pre, b, &ln);
 
     if (buffer_prop_get(b, readonly))
     {
@@ -225,7 +254,15 @@ int buffer_insert(buffer *b, lineno ln)
     TRACE_INT(buffer_chunk_insert_line(c, offset),
               return -1);
 
-    hook_call_buf(buffer_line_on_insert_post, b, &ln);
+    if (!b->batch_enabled)
+        hook_call_buf(buffer_line_on_insert_post, b, &ln);
+
+    else
+    {
+        b->batch_end  += 1;
+        b->batch_end   = MAX(b->batch_end, ln);
+        b->batch_start = MIN(b->batch_start, ln);
+    }
 
     return 0;
 }
@@ -246,7 +283,8 @@ int buffer_delete(buffer *b, lineno ln)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return -1);
 
-    hook_call_buf(buffer_line_on_delete_pre, b, &ln);
+    if (!b->batch_enabled)
+        hook_call_buf(buffer_line_on_delete_pre, b, &ln);
 
     if (buffer_prop_get(b, readonly))
     {
@@ -265,7 +303,15 @@ int buffer_delete(buffer *b, lineno ln)
     /* Set the new current chunk to the valid chunk */
     b->currchunk = c;
 
-    hook_call_buf(buffer_line_on_delete_post, b, &ln);
+    if (!b->batch_enabled)
+        hook_call_buf(buffer_line_on_delete_post, b, &ln);
+
+    else
+    {
+        b->batch_end  -= 1;
+        b->batch_end   = MAX(b->batch_end, ln);
+        b->batch_start = MIN(b->batch_start, ln);
+    }
 
     return 0;
 }
@@ -299,7 +345,8 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     ASSERT_PTR(b, high,
                return -1);
 
-    ASSERT(buffer_prop_get(b, locked) == 0, high, return -1);
+    if (!b->batch_enabled)
+        ASSERT(buffer_prop_get(b, locked) == 0, high, return -1);
 
     /* Get the chunk, and depth into that chunk of where we want to get. */
     TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
@@ -322,7 +369,14 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     TRACE_INT(buffer_chunk_set_line(c, offset, v),
               return -1);
 
-    hook_call_buf(buffer_line_on_change_post, b, &ln, v);
+    if (!b->batch_enabled)
+        hook_call_buf(buffer_line_on_change_post, b, &ln, v);
+
+    else
+    {
+        b->batch_end   = MAX(b->batch_end, ln);
+        b->batch_start = MIN(b->batch_start, ln);
+    }
 
     return 0;
 }
