@@ -117,8 +117,8 @@ hash hashes_mem(char *mem, size_t n)
 
     while (n >= 4)
     {
-        uint32_t i, den;
-        double   recp;
+        uint32_t i;
+        double   recp, den;
         void    *fptr;
 
         i    = *(uint32_t *)mem;
@@ -148,9 +148,9 @@ hash hashes_mem(char *mem, size_t n)
          * that are represented well in binary *
          * 1/2, 1/4 etc, and makes division    *
          * by zero a nonissue.                 */
-        den  = (i << 1) - 1;
+        den  = ((double)i * 2.0) - 1;
 
-        /* Find the reciprocal as a double.    */
+        /* Find the reciprocal.                */
         recp = 1 / (double)den;
         fptr = &recp;
 
