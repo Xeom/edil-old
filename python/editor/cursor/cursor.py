@@ -1,15 +1,20 @@
-import core.windows
+import symbols.lib
 
-from editor.cursor.regioncursor import RegionCursor
+import core.windows
+import editor.cursor.point
 
 class BufferCursors:
+    default = None
+
     def __init__(self, buffer):
         self.cursors   = []
         self.selectind = 0
 
         self.buffer   = buffer
 
-    def spawn(self, cls=RegionCursor):
+    def spawn(self, cls=None):
+        if cls == None:
+            cls = self.default
         self.cursors.append(cls(self.buffer))
 
     def select_next(self):
@@ -22,13 +27,17 @@ class BufferCursors:
 
     @property
     def selected(self):
+        if not self.cursors:
+            return None
+
         return self.cursors[self.selectind]
 
 class Cursors:
+    default = None
     def __init__(self):
         self.buffers = {}
 
-    def get_buffer_cursors(self, buffer):
+    def get_buffer_cursor(self, buffer):
         if buffer not in self.buffers:
             new = BufferCursors(buffer)
             self.buffers[buffer] = new
@@ -41,6 +50,6 @@ class Cursors:
     def current(self):
         buffer = core.windows.get_selected().buffer
 
-        return self.get_buffer_cursors(buffer)
+        return self.get_buffer_cursor(buffer)
 
 cursors = Cursors()

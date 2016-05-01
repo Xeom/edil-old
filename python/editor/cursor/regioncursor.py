@@ -1,4 +1,7 @@
+from editor.cursor.cursor import cursors, BufferCursors
 from editor.cursor.point import Point
+
+import editor.cursor.point
 
 class RegionCursor:
     def __init__(self, buffer):
@@ -23,6 +26,12 @@ class RegionCursor:
             self.region_delete()
 
         self.runner.insert_char(char)
+
+    def insert(self, string):
+        if self.active:
+            self.region_delete()
+
+        self.runner.insert(string)
 
     def delete_char(self):
         if self.active:
@@ -62,3 +71,5 @@ class RegionCursor:
     @property
     def end(self):
         return max(self.anchor, self.runner)
+
+BufferCursors.default = RegionCursor

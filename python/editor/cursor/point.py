@@ -1,8 +1,7 @@
 import core.buffer
 
 from symbols.vec import str2vec
-
-import sys
+from core.hook   import NativeHook
 
 class Point:
     def __init__(self, buffer):
@@ -42,14 +41,15 @@ class Point:
         self.handle_line_insert = handle_line_insert
 
     def __lt__(self, other):
-        return self.ln  < other.ln \
+        return self.ln < other.ln \
             or (self.ln == other.ln and self.cn < other.cn)
 
     def __gt__(self, other):
         return other.__lt__(self)
 
     def __eq__(self, other):
-        return self.ln == other.ln \
+        return isinstance(other, Point) and \
+            self.ln == other.ln \
             and self.cn == other.cn
 
     def __le__(self, other):
@@ -81,6 +81,7 @@ class Point:
         self.ln += n
 
         self.correct_linepos()
+        self.correct_colpos()
 
     def merge_line_back(self):
         if self.ln == 0:
@@ -108,20 +109,25 @@ class Point:
             return
 
         self.cn -= 1
-
-        self.line = self.line[:-1]
+        l = self.line
+        del l[self.cn]
+        self.line = l
 
     def insert(self, string):
-        for char in string.encode("ascii"):
-            self.insert_char(char)
+        l = self.line
+
+        if isinstance(string, str):
+            string = string.encode("ascii")
+
+        l.insert_bytes(self.cn, string)
+
+        self.cn += len(string)
+
+        self.line = l
 
     def insert_char(self, char):
         l = self.line
-
         l.insert(self.cn, char)
-
-
-        print(self.ln, "HIIIIII", file=sys.stderr)
         self.line = l
 
         self.cn += 1
@@ -137,23 +143,43 @@ class Point:
 
         self.ln  += 1
         self.cn   = 0
-        print("BLEN", len(self.buffer), file=sys.stderr)
+
         self.buffer.insert(self.ln)
-        print("BLEN", len(self.buffer), file=sys.stderr)
 
         self.line = end
 
     def correct_colpos(self):
         linelen = len(self.buffer[self.ln])
 
+        if self.cn < 0:
+            self.cn = 0
+
         if self.cn >= linelen:
             self.cn = linelen
 
     def correct_linepos(self):
         length = len(self.buffer)
-        print("LEN", length, file=sys.stderr)
+
         if self.ln >= length:
             self.ln = length - 1
+
+    @property
+    def cn(self):
+        return self._cn
+
+    @cn.setter
+    def cn(self, value):
+        self._cn = value
+        hooks.move.call([self])
+
+    @property
+    def ln(self):
+        return self._ln
+
+    @ln.setter
+    def ln(self, value):
+        self._ln = value
+        hooks.move.call([self])
 
     @property
     def line(self):
@@ -162,3 +188,6 @@ class Point:
     @line.setter
     def line(self, value):
         self.buffer[self.ln] = value
+
+class hooks:
+    move = NativeHook()
