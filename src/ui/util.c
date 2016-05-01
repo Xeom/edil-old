@@ -8,7 +8,10 @@
 #define VEC_TYPED_NAME char
 #include "container/typed_vec.h"
 
+#include "ui/face.h"
+
 #include "ui/util.h"
+
 
 int ui_util_draw_vec_limited_h(uint spacelim, char filler, vec *v)
 {
@@ -56,10 +59,35 @@ int ui_util_draw_str_limited_v(uint spacelim, char filler, const char *str)
 int ui_util_draw_text_limited_h(
     uint spacelim, uint strlim, char filler, const char *str)
 {
+    face f;
+    int n;
+    n = 0;
     while (spacelim && strlim--)
     {
+        uchar chr;
+        chr = (uchar)*(str);
+
+        if (chr == '\n')
+        {
+            f = ui_face_deserialize_face(str);
+            n = ui_face_deserialize_length(str);
+
+            str    += 5;
+            strlim -= 5;
+        }
+        else
+        {
+            if (n)
+            {
+                n--;
+                addch((chtype)chr | ui_face_get_attr(f));
+            }
+            else
+                addch(chr);
+        }
+
+        str++;
         spacelim--;
-        addch((uchar)*(str++));
     }
 
     while (spacelim--)

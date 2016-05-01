@@ -47,4 +47,10 @@ attr_t ui_face_get_attr(face f);
 
 int ui_face_draw_at(face f, int x, int y, uint sizex, uint sizey);
 
+char *ui_face_serialize(face f, short n);
+
+face ui_face_deserialize_face(char *str);
+
+short ui_face_deserialize_length(char *str);
+
 #endif /* UI_FACE_H */

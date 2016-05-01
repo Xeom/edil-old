@@ -76,6 +76,18 @@ face ui_face_init(void)
     return rtn;
 }
 
+int ui_face_draw(face f, uint n)
+{
+    attr_t attr;
+    short  pairid;
+
+    attr   = ui_face_get_attr(f);
+    pairid = colours_get_pairid(f.fg, f.bg);
+
+    ASSERT_NCR(chgat(n, attr, pairid, NULL),
+               high, return -1);
+}
+
 int ui_face_draw_at(face f, int x, int y, uint sizex, uint sizey)
 {
     attr_t attr;
@@ -90,3 +102,84 @@ int ui_face_draw_at(face f, int x, int y, uint sizex, uint sizey)
 
     return 0;
 }
+
+/*
+ * 0000 1010
+ * 1fff 0bbb
+ * 1000 00uh
+ * 10nn nnnn
+ * 10nn nnnn
+ * 1000 nnnn
+ *
+ * f = foreground colour
+ * b = background colour
+ * u = underline
+ * h = bright colour (used for 16 colours)
+ * n = length of format
+ */
+char *ui_face_serialize(face f, short n)
+{
+    char *rtn;
+
+    rtn = malloc(6);
+
+    rtn[0]  = '\n';
+
+    memset(rtn + 1, 0x80, 5);
+
+    rtn[1] |= f.bg;
+    rtn[1] |= f.fg << 4;
+
+    rtn[2] |= f.bright;
+    rtn[2] |= f.under  << 1;
+
+    rtn[3] |=  n        & 0x3f;
+    rtn[4] |= (n >>  6) & 0x3f;
+    rtn[5] |= (n >> 12) & 0x3f;
+
+    rtn[6] = '\0';
+
+    return rtn;
+}
+
+face ui_face_deserialize_face(char *str)
+{
+    face rtn;
+
+    memset(&rtn, 0, sizeof(face));
+
+    ASSERT_PTR(str,        high, return rtn);
+    ASSERT(str[0] == '\n', high, return rtn);
+    ASSERT(str[1] &&
+           str[2],         high, return rtn);
+
+
+    rtn.bg =  str[1] & 0x07;
+    rtn.fg = (str[1] & 0x70) >> 4;
+
+    rtn.bright =  str[2] & 0x01;
+    rtn.under  = (str[2] & 0x02) >> 1;
+
+    return rtn;
+}
+
+short ui_face_deserialize_length(char *str)
+{
+    short rtn;
+
+    rtn  = 0;
+    ASSERT_PTR(str,        high, return rtn);
+    ASSERT(str[0] == '\n', high, return rtn);
+    ASSERT(str[1] &&
+           str[2] &&
+           str[3] &&
+           str[4] &&
+           str[5],         high, return rtn);
+
+    rtn |=  str[3] & 0x3f;
+    rtn |= (str[4] & 0x3f) << 6;
+    rtn |= (str[5] & 0x3f) << 12;
+
+    return rtn;
+}
+
