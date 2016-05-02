@@ -253,3 +253,13 @@ uint win_get_offsety(win *w)
 
     return w->cont.leaf.offsety;
 }
+
+int win_type_isleaf(win *w)
+{
+    return win_isleaf(w);
+}
+
+int win_type_issplitter(win *w)
+{
+    return win_issplit(w);
+}

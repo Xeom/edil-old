@@ -49,6 +49,14 @@ get_buffer = so.win_get_buffer
 get_buffer.argtypes = [win_p]
 get_buffer.restype  = buffer_p
 
+type_isleaf = so.win_type_isleaf
+type_isleaf.argtypes = [win_p]
+type_isleaf.restype  = ctypes.c_int
+
+type_issplitter = so.win_type_issplitter
+type_issplitter.argtypes = [win_p]
+type_issplitter.restype  = ctypes.c_int
+
 class size:
     set_root = so.win_size_set_root
     set_root.argtypes = [ctypes.c_uint, ctypes.c_uint]

@@ -28,6 +28,7 @@ import editor.cursor.regioncursor
 import editor.cursor.cursor
 import editor.keymap.keymap
 import editor.clipboard
+import editor.files
 
 from editor.subcaption   import SubCaption
 from core.key import Key
@@ -42,22 +43,20 @@ def death_by_gentle_suffocation(signum, frame):
 signal.signal(signal.SIGINT,  death_by_gentle_suffocation)
 signal.signal(signal.SIGTERM, death_by_gentle_suffocation)
 
-@SubCaption
+@SubCaption(core.windows.hooks.size.adj_post,
+            core.windows.hooks.split,
+            core.windows.hooks.create)
 def getsize(win):
     x, y = win.size
 
     return "{}x{}".format(x, y)
 
-@SubCaption
+@SubCaption(core.windows.hooks.select)
 def getselected(win):
     if win.selected:
         return "*"
 
     return ""
-
-@SubCaption
-def getlen(win):
-    return str(len(win.buffer))
 
 @core.ui.hooks.win.content.draw_line_pre(800)
 def addlineno(w, b, ln, v):
@@ -78,10 +77,18 @@ def masterexit(keys):
     alive = False
 
 @mastermap.add(Key("F", con=True))
-def masterexit(keys):
-    core.windows.get_selected().buffer.read("testfile.txt")
+def masterload(keys):
+    editor.files.associate(
+        core.windows.get_selected().buffer,
+        "lets-lose-edils-virginity.txt")
 
-    
+@mastermap.add(Key("R", con=True))
+def mastersave(keys):
+    import sys
+    print("HIII\n", file=sys.stderr)
+    editor.files.dump(
+        core.windows.get_selected().buffer)
+
 while alive:
     char = symbols.lib.getch()
 
