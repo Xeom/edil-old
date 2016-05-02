@@ -60,21 +60,21 @@ const char *buffer_locked_property   = "__LOCKED";
  *
  */
 #define buffer_prop_set(b, name, value)         \
-    table_set(b->properties,                    \
-              &buffer_ ## name ## _property,    \
-              &buffer_property_ ## value);
+    ctable_set(b->properties,                    \
+               buffer_ ## name ## _property,    \
+               buffer_property_ ## value);
 
 /* Inline function wrapped by buffer_prop_get */
 static inline int buffer_prop_get_(buffer *b, const char *property)
 {
-    char **val;
+    char *val;
 
-    val = table_get(b->properties, &property);
+    val = ctable_get(b->properties, property);
 
     if (!val)
         return 0;
 
-    return strcmp(*val, buffer_property_true) == 0;
+    return strcmp(val, buffer_property_true) == 0;
 }
 
 /*
