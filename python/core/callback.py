@@ -38,8 +38,6 @@ class Callback:
                 value =  ctypes.POINTER(type)(arg).contents
                 pyargs.append(value)
 
-            import sys
-
             try:
                 return ctypes.cast(self.restype(pyfunct(*pyargs)), ctypes.c_void_p).value
             except:

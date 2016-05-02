@@ -2,7 +2,7 @@ import core.table
 
 class Properties:
     def __init__(self, ptr):
-        self.table = core.table.CharTable(ptr)
+        self.table = core.table.CTable(ptr)
 
     def __setitem__(self, name, value):
         value = str(value)

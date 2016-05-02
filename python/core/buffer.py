@@ -48,6 +48,9 @@ class Buffer:
 
         symbols.buffer.set_line(self.struct, index, vec.struct)
 
+    def __delitem__(self, index):
+        self.delete(index)
+
     def __eq__(self, other):
         return  isinstance(other, Buffer) and \
             cutil.ptreq(self.struct, other.struct)
@@ -65,6 +68,13 @@ class Buffer:
         fptr = cutil.fptr_open(path, "r")
 
         symbols.io.file.read_buffer(self.struct, fptr)
+
+        cutil.fptr_close(fptr)
+
+    def dump(self, path):
+        fptr = cutil.fptr_open(path, "w")
+
+        symbols.io.file.dump_buffer(self.struct, fptr)
 
         cutil.fptr_close(fptr)
 

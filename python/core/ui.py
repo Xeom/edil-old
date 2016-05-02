@@ -85,6 +85,11 @@ def draw_buffer(b):
         if w.buffer == b:
             symbols.ui.win.content.draw(w.struct)
 
+def draw_buffer_after(b, ln):
+    for w in core.windows.get_root():
+        if w.buffer == b:
+            symbols.ui.win.content.draw_lines_after(w.struct, ln)
+
 def draw_window(w):
     symbols.ui.win.draw(w.struct)
 

@@ -29,9 +29,6 @@ so.fclose.restype  = ctypes.c_int
 def fptr_open(path, mode):
     path = os.path.abspath(path)
 
-    if not os.path.isfile(path):
-        raise IOError("File not found '{}'".format(path))
-
     fptr = so.fopen(str2char(path), str2char(mode))
 
     if isnull(fptr):

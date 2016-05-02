@@ -15,7 +15,19 @@ struct bivec_s
 
 static inline size_t bivec_item_size(bivec *bv);
 
-bivec *bivec_init(size_t width, size_t keywidth, compfunct cmpf);
+bivec *bivec_init(size_t width, size_t keywidth, compfunct cmpf)
+{
+    bivec *rtn;
+
+    rtn = malloc(sizeof(bivec));
+    rtn->cmpf     = cmpf;
+    rtn->width    = width;
+    rtn->keywidth = keywidth;
+
+    vec_create(rtn, bivec_item_size(rtn));
+
+    return rtn;
+}
 
 void *bivec_next(bivec *bv, void *iter)
 {

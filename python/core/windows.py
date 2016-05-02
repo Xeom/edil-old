@@ -115,6 +115,10 @@ class Window:
 
         yield Window(sub)
 
+
+    def __hash__(self):
+        return cutil.ptr2int(self.struct)
+
     def next(self):
         return Window(symbols.win.iter.next(self.struct))
 
@@ -123,6 +127,12 @@ class Window:
 
     def adj(self, n):
         symbols.win.size.adj_splitter(self.struct, n)
+
+    def isleaf(self):
+        return bool(symbols.win.type_isleaf(self.struct))
+
+    def issplitter(self):
+        return bool(symbols.win.type_issplitter(self.struct))
 
 class hooks:
     class size:

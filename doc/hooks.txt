@@ -31,9 +31,10 @@ BUFFER HOOKS
   pointer to a lineno integer, containing the linenumber of the line the hook is
   being called with reference to.
 
-  The locked flag of the buffer is set before calling any of these hooks. This
-  flag prevents any modifying operations on the content of the buffer and
-  cannot be set by the buffer_disable_flag or buffer_enable_flag methods.
+  The _LOCKED property of the buffer is set to TRUE before calling any of these
+  hooks. While it remains TRUE, it prevents any modifying operations on the
+  buffer by functions called by functions mounted to the hook. This is because
+  functions that do this have undefined behaviour.
 
   Using the chunk or line api to change the contents of a buffer will not call
   these hooks, and so is strongly discouraged.

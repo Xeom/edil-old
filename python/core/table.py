@@ -7,20 +7,31 @@ class Table:
         self.struct = ptr
 
     def __getitem__(self, key):
-        kptr = self.valuetoptr(key)
+        kptr = self.keytoptr(key)
         vptr = symbols.table.get(self.struct, kptr)
+
+        if cutil.isnull(vptr):
+            return None
+
         return self.ptrtovalue(vptr)
 
     def __setitem__(self, key, value):
-        kptr = self.valuetoptr(key)
+        kptr = self.keytoptr(key)
         vptr = self.valuetoptr(value)
         symbols.table.set(self.struct, kptr, vptr)
 
-class CharTable(Table):
-    def valuetoptr(self, val):
-        ptr = cutil.str2char(val)
-        return ctypes.cast(ptr, ctypes.c_void_p)
+class CTable(Table):
+    def __getitem__(self, key):
+        if isinstance(key, str):
+            key = key.encode("ascii")
 
-    def ptrtovalue(self, ptr):
-        ptr = ctypes.cast(ptr, ctypes.c_char_p)
-        return ptr.value
+        return symbols.table.cget(self.struct, key)
+
+    def __setitem__(self, key, value):
+        if isinstance(key, str):
+            key = key.encode("ascii")
+
+        if isinstance(value, str):
+            value = value.encode("ascii")
+
+        symbols.table.cset(self.struct, key, value)

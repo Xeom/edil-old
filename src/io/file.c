@@ -34,6 +34,7 @@ int file_dump_buffer(buffer *b, FILE *stream)
         l = buffer_get_line(b, currln++);
 
         file_dump_vec(l, stream);
+        fwrite("\n", 1, 1, stream);
     }
 
     return 0;

@@ -13,6 +13,6 @@ dep/test/%/test.d: test/%/test.c
 	@$(call pinfo,"Creating dep file $@")
 	mkdir -p $(@D)
 	printf test/$*/ > $@
-	gcc -MM $(W_FLAGS) $(I_FLAGS) $< -o - | sed -e "s/.o/.out/" >> $@
+	gcc -MM $(W_FLAGS) $(I_FLAGS) $< -o - | sed -e "s/\.o/\.out/" >> $@
 
 .PHONY: deps

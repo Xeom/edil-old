@@ -11,6 +11,8 @@ static uint win_size_root_y;
 hook_add(win_size_on_adj_pre,  2);
 hook_add(win_size_on_adj_post, 2);
 
+/* These two are called by win_size_adj_splitter depending *
+ * on the type of the window being adjusted.               */
 static int win_size_adj_splitter_lr(win *w, int adj);
 static int win_size_adj_splitter_ud(win *w, int adj);
 
@@ -110,6 +112,8 @@ int win_size_resize_x(win *w, uint newsize)
 {
     if (w->type == udsplit)
     {
+        /* If the window is up-down, each sub needs to be resized to the same *
+         * width.                                                             */
         win_size_resize_x(w->cont.split.sub1, newsize);
         win_size_resize_x(w->cont.split.sub2, newsize);
     }
@@ -119,10 +123,14 @@ int win_size_resize_x(win *w, uint newsize)
         float adjfract;
         uint newoffset;
 
+        /* Get divide the new size by the current size */
         adjfract = (float)newsize / (float)win_size_get_x(w);
+        /* Multiply that by the current sub2offset to get the new sub2offset */
         newoffset = (uint)((float)w->cont.split.sub2offset * adjfract);
 
+        /* Resize sub1 with x size of sub2's offset */
         win_size_resize_x(w->cont.split.sub1, newoffset);
+        /* Resize sub2 with the new x size of the window, subtract its offset */
         win_size_resize_x(w->cont.split.sub2, newsize - newoffset);
 
         w->cont.split.sub2offset = newoffset;
@@ -131,6 +139,7 @@ int win_size_resize_x(win *w, uint newsize)
     return 0;
 }
 
+/* Same as above, but lr/ud and x and y swapped */
 int win_size_resize_y(win *w, uint newsize)
 {
     if (w->type == lrsplit)

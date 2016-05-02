@@ -14,7 +14,7 @@ class Point:
         self.ln = 0
 
         @core.buffer.hooks.line.delete_post(500)
-        def handle_line_delete(b, ln, v):
+        def handle_line_delete(b, ln):
             if self.ln >= ln.value and self.buffer == b:
                 self.ln -= 1
 
@@ -89,9 +89,9 @@ class Point:
 
         oldline = self.line
 
-        self.buffer.delete(self.ln)
-
         self.ln  -= 1
+
+        self.buffer.delete(self.ln + 1)
 
         newline   = self.line
         self.cn = len(newline)
@@ -140,11 +140,11 @@ class Point:
         end.delete(0, self.cn)
 
         self.line = start
-
-        self.ln  += 1
         self.cn   = 0
 
-        self.buffer.insert(self.ln)
+        self.buffer.insert(self.ln + 1)
+
+        self.ln += 1
 
         self.line = end
 
