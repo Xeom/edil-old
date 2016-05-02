@@ -230,6 +230,23 @@ static size_t table_find_key(table *t, char *k, int *new)
     return ind;
 }
 
+int ctable_set(table *t, char *k, char *value)
+{
+    int    new;
+    size_t ind;
+
+    char *newk;
+    char *newv;
+
+    newk = malloc(strlen(k));
+    newv = malloc(strlen(value));
+
+    strcpy(newk, k);
+    strcpy(newv, value);
+
+    table_set(t, &newk, &newv);
+}
+
 int table_set(table *t, void *k, void *value)
 {
     int    new;
@@ -254,6 +271,18 @@ int table_set(table *t, void *k, void *value)
     return 0;
 }
 
+char *ctable_get(table *t, char *k)
+{
+    char **rtn;
+
+    rtn = table_get(t, &k);
+
+    if (!rtn)
+        return NULL;
+
+    return *rtn;
+}
+
 void *table_get(table *t, void *k)
 {
     int    new;
@@ -269,6 +298,28 @@ void *table_get(table *t, void *k)
     if (new) return NULL;
 
     return table_index_data(t, ind);
+}
+
+int ctable_delete(table *t, char *k)
+{
+    int new, rtn;
+    size_t ind;
+    char *oldk;
+    char *oldv;
+
+    ind = table_find_key(t, &k, &new);
+
+    if (new) return -1;
+
+    oldk = *(char **)table_index_key(t, ind);
+    oldv = *(char **)table_index_data(t, ind);
+
+    rtn = table_delete(t, &k);
+
+    free(oldk);
+    free(oldv);
+
+    return rtn;
 }
 
 int table_delete(table *t, void *k)
@@ -299,7 +350,6 @@ int table_delete(table *t, void *k)
             break;
 
         moditem = table_index_key(t, table_key_hash(t, item) % t->capacity);
-
 
         if ((moditem <= open    && open    < item)    ||
             (open    <  item    && item    < moditem) ||

@@ -1,50 +1,93 @@
 import core.windows
+import core.ui
+
+class WinCaption:
+    wincaptions = {}
+
+    def __init__(self, w):
+        self.parts  = []
+        self.window = w
+        self.wincaptions[w] = self
+
+    @classmethod
+    def updatesub(self, sub):
+        for caption in self.wincaptions:
+            caption.generate(sub)
+            caption.draw()
+
+    def generate(self, sub):
+        index = SubCaption.subcaptions.index(sub)
+
+        while len(self.parts) <= index:
+            self.parts.append("")
+
+        self.parts[index] = sub.generate(self.window)
+
+    def draw(self):
+        self.window.caption = " ".join(filter(None, self.parts))
+        core.ui.nc_refresh()
 
 class SubCaption:
     subcaptions = []
 
-    @classmethod
-    def update(cls, w):
-        for sub in w:
-            cls.updatewin(sub)
+    def __init__(self, *hooks):
+        self.hookfuncts = []
 
-    @classmethod
-    def updatewin(cls, w):
-        cap = []
-        import sys
+        for hook in hooks:
+            self.addhookfunct(hook)
 
-        for instance in cls.subcaptions:
-            try:
-                sub = instance.funct(w)
-            except:
-                continue
-
-            cap.append(sub)
-
-        w.caption = "-".join(cap)
-
-    def __init__(self, funct):
         self.subcaptions.append(self)
-        self.funct   = funct
-        self.enabled = False
 
-    def move_left(self):
-        ind = self.subcaptions.find(self)
-        self.subcaptions.remove(self)
-        self.subcaptions.insert(self, ind - 1)
+    def __call__(self, funct):
+        self.funct = funct
 
-    def move_right(self):
-        ind = self.subcaptions.find(self)
-        self.subcaptions.remove(self)
-        self.subcaptions.insert(self, ind + 1)
+        for cap in WinCaption.wincaptions.values():
+            cap.generate(self)
+            cap.draw()
 
-@core.windows.hooks.split (900)
-@core.windows.hooks.select(900)
-def update_two(w1, w2):
-    SubCaption.update(w1)
-    SubCaption.update(w2)
+    def addhookfunct(self, hook):
+        def hf(*args):
+            args = filter(lambda a: isinstance(a, core.windows.Window),
+                          args)
 
+            for w in args:
+                for sub in w:
+                    if w not in WinCaption.wincaptions:
+                        continue
 
-@core.windows.hooks.create(900)
-def update_one(w1):
-    SubCaption.update(w1)
+                    caption = WinCaption.wincaptions[w]
+                    caption.updatesub(self)
+                    caption.draw()
+
+        self.hookfuncts.append(hf)
+
+        hook.mount(hf, 800)
+
+    def generate(self, win):
+        return self.funct(win)
+
+@core.windows.hooks.delete_pre(100)
+def handle_window_delete(w):
+    if w in WinCaption.wincaptions:
+        del   WinCaption.wincaptions[w]
+
+@core.windows.hooks.create(100)
+@core.windows.hooks.split(100)
+def handle_window_change(*args):
+    args = filter(lambda w: isinstance(w, core.windows.Window), args)
+
+    for w in args:
+        if w.isleaf():
+            if w not in WinCaption.wincaptions:
+                cap = WinCaption(w)
+
+                for sub in SubCaption.subcaptions:
+                    cap.generate(sub)
+
+                cap.draw()
+
+        else:
+            if w in WinCaption.wincaptions:
+                del WinCaption.wincaptions[w]
+
+handle_window_change(*list(core.windows.get_root()))

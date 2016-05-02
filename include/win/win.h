@@ -38,4 +38,8 @@ uint win_get_offsetx(win *w);
 
 uint win_get_offsety(win *w);
 
+int win_type_isleaf(win *w);
+
+int win_type_issplitter(win *w);
+
 #endif /* WIN_WIN_H */
