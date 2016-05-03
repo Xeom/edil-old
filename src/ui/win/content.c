@@ -46,7 +46,6 @@ int ui_win_content_draw(win *w)
 int ui_win_content_draw_lines_after(win *w, lineno ln)
 {
     lineno curr, max;
-    buffer *b;
 
     curr = MAX(ln, win_get_offsety(w));
     max  = win_size_get_y(w) + ln;

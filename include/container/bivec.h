@@ -6,6 +6,8 @@ typedef struct bivec_s bivec;
 
 typedef int  (*compfunct)(char *, char *);
 
+bivec *bivec_init(size_t width, size_t keywidth, compfunct cmpf);
+
 void *bivec_next(bivec *bv, void *iter);
 
 void *bivec_get_key(bivec *bv, void *iter);

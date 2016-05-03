@@ -178,6 +178,8 @@ int buffer_batch_start(buffer *b)
     b->batch_enabled = 1;
     b->batch_start   = INVALID_INDEX;
     b->batch_end     = INVALID_INDEX;
+
+    return 0;
 }
 
 int buffer_batch_end(buffer *b)

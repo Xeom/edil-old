@@ -28,7 +28,7 @@ static int    table_key_isnull (table *t, char *k);
 static hash   table_key_hash   (table *t, char *k);
 static int    table_key_eq     (table *t, char *a, char *b);
 
-static size_t table_find_key(table *t, char *k, int *new);
+static size_t table_find_key(table *t, void *k, int *new);
 
 table *table_init(
     size_t width, size_t keywidth, hashfunct hshf, keqfunct keqf, char *nullval)
@@ -200,7 +200,7 @@ static int table_resize_smaller(table *t)
     return 0;
 }
 
-static size_t table_find_key(table *t, char *k, int *new)
+static size_t table_find_key(table *t, void *k, int *new)
 {
     size_t ind, cap;
     char  *compk;
@@ -230,11 +230,8 @@ static size_t table_find_key(table *t, char *k, int *new)
     return ind;
 }
 
-int ctable_set(table *t, char *k, char *value)
+int ctable_set(table *t, const char *k, const char *value)
 {
-    int    new;
-    size_t ind;
-
     char *newk;
     char *newv;
 
@@ -244,7 +241,7 @@ int ctable_set(table *t, char *k, char *value)
     strcpy(newk, k);
     strcpy(newv, value);
 
-    table_set(t, &newk, &newv);
+    return table_set(t, &newk, &newv);
 }
 
 int table_set(table *t, void *k, void *value)
@@ -271,7 +268,7 @@ int table_set(table *t, void *k, void *value)
     return 0;
 }
 
-char *ctable_get(table *t, char *k)
+char *ctable_get(table *t, const char *k)
 {
     char **rtn;
 
@@ -300,7 +297,7 @@ void *table_get(table *t, void *k)
     return table_index_data(t, ind);
 }
 
-int ctable_delete(table *t, char *k)
+int ctable_delete(table *t, const char *k)
 {
     int new, rtn;
     size_t ind;

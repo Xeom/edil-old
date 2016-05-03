@@ -24,8 +24,8 @@ struct face_s
 {
     colour bg;
     colour fg;
-    uint bright :1;
-    uint under  :1;
+    char   bright;
+    char   under;
 };
 
 extern const colour face_colour_black;
@@ -45,12 +45,14 @@ face ui_face_init(void);
 
 attr_t ui_face_get_attr(face f);
 
+int ui_face_draw(face f, uint n);
+
 int ui_face_draw_at(face f, int x, int y, uint sizex, uint sizey);
 
 char *ui_face_serialize(face f, short n);
 
-face ui_face_deserialize_face(char *str);
+face ui_face_deserialize_face(const char *str);
 
-short ui_face_deserialize_length(char *str);
+short ui_face_deserialize_length(const char *str);
 
 #endif /* UI_FACE_H */

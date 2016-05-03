@@ -110,7 +110,6 @@ hash hashes_key_str_trans(void *k)
 hash hashes_mem(char *mem, size_t n)
 {
     hash hsh;
-    char *end;
 
     /* Start with a const random seed */
     hsh = hashes_random_seed;

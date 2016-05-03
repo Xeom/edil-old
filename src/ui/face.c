@@ -1,3 +1,6 @@
+#include <stdlib.h>
+#include <string.h>
+
 #include "err.h"
 #include "buffer/line.h"
 #include "container/vec.h"
@@ -17,7 +20,6 @@
 #define pairid_get_bg(id) (short)(id / 8)
 #define pairid_get_fg(id) (short)(7 - id % 8)
 
-
 const colour face_colour_black   = black;
 const colour face_colour_blue    = blue;
 const colour face_colour_green   = green;
@@ -26,6 +28,8 @@ const colour face_colour_red     = red;
 const colour face_colour_magenta = magenta;
 const colour face_colour_yellow  = yellow;
 const colour face_colour_white   = white;
+
+const size_t face_serialized_len = 6;
 
 int ui_face_initsys(void)
 {
@@ -84,8 +88,10 @@ int ui_face_draw(face f, uint n)
     attr   = ui_face_get_attr(f);
     pairid = colours_get_pairid(f.fg, f.bg);
 
-    ASSERT_NCR(chgat(n, attr, pairid, NULL),
+    ASSERT_NCR(chgat((int)n, attr, pairid, NULL),
                high, return -1);
+
+    return 0;
 }
 
 int ui_face_draw_at(face f, int x, int y, uint sizex, uint sizey)
@@ -121,28 +127,28 @@ char *ui_face_serialize(face f, short n)
 {
     char *rtn;
 
-    rtn = malloc(6);
+    rtn = malloc(face_serialized_len + 1);
 
     rtn[0]  = '\n';
 
     memset(rtn + 1, 0x80, 5);
 
-    rtn[1] |= f.bg;
-    rtn[1] |= f.fg << 4;
+    rtn[1] |= (char) f.bg;
+    rtn[1] |= (char)(f.fg << 4);
 
-    rtn[2] |= f.bright;
-    rtn[2] |= f.under  << 1;
+    rtn[2] |= (char) f.bright;
+    rtn[2] |= (char)(f.under  << 1);
 
-    rtn[3] |=  n        & 0x3f;
-    rtn[4] |= (n >>  6) & 0x3f;
-    rtn[5] |= (n >> 12) & 0x3f;
+    rtn[3] |= 0x3f & (char) n;
+    rtn[4] |= 0x3f & (char)(n >>  6);
+    rtn[5] |= 0x3f & (char)(n >> 12);
 
     rtn[6] = '\0';
 
     return rtn;
 }
 
-face ui_face_deserialize_face(char *str)
+face ui_face_deserialize_face(const char *str)
 {
     face rtn;
 
@@ -157,15 +163,18 @@ face ui_face_deserialize_face(char *str)
     rtn.bg =  str[1] & 0x07;
     rtn.fg = (str[1] & 0x70) >> 4;
 
-    rtn.bright =  str[2] & 0x01;
-    rtn.under  = (str[2] & 0x02) >> 1;
+    rtn.bright = (char)((str[2] & 0x01));
+    rtn.under  = (char)((str[2] & 0x02) >> 1);
 
     return rtn;
 }
 
-short ui_face_deserialize_length(char *str)
+short ui_face_deserialize_length(const char *str)
 {
     short rtn;
+    short bits12;
+
+    bits12 = 0x3f;
 
     rtn  = 0;
     ASSERT_PTR(str,        high, return rtn);
@@ -176,9 +185,9 @@ short ui_face_deserialize_length(char *str)
            str[4] &&
            str[5],         high, return rtn);
 
-    rtn |=  str[3] & 0x3f;
-    rtn |= (str[4] & 0x3f) << 6;
-    rtn |= (str[5] & 0x3f) << 12;
+    rtn |=  (short) (bits12 & str[3]);
+    rtn |=  (short)((bits12 & str[4]) << 6);
+    rtn |=  (short)((bits12 & str[5]) << 12);
 
     return rtn;
 }

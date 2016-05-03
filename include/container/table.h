@@ -141,7 +141,7 @@ size_t table_len(table *t);
  */
 void table_free(table *t);
 
-int ctable_set(table *t, char *k, char *value);
+int ctable_set(table *t, const char *k, const char *value);
 
 /*
  * Set the value in a table associated with a key. If a value is already
@@ -162,7 +162,7 @@ int ctable_set(table *t, char *k, char *value);
  */
 int table_set(table *t, void *k, void *value);
 
-char *ctable_get(table *t, char *k);
+char *ctable_get(table *t, const char *k);
 
 /*
  * Get the value in a table associated with a key. If there is no value
@@ -184,7 +184,7 @@ char *ctable_get(table *t, char *k);
  */
 void *table_get(table *t, void *k);
 
-int ctable_delete(table *t, char *k);
+int ctable_delete(table *t, const char *k);
 
 /*
  * Delete a value associated with a key from a table.
