@@ -1,29 +1,9 @@
 #!/bin/bash
+source pstatus.sh
 
 realfile=/tmp/edil-test-real
 simfile=/tmp/edil-test-sim
 difffile=/tmp/edil-test-diff
-
-pinfo() {
-    ../bracket.sh 35 i  1>&2
-    printf " %s\n" "$1" 1>&2
-}
-
-pwarn() {
-    ../bracket.sh 33 w  1>&2
-    printf " %s\n" "$1" 1>&2
-}
-
-perr() {
-    ../bracket.sh 31 !  1>&2
-    printf " %s\n" "$1" 1>&2
-    exit -1
-}
-
-psucc() {
-    ../bracket.sh 32 .  1>&2
-    printf " %s\n" "$1" 1>&2
-}
 
 function run_test {
     if [[ ! -d $1 ]]; then
@@ -51,24 +31,27 @@ function run_test {
 
     if [[ $? != 0 ]]; then
         perr "Error testing $1."
+        exit -1
     fi
 
     if [[ $simrtn != 0 ]]; then
         perr "Error simulating $1."
+        exit -1
     fi
 
-    pinfo "Comparing simulated and real outputs"
+    pinfo "Comparing simulated and real outputs."
     diff -I "LINE: *" -B $realfile $simfile > $difffile
 
     if [[ -s $difffile ]]; then
-        pwarn "Difference found in results of $1 tests"
-        pinfo "Saving diff to diff/$1, diff/$1.sim diff/$1.real"
+        pwarn "Difference found in results of $1 tests."
+        pinfo "Saving diff to diff/$1, diff/$1.sim diff/$1.real."
 
         [[ -d diff ]] || mkdir diff
 
         cp $difffile diff/$1
         cp $realfile diff/$1.real
         cp $simfile  diff/$1.sim
+
     else
         psucc "Finished testing $1."
     fi

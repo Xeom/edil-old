@@ -103,7 +103,7 @@ void test_for(void)
     PINFO("Doing vec_foreach...");
 
     vec_foreach(v, int, item,
-
+                TEST(_vec_index, lu);
                 TEST(item,        d);
         );
 

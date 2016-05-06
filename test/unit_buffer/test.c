@@ -29,6 +29,9 @@ static void test_print_buffer(buffer *b)
 
         else
             TEST((char *)vec_item(l, 0), s);
+
+
+        vec_free(l);
     }
 }
 
@@ -85,58 +88,9 @@ void test_insert_start(void)
     buffer_free(b);
     vec_free(v);
 }
-/*
-void test_del(void)
-{
-    vec *v;
-    size_t ind;
-
-    v = vec_init(sizeof(int));
-
-    PINFO("Inserting items...");
-
-    for (ind = 0; ind < TEST_LEN; ind++)
-    {
-        int item;
-
-        item = (int)ind;
-        vec_insert(v, ind, 1, &item);
-    }
-
-    PINFO("Doing sparse delete...");
-
-    ind = 0;
-    while (ind < vec_len(v))
-    {
-        if (!(ind / 20 % 2 && ind % 7 && ind % 11))
-        {
-            TEST(ind, lu);
-            TEST(vec_delete(v, ind, 1), d);
-            TEST(vec_len(v),           lu);
-        }
-
-        ++ind;
-    }
-
-    test_print_vec(v);
-
-    PINFO("Doing full delete...");
-
-    while (vec_len(v))
-    {
-        TEST(vec_delete(v, 0, 1),  d);
-        TEST(vec_len(v),          lu);
-    }
-
-    test_print_vec(v);
-
-    vec_free(v);
-}
-*/
 
 int main(void)
 {
     RUNTEST(insert_end);
     RUNTEST(insert_start);
-//    RUNTEST(del);
 }
