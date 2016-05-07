@@ -35,7 +35,7 @@ struct chunk_s
 };
 
 /* Correct the starting lines of all the chunks after and including c */
-static void buffer_chunk_correct_startlines(chunk *c);
+//static void buffer_chunk_correct_startlines(chunk *c);
 
 /* Insert a new chunk after a particular chunk and return it. */
 static chunk *buffer_chunk_insert(chunk *c);
@@ -111,28 +111,17 @@ static void buffer_chunk_free_norecurse(chunk *c)
     vec_lines_free((vec_lines *)c);
 }
 
-static void buffer_chunk_correct_startlines(chunk *c)
+static chunk *buffer_chunk_next(chunk *c)
 {
-    lineno currstart;
+    chunk *rtn;
 
-    if (c->prev)
-        /* Add the previous chunk's size to its start to get this *
-         * chunk's start.                                         */
-        currstart = c->prev->startline + vec_lines_len((vec_lines *)c->prev);
-    else
-        /* Or if it doesn't exist, this is the 1st chunk, so its *
-         * start is 0!                                           */
-        currstart = 0;
+    rtn = c->next;
 
-    do
-    {
-        /* Sum up the sizes of all the chunks, and set their *
-         * startlines to the sum of previous chunks          */
-        c->startline = currstart;
-        currstart += vec_lines_len((vec_lines *)c);
-        c = c->next;
-    }
-    while (c);
+    if (!rtn) return NULL;
+
+    rtn->startline = vec_len((vec *)c) + c->startline;
+
+    return rtn;
 }
 
 static chunk *buffer_chunk_insert(chunk *c)
@@ -200,9 +189,9 @@ static chunk *buffer_chunk_resize_bigger(chunk *c)
     if (len <= BUFFER_CHUNK_MAX_SIZE)
         return c;
 
-    if (c->next)
-        next = c->next;
-    else
+    next = buffer_chunk_next(c);
+
+    if (!next)
         /* Make a new chunk if we're at the end */
         TRACE_PTR(next = buffer_chunk_insert(c), return NULL);
 
@@ -237,7 +226,7 @@ static chunk *buffer_chunk_resize_smaller(chunk *c)
 
     len = vec_lines_len((vec_lines *)c);
 
-    next = c->next;
+    next = buffer_chunk_next(c);
 
     /* If chunk size is sane, return */
     if (len >= BUFFER_CHUNK_MIN_SIZE)
@@ -282,9 +271,6 @@ int buffer_chunk_insert_line(chunk *c, lineno offset)
     TRACE_PTR(buffer_chunk_resize_bigger(c),
               return -1);
 
-    /* That's it really... */
-    buffer_chunk_correct_startlines(c);
-
     return 0;
 }
 
@@ -306,8 +292,6 @@ chunk *buffer_chunk_delete_line(chunk *c, lineno offset)
     /* Resize the chunk */
     ASSERT_PTR(c = buffer_chunk_resize_smaller(c),
                critical, return NULL);
-
-    buffer_chunk_correct_startlines(c);
 
     /* Return a valid chunk */
     return c;
@@ -344,7 +328,7 @@ chunk *buffer_chunk_get_containing(chunk *c, lineno ln)
 
     /* While we're too far backwards, iterate forwards */
     while (ln >= c->startline + vec_lines_len((vec_lines *)c) && c->next)
-        c = c->next;
+        c = buffer_chunk_next(c);
 
     return c;
 }
