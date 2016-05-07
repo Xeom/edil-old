@@ -11,12 +11,17 @@ int test_count;
 #define BRACKET(col, symbol) \
     COL_B(col) "[" COL_D(col) #symbol COL_B(col) "] " COL_END
 
-#define TEST(expression, rtntype)                        \
+#if defined(TEST_NOPRINT)
+# define TEST(expression, rtntype) \
+    {expression}
+#else
+# define TEST(expression, rtntype)                       \
     {                                                    \
         puts("LINE: " STRIFY(__LINE__));                 \
         printf(#expression                               \
                " -> %" #rtntype "\n\n", expression);     \
     }
+#endif
 
 #define RUNTEST(funct)                                                  \
     {                                                                   \

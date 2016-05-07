@@ -61,6 +61,8 @@ function run_test {
     rm $difffile
 }
 
+make -C.. clean_test
+
 [[ -d diff ]] && rm -r diff
 
 if [[ $# == 0 ]]; then

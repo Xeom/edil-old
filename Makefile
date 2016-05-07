@@ -10,7 +10,7 @@ include $(DEP_FILES)
 
 lib.so: $(OBJ_FILES)
 	@$(call pinfo,"Linking...")
-	gcc -shared $(W_FLAGS) $(I_FLAGS) $(L_FLAGS) $^ -o lib.so
+	$(CC) -shared $(W_FLAGS) $(I_FLAGS) $(L_FLAGS) $^ -o lib.so
 	@$(call psucc,"Linked into lib.so")
 	@$(call pinfo,"Copying lib.so to python...")
 	cp $@ python/lib.so
@@ -19,12 +19,12 @@ lib.so: $(OBJ_FILES)
 obj/%.o: src/%.c
 	@$(call pinfo,"Creating object file $@...")
 	mkdir -p $(@D)
-	gcc -c -g -fPIC $(W_FLAGS) $(I_FLAGS) --std=$(STD) $< -o $@
+	$(CC) -c -g -fPIC $(D_FLAGS) $(W_FLAGS) $(I_FLAGS) --std=$(STD) $< -o $@
 	@$(call psucc,"Created object file $@")
 
 test/%.out: test/%.c $(OBJ_FILES)
 	@$(call pinfo,"Creating test executable $@...")
-	gcc -g $(W_FLAGS) $(L_FLAGS) $(I_FLAGS) --std=$(STD)  $^ -o $@
+	$(CC) -g $(D_FLAGS) $(W_FLAGS) $(L_FLAGS) $(I_FLAGS) --std=$(STD)  $^ -o $@
 	@$(call psucc,"Created test executable $@")
 
 clean_dep:

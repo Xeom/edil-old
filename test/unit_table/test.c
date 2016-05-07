@@ -3,7 +3,11 @@
 #include "test.h"
 #include "container/table.h"
 
-#define TEST_LEN 46341
+#if defined(TEST_REDUCED)
+# define TEST_LEN 5000
+#else
+# define TEST_LEN 46341
+#endif
 
 void test_init(void);
 void test_set(void);

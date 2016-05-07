@@ -2,7 +2,11 @@
 #include "container/vec.h"
 #include "buffer/buffer.h"
 
-#define TEST_LEN 20000
+#if defined(TEST_REDUCED)
+# define TEST_LEN 2000
+#else
+# define TEST_LEN 20000
+#endif
 
 void test_insert_end(void);
 void test_insert_start(void);

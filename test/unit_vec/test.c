@@ -1,8 +1,13 @@
 #include "test.h"
 #include "container/vec.h"
 
-#define TEST_LEN 20000
-#define TEST_FIND_LEN 2000
+#if defined(TEST_REDUCED)
+# define TEST_LEN 1000
+# define TEST_FIND_LEN 800
+#else
+# define TEST_LEN 20000
+# define TEST_FIND_LEN 2000
+#endif
 
 void test_insert_end(void);
 void test_insert_start(void);

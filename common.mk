@@ -4,6 +4,7 @@ testify = $(addprefix test/, $(addsuffix /test.c, $(1)))
 
 depify = $(addprefix dep/, $(1:.c=.d))     # Change names into .d paths
 
+D_FLAGS = $(addprefix -D, $(DEFINES))
 L_FLAGS = $(addprefix -l, $(LINKS))    # all the links... (-l*)
 W_FLAGS = $(addprefix -W, $(WARNINGS)) # all the warnings... (-W*)
 I_FLAGS = $(addprefix -I, $(INCLUDES)) # all the include dirs... (-I*)

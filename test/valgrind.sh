@@ -11,7 +11,7 @@ function run_test {
         return
     fi
 
-    make -C.. test/$1/test.out
+    make -C.. DEFINES="TEST_REDUCED NOPRINT" test/$1/test.out
 
     if [[ $? == 2 ]]; then
         perr "Error making $1 test binary."
@@ -37,6 +37,8 @@ function run_test {
 
     rm $valfile
 }
+
+make -C.. clean_test
 
 [[ -d val ]] && rm -r val
 
