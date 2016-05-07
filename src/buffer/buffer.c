@@ -169,6 +169,8 @@ void buffer_free(buffer *b)
     /* Free the chunks (and lines) */
     buffer_chunk_free(b->currchunk);
 
+    ctable_free(b->properties);
+
     /* Free the actual buffer */
     free(b);
 }

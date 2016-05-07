@@ -176,6 +176,15 @@ class Vec:
 
         insert(self.struct, index, num, data)
 
+    def __bytes__(self):
+        width = ctypes.sizeof(self.type)
+        num = self.__len__() * width
+
+        type = ctypes.POINTER(num * ctypes.c_char)
+        rtn  = ctypes.cast(item(self.struct, 0), type)
+
+        return rtn.contents.value
+
     def __iadd__(self, other):
         if not other.__len__():
             return self

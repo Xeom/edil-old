@@ -3,6 +3,8 @@ import os
 import ctypes
 from shared import lib as so
 
+def functptr2type(fptr, type):
+    return ctypes.cast(fptr, ctypes.POINTER(type)).contents
 
 def ptr2int(p):
     return ctypes.cast(p, ctypes.c_void_p).value

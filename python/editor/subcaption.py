@@ -11,7 +11,7 @@ class WinCaption:
 
     @classmethod
     def updatesub(self, sub):
-        for caption in self.wincaptions:
+        for caption in self.wincaptions.values():
             caption.generate(sub)
             caption.draw()
 

@@ -33,6 +33,7 @@ import editor.files
 from editor.subcaption   import SubCaption
 from core.key import Key
 from core.keymap import Keymap
+from core.face   import Face
 
 alive = True
 
@@ -60,11 +61,11 @@ def getselected(win):
 
 @core.ui.hooks.win.content.draw_line_pre(800)
 def addlineno(w, b, ln, v):
-    string = "\x0a\x80\x81\x84\x80\x80"
-    string += hex(ln.value)[2:].zfill(4) + " "
+    face = Face(Face.black, Face.black, bright=True)
+    string =  hex(ln.value)[2:].zfill(4) + " "
+    string = face.serialize(len(string)) + string.encode("ascii")
 
-    for c in reversed(string):
-        v.insert(0, ord(c))
+    v.insert_bytes(0, string)
 
 mastermap = core.keymap.maps["master"]
 @mastermap.add(Key("V", con=True))
@@ -76,16 +77,18 @@ def masterexit(keys):
     global alive
     alive = False
 
-@mastermap.add(Key("F", con=True))
+@mastermap.add(Key("F", con=True), Key("a"))
 def masterload(keys):
-    editor.files.associate(
-        core.windows.get_selected().buffer,
-        "lets-lose-edils-virginity.txt")
+    b = core.windows.get_selected().buffer
+    c = editor.cursor.cursor.cursors.current
 
-@mastermap.add(Key("R", con=True))
+    fn = bytes(b[c.ln])
+
+
+    editor.files.associate(b, fn)
+
+@mastermap.add(Key("F", con=True), Key("s"))
 def mastersave(keys):
-    import sys
-    print("HIII\n", file=sys.stderr)
     editor.files.dump(
         core.windows.get_selected().buffer)
 

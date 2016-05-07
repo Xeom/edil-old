@@ -1,6 +1,10 @@
 import symbols.lib
 
 import core.windows
+import core.ui
+
+from core.face import Face
+
 import editor.cursor.point
 
 class BufferCursors:
@@ -53,3 +57,18 @@ class Cursors:
         return self.get_buffer_cursor(buffer)
 
 cursors = Cursors()
+
+@core.ui.hooks.win.content.draw_line_pre(100)
+def handle_line_draw(w, b, ln, v):
+    if w != core.windows.get_selected():
+        return
+
+    if cursors.current == None:
+        return
+
+    if ln.value != cursors.current.ln:
+        return
+
+    face = Face(Face.white, Face.black)
+
+    v.insert_bytes(cursors.current.cn, face.serialize(1))

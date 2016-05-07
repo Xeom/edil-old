@@ -1,14 +1,15 @@
 import core.buffer
+import core.ui
 
 from symbols.vec import str2vec
 from core.hook   import NativeHook
 
 class Point:
     def __init__(self, buffer):
-        self.buffer = buffer
+        self._ln = None
+        self._cn = None
 
-        if len(self.buffer) == 0:
-            self.buffer.insert(0)
+        self.buffer = buffer
 
         self.cn = 0
         self.ln = 0
@@ -149,7 +150,11 @@ class Point:
         self.line = end
 
     def correct_colpos(self):
-        linelen = len(self.buffer[self.ln])
+        if not len(self.buffer):
+            self.cn = 0
+            return
+
+        linelen = len(self.line)
 
         if self.cn < 0:
             self.cn = 0
@@ -160,7 +165,10 @@ class Point:
     def correct_linepos(self):
         length = len(self.buffer)
 
-        if self.ln >= length:
+        if length == 0:
+            self.ln = 0
+
+        elif self.ln >= length:
             self.ln = length - 1
 
     @property
@@ -169,8 +177,11 @@ class Point:
 
     @cn.setter
     def cn(self, value):
+        old = self._cn
+        hooks.move_pre.call([self])
         self._cn = value
-        hooks.move.call([self])
+        hooks.move_post.call([self])
+        hooks.move_cn.call([self, old, value])
 
     @property
     def ln(self):
@@ -178,11 +189,17 @@ class Point:
 
     @ln.setter
     def ln(self, value):
+        old = self._ln
+        hooks.move_pre.call([self])
         self._ln = value
-        hooks.move.call([self])
+        hooks.move_post.call([self])
+        hooks.move_ln.call([self, old, value])
 
     @property
     def line(self):
+        if len(self.buffer) == 0:
+            self.buffer.insert(0)
+
         return self.buffer[self.ln]
 
     @line.setter
@@ -190,4 +207,20 @@ class Point:
         self.buffer[self.ln] = value
 
 class hooks:
-    move = NativeHook()
+    move_pre  = NativeHook()
+    move_post = NativeHook()
+
+    move_ln   = NativeHook()
+    move_cn   = NativeHook()
+
+@hooks.move_ln(500)
+def handle_ln_move(cursor, old, new):
+    if old != None:
+        core.ui.draw_buffer_line(cursor.buffer, old)
+
+    core.ui.draw_buffer_line(cursor.buffer, new)
+
+@hooks.move_cn(500)
+def handle_cn_move(cursor, old, new):
+    if cursor.ln != None:
+        core.ui.draw_buffer_line(cursor.buffer, cursor.ln)

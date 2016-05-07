@@ -43,6 +43,7 @@ void buffer_line_free(line *l)
 {
     if (!l) return;
 
+    free(l->text);
     free(l);
 }
 

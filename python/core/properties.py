@@ -5,7 +5,6 @@ class Properties:
         self.table = core.table.CTable(ptr)
 
     def __setitem__(self, name, value):
-        value = str(value)
         self.table[name] = value
 
     def __getitem__(self, name):

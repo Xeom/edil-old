@@ -91,13 +91,11 @@ class hooks:
 
     create = core.hook.Hook(
         symbols.buffer.on_create,
-        Buffer,
-        symbols.buffer.lineno)
+        Buffer)
 
     delete = core.hook.Hook(
         symbols.buffer.on_delete,
-        Buffer,
-        symbols.buffer.lineno)
+        Buffer)
 
     delete_struct = core.hook.Hook(
         symbols.buffer.on_delete,

@@ -72,4 +72,12 @@ class RegionCursor:
     def end(self):
         return max(self.anchor, self.runner)
 
+    @property
+    def ln(self):
+        return self.runner.ln
+
+    @property
+    def cn(self):
+        return self.runner.cn
+
 BufferCursors.default = RegionCursor

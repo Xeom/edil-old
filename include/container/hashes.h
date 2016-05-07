@@ -4,12 +4,12 @@
 
 # include "container/table.h"
 
-int hashes_eq_str(void *a, void *b);
+int hashes_eq_str(const void *a, const void *b);
 
-hash hashes_key_str(void *k);
+hash hashes_key_str(const void *k);
 
-hash hashes_key_str_trans(void *k);
+hash hashes_key_str_trans(const void *k);
 
-hash hashes_mem(char *mem, size_t n);
+hash hashes_mem(const char *mem, size_t n);
 
 #endif /* CONTAINER_HASHES_H */

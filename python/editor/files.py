@@ -1,3 +1,5 @@
+import os.path
+
 def revert(b):
     #TODO: "Are you sure?"
 
@@ -6,9 +8,13 @@ def revert(b):
     if filename == None:
         return
 
+    if not os.path.exists(filename):
+        return
+
     for index in reversed(range(len(b))):
         del b[index]
 
+    
     b.read(filename)
 
 def associate(b, filename):

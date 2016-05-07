@@ -103,7 +103,10 @@ class Window:
         symbols.win.split(self.struct, direction)
 
     def __eq__(self, other):
-        return self.struct == other.struct
+        if not isinstance(other, Window):
+            return False
+
+        return hash(self) == hash(other)
 
     def __iter__(self):
         sub = symbols.win.iter.first(self.struct)

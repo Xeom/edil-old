@@ -9,12 +9,12 @@
 #define hash_high_nibl_off (8 * (sizeof(hash)) - 4)
 #define hash_high_byte_off (8 * (sizeof(hash) - 1))
 
-int hashes_eq_str(void *a, void *b)
+int hashes_eq_str(const void *a, const void *b)
 {
     return strcmp(*(char **)a, *(char **)b) == 0;
 }
 
-hash hashes_key_str(void *k)
+hash hashes_key_str(const void *k)
 {
     hash  hsh, high;
     char *str;
@@ -89,7 +89,7 @@ static const unsigned char hashes_random_bytes[256] =
     0x15, 0xCE, 0x55, 0xD1, 0x23, 0xD5, 0x70, 0x52
 };
 
-hash hashes_key_str_trans(void *k)
+hash hashes_key_str_trans(const void *k)
 {
     hash  hsh, high;
     char *str;
@@ -107,7 +107,7 @@ hash hashes_key_str_trans(void *k)
     return hsh;
 }
 
-hash hashes_mem(char *mem, size_t n)
+hash hashes_mem(const char *mem, size_t n)
 {
     hash hsh;
 
