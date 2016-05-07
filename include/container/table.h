@@ -7,8 +7,8 @@
 
 typedef long long unsigned hash;
 
-typedef hash (*hashfunct)(void *);
-typedef int  (*keqfunct)(void *, void *);
+typedef hash (*hashfunct)(const void *);
+typedef int  (*keqfunct)(const void *, const void *);
 
 typedef struct table_s table;
 
@@ -127,6 +127,8 @@ table *table_create(
  *
  */
 size_t table_len(table *t);
+
+void ctable_free(table *t);
 
 /*
  * Free the data associated with a table, and the table itself. This does not

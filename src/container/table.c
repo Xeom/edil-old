@@ -24,11 +24,11 @@ static int table_resize_smaller(table *t);
 static size_t table_item_size(table *t);
 
 static void   table_key_setnull(table *t, char *k);
-static int    table_key_isnull (table *t, char *k);
-static hash   table_key_hash   (table *t, char *k);
-static int    table_key_eq     (table *t, char *a, char *b);
+static int    table_key_isnull (table *t, const char *k);
+static hash   table_key_hash   (table *t, const char *k);
+static int    table_key_eq     (table *t, const char *a, const char *b);
 
-static size_t table_find_key(table *t, void *k, int *new);
+static size_t table_find_key(table *t, const void *k, int *new);
 
 table *table_init(
     size_t width, size_t keywidth, hashfunct hshf, keqfunct keqf, char *nullval)
@@ -66,6 +66,31 @@ table *table_create(
 
     return rtn;
 }
+#include <stdio.h>
+void ctable_free(table *t)
+{
+    size_t cap, ind;
+
+    cap = t->capacity;
+
+    for (ind = 0; ind < cap; ++ind)
+    {
+        char **k, **v;
+
+        k = (char **)table_index_key(t, ind);
+
+        if (table_key_isnull(t, (char *)k))
+            continue;
+
+        v = (char **)table_index_data(t, ind);
+
+        free(*k);
+        free(*v);
+    }
+
+    table_free(t);
+}
+        
 
 void table_free(table *t)
 {
@@ -99,7 +124,7 @@ static inline size_t table_item_size(table *t)
     return t->keywidth + t->width;
 }
 
-static int table_key_isnull(table *t, char *k)
+static int table_key_isnull(table *t, const char *k)
 {
     if (t->nullval)
         return memcmp(k, t->nullval, t->keywidth) == 0;
@@ -124,7 +149,7 @@ static void table_key_setnull(table *t, char *k)
         memset(k, 0, t->keywidth);
 }
 
-static inline hash table_key_hash(table *t, char *k)
+static inline hash table_key_hash(table *t, const char *k)
 {
     if (t->hshf)
         return (hash)((t->hshf)(k));
@@ -132,7 +157,7 @@ static inline hash table_key_hash(table *t, char *k)
         return hashes_mem(k, t->keywidth);
 }
 
-static inline int table_key_eq(table *t, char *a, char *b)
+static inline int table_key_eq(table *t, const char *a, const char *b)
 {
     if (t->keqf)
         return (t->keqf)(a, b);
@@ -200,7 +225,7 @@ static int table_resize_smaller(table *t)
     return 0;
 }
 
-static size_t table_find_key(table *t, void *k, int *new)
+static size_t table_find_key(table *t, const void *k, int *new)
 {
     size_t ind, cap;
     char  *compk;
@@ -232,18 +257,42 @@ static size_t table_find_key(table *t, void *k, int *new)
 
 int ctable_set(table *t, const char *k, const char *value)
 {
+    size_t ind;
+
+    int new;
+
     char *newk;
     char *newv;
 
-    newk = malloc(strlen(k));
-    newv = malloc(strlen(value));
+    ind = table_find_key(t, &k, &new);
 
-    strcpy(newk, k);
-    strcpy(newv, value);
+    if (new)
+    {
+        newk = malloc(strlen(k)     + 1);
+        newv = malloc(strlen(value) + 1);
 
-    return table_set(t, &newk, &newv);
+        strcpy(newk, k);
+        strcpy(newv, value);
+
+        table_set(t, &newk, &newv);
+
+        return 0;
+    }
+    else
+    {
+        newv = *(char **)table_index_data(t, ind);
+        newk = *(char **)table_index_key(t, ind);
+
+        newv = realloc(newv, strlen(value) + 1);
+
+        strcpy(newv, value);
+
+        table_set(t, &newk, &newv);
+
+        return 0;
+    }
 }
-
+    
 int table_set(table *t, void *k, void *value)
 {
     int    new;
