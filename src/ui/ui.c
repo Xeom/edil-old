@@ -17,6 +17,7 @@ int ui_initsys(void)
     start_color();
     noecho();
     cbreak();
+    curs_set(0);
     keypad(stdscr, TRUE);
 
     ui_win_initsys();

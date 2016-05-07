@@ -91,7 +91,15 @@ int ui_util_draw_text_limited_h(
     }
 
     while (spacelim--)
-        addch((uchar)filler);
+    {
+        if (n)
+        {
+            n--;
+            addch((chtype)filler | ui_face_get_attr(f));
+        }
+        else
+            addch((chtype)filler);
+    }
 
     return 0;
 }

@@ -1,11 +1,18 @@
 import ctypes
 from shared import lib as so
 
+import cutil
+
 from symbols.hook     import hook_p
 from symbols.callback import callback_p
 from symbols.win      import win_p
 
 #from symbols.face     import face_p
+class face_s(ctypes.Structure):
+    _fields_ = [("bg", ctypes.c_int),
+                ("fg", ctypes.c_int),
+                ("bright", ctypes.c_char),
+                ("under",  ctypes.c_char)]
 
 initsys = so.ui_initsys
 initsys.argtypes = []
@@ -26,6 +33,51 @@ draw.restype  = ctypes.c_int
 resize = so.ui_resize
 resize.argtypes = []
 resize.restype  = ctypes.c_int
+
+class face:
+    colour_black   = cutil.functptr2type(so.face_colour_black,   ctypes.c_int)
+    colour_blue    = cutil.functptr2type(so.face_colour_blue,    ctypes.c_int)
+    colour_green   = cutil.functptr2type(so.face_colour_green,   ctypes.c_int)
+    colour_cyan    = cutil.functptr2type(so.face_colour_cyan,    ctypes.c_int)
+    colour_red     = cutil.functptr2type(so.face_colour_red,     ctypes.c_int)
+    colour_magenta = cutil.functptr2type(so.face_colour_magenta, ctypes.c_int)
+    colour_yellow  = cutil.functptr2type(so.face_colour_yellow,  ctypes.c_int)
+    colour_white   = cutil.functptr2type(so.face_colour_white,   ctypes.c_int)
+
+    initsys = so.ui_face_initsys
+    initsys.argtypes = []
+    initsys.restype  = ctypes.c_int
+
+    killsys = so.ui_face_killsys
+    killsys.argtypes = []
+    killsys.restype  = ctypes.c_int
+
+    init = so.ui_face_init
+    init.argtypes = []
+    init.restype  = face_s
+
+    draw = so.ui_face_draw
+    draw.argtypes = [face_s, ctypes.c_uint]
+    draw.restype  = ctypes.c_int
+
+    draw_at = so.ui_face_draw_at
+    draw_at.argtypes = [face_s,
+                        ctypes.c_int,
+                        ctypes.c_int,
+                        ctypes.c_uint,
+                        ctypes.c_uint]
+
+    serialize = so.ui_face_serialize
+    serialize.argtypes = [face_s, ctypes.c_short]
+    serialize.restype  = ctypes.POINTER(ctypes.c_char)
+
+    deserialize_face = so.ui_face_deserialize_face
+    deserialize_face.argtypes = [ctypes.c_char_p]
+    deserialize_face.restype  = face_s
+
+    deserialize_length = so.ui_face_deserialize_length
+    deserialize_length.argtypes = [ctypes.c_char_p]
+    deserialize_length.restype  = ctypes.c_short
 
 class sbar:
     initsys = so.ui_sbar_initsys
@@ -65,8 +117,10 @@ class win:
         on_draw_pre  = ctypes.cast(so.ui_win_content_on_draw_pre,  hook_p)
         on_draw_post = ctypes.cast(so.ui_win_content_on_draw_post, hook_p)
 
-        on_draw_line_pre  = ctypes.cast(so.ui_win_content_on_draw_line_pre,  hook_p)
-        on_draw_line_post = ctypes.cast(so.ui_win_content_on_draw_line_post, hook_p)
+        on_draw_line_pre  = ctypes.cast(so.ui_win_content_on_draw_line_pre,
+                                        hook_p)
+        on_draw_line_post = ctypes.cast(so.ui_win_content_on_draw_line_post,
+                                        hook_p)
 
         draw = so.ui_win_content_draw
         draw.argtypes = [win_p]
