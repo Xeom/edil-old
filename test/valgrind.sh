@@ -1,19 +1,18 @@
-#!/bin/bash
-source pstatus.sh
+#!/bin/sh
+. ./pstatus.sh
 
 valfile=/tmp/edil-test-val
-
 valflags="--error-exitcode=128 --leak-check=full --log-file=$valfile"
 
-function run_test {
-    if [[ ! -d $1 ]]; then
+run_test() {
+    if [ ! -d $1 ]; then
         pwarn "$1 not a directory."
         return
     fi
 
     make -C.. DEFINES="TEST_REDUCED NOPRINT" test/$1/test.out
 
-    if [[ $? == 2 ]]; then
+    if [ $? -eq 2 ]; then
         perr "Error making $1 test binary."
         make -C.. clean_test
         exit -1
@@ -23,11 +22,11 @@ function run_test {
 
     valgrind $valflags $1/test.out >/dev/null
 
-    if [[ $? != 0 ]]; then
+    if [ $? -ne 0 ]; then
         pwarn "Errors detected in $1 test."
         pinfo "Saving errors to val/$1."
 
-        [[ -d val ]] || mkdir val
+        [ -d val ] || mkdir val
 
         cp $valfile val/$1
 
@@ -40,9 +39,9 @@ function run_test {
 
 make -C.. clean_test
 
-[[ -d val ]] && rm -r val
+[ -d val ] && rm -r val
 
-if [[ $# == 0 ]]; then
+if [ $# -eq 0 ]; then
     files=unit_*
 else
     files=$*
