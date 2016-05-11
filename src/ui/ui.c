@@ -4,6 +4,7 @@
 #include "ui/sbar.h"
 #include "ui/face.h"
 #include "ui/win/win.h"
+#include "ui/updates.h"
 #include "win/size.h"
 
 #include "ui/ui.h"
@@ -20,6 +21,7 @@ int ui_initsys(void)
     curs_set(0);
     keypad(stdscr, TRUE);
 
+    ui_updates_initsys();
     ui_win_initsys();
     ui_sbar_initsys();
     ui_face_initsys();

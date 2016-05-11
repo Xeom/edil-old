@@ -50,6 +50,7 @@ SRC_NAMES=\
         ui/sbar            \
         ui/face            \
         ui/util            \
+        ui/updates         \
                            \
             ui/win/win     \
             ui/win/content \

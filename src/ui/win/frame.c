@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <curses.h>
 
 #include "ui/util.h"
