@@ -3,7 +3,7 @@
 
 #  Seperated into seperate file not only for modularity, 
 #  but so bash scripts etc. can read it,
- 
+
 VERSION=0.0.1
 
 CC=gcc
@@ -16,7 +16,7 @@ INC=include
 OBJ=obj
 
 STD=c99
-WARNINGS=all extra pedantic missing-prototypes fatal-errors format conversion declaration-after-statement error
+WARNINGS=all no-unused-parameter extra pedantic missing-prototypes fatal-errors format conversion declaration-after-statement error
 LINKS=ncurses
 INCLUDES=include/ src/ test/
 
@@ -39,6 +39,7 @@ SRC_NAMES=\
         buffer/buffer      \
         buffer/chunk       \
         buffer/line        \
+        buffer/deferline   \
                            \
         container/table    \
         container/vec      \

@@ -10,6 +10,7 @@ import core.key
 import core.keymap
 import core.table
 import core.buffer
+import core.deferline
 import ctypes
 import shared
 import symbols
@@ -17,10 +18,12 @@ import signal
 
 symbols.hook.initsys()
 core.windows.initsys()
+core.deferline.initsys()
 core.ui.initsys()
 core.key.initsys()
 
 core.ui.refresh()
+
 
 import editor.uiupdates
 
@@ -29,7 +32,6 @@ import editor.cursor.cursor
 import editor.keymap.keymap
 import editor.clipboard
 import editor.files
-import editor.lineinsert
 import editor.buffers.ring
 
 from editor.subcaption   import SubCaption
@@ -61,11 +63,11 @@ def getselected(win):
 
     return ""
 
-@editor.lineinsert.hooks.draw_line(500)
-def addlineno(w, b, ln, v, li):
+@core.deferline.hooks.draw(200)
+def addlineno(w, b, ln, li):
     face = Face(Face.black, Face.black, bright=True)
     string =  hex(ln.value)[2:].zfill(4) + " "
-    string = face.serialize(len(string)) + string.encode("ascii")
+    string = face.serialize(len(string) - 1) + string.encode("ascii")
 
     li.insert(0, string)
 

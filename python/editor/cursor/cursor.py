@@ -6,7 +6,6 @@ import core.ui
 from core.face import Face
 
 import editor.cursor.point
-import editor.lineinsert
 
 class BufferCursors:
     default = None
@@ -59,8 +58,8 @@ class Cursors:
 
 cursors = Cursors()
 
-@editor.lineinsert.hooks.draw_line(500)
-def handle_line_draw(w, b, ln, v, li):
+@core.deferline.hooks.draw(500)
+def handle_line_draw(w, b, ln, li):
     if w != core.windows.get_selected():
         return
 

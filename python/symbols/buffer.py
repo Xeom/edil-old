@@ -14,6 +14,11 @@ class buffer_s(ctypes.Structure):
 
 buffer_p = ctypes.POINTER(buffer_s)
 
+class deferline_s(ctypes.Structure):
+    pass
+
+deferline_p = ctypes.POINTER(deferline_s)
+
 lineno = ctypes.c_size_t
 
 on_batch_region = ctypes.cast(so.buffer_on_batch_region, hook_p)
@@ -30,6 +35,17 @@ class line:
 
     on_insert_pre  = ctypes.cast(so.buffer_line_on_insert_pre,  hook_p)
     on_insert_post = ctypes.cast(so.buffer_line_on_insert_post, hook_p)
+
+class deferline:
+    initsys = so.buffer_deferline_initsys
+    initsys.argtypes = []
+    initsys.restype  = ctypes.c_int
+
+    insert = so.buffer_deferline_insert
+    insert.argtypes = [deferline_p, ctypes.c_size_t, ctypes.c_char_p]
+    insert.restype  = ctypes.c_int
+
+    on_draw = ctypes.cast(so.buffer_deferline_on_draw, hook_p)
 
 init = so.buffer_init
 init.argtypes = []

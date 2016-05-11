@@ -102,6 +102,7 @@ class hooks:
         symbols.buffer.buffer_p,
         symbols.buffer.lineno)
 
+
     class line:
         change_pre  = core.hook.Hook(
             symbols.buffer.line.on_change_pre,
