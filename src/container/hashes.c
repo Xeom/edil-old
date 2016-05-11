@@ -161,7 +161,7 @@ hash hashes_mem(const char *mem, size_t n)
          * they change slowly with 1/n. This   *
          * also serves to smoosh the hash      *
          * to higher bits.                     */
-        hsh ^= (hsh << 36);
+        hsh ^= (hsh << 26);
 
         /* xor in the original value. This to  *
          * some degree stops values of the     *

@@ -1,10 +1,11 @@
 import editor.keymap.cursormap
 import editor.keymap.windowmap
+import editor.keymap.buffermap
 
 import core.keymap
 import core.windows
 
-default_buffer_maps = ["master", "cursor-default", "window-default"]
+default_buffer_maps = ["master", "cursor-default", "window-default", "buffer-default"]
 
 core.keymap.maps.add("master")
 

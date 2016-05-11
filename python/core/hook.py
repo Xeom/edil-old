@@ -25,7 +25,9 @@ class HookFunct:
     # to this hookfunct from the appropriate hook, allowing it to die.
     def free(self, obj=None):
         symbols.hook.unmount(self.struct, self.cfunct)
-        self.parent.functs.remove(self)
+
+        if self in self.parent.functs:
+            self.parent.functs.remove(self)
 
     # The python function wrapped up to mount to hook_mount()
     def call(self, args, hook):
@@ -86,10 +88,11 @@ class Hook:
 
 class NativeHookFunct:
     def __init__(self, parent, funct, priority):
-        self.parent = parent
+        self.parent  = parent
         self.pyfunct = weakref.ref(funct, self.free)
+        self.priority = priority
 
-        for index, val in parent.functs:
+        for index, val in enumerate(parent.functs):
             if val.priority <= priority:
                 self.parent.functs.insert(index, self)
                 return
@@ -97,7 +100,8 @@ class NativeHookFunct:
         self.parent.functs.append(self)
 
     def free(self, obj=None):
-        self.parent.functs.remove(self)
+        if self in self.parent.functs:
+            self.parent.functs.remove(self)
 
     def call(self, args):
         pyfunct = self.pyfunct()
