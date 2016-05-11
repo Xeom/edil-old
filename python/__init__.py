@@ -29,6 +29,8 @@ import editor.cursor.cursor
 import editor.keymap.keymap
 import editor.clipboard
 import editor.files
+import editor.lineinsert
+import editor.buffers.ring
 
 from editor.subcaption   import SubCaption
 from core.key import Key
@@ -59,13 +61,13 @@ def getselected(win):
 
     return ""
 
-@core.ui.hooks.win.content.draw_line_pre(800)
-def addlineno(w, b, ln, v):
+@editor.lineinsert.hooks.draw_line(500)
+def addlineno(w, b, ln, v, li):
     face = Face(Face.black, Face.black, bright=True)
     string =  hex(ln.value)[2:].zfill(4) + " "
     string = face.serialize(len(string)) + string.encode("ascii")
 
-    v.insert_bytes(0, string)
+    li.insert(0, string)
 
 mastermap = core.keymap.maps["master"]
 @mastermap.add(Key("V", con=True))
@@ -83,7 +85,6 @@ def masterload(keys):
     c = editor.cursor.cursor.cursors.current
 
     fn = bytes(b[c.ln])
-
 
     editor.files.associate(b, fn)
 

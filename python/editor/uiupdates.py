@@ -56,6 +56,14 @@ def handle_win_split(w):
     core.ui.draw_window(w)
     core.ui.nc_refresh()
 
+@whooks.buffer_set(50)
+def handle_win_buffer_set(w, b):
+    if holding_buffer == w.buffer:
+        return
+
+    core.ui.draw_window(w)
+    core.ui.nc_refresh()
+
 @whooks.delete_post(50)
 def handle_win_delete(w):
     if holding_buffer == w.buffer:

@@ -24,6 +24,7 @@ on_delete_pre  = ctypes.cast(so.win_on_delete_pre,  hook_p)
 on_delete_post = ctypes.cast(so.win_on_delete_post, hook_p)
 on_create = ctypes.cast(so.win_on_create, hook_p)
 on_select = ctypes.cast(so.win_on_select, hook_p)
+on_buffer_set = ctypes.cast(so.win_on_buffer_set, hook_p)
 
 initsys = so.win_initsys
 initsys.argtypes = []
@@ -48,6 +49,10 @@ get_parent.restype  = win_p
 get_buffer = so.win_get_buffer
 get_buffer.argtypes = [win_p]
 get_buffer.restype  = buffer_p
+
+set_buffer = so.win_set_buffer
+set_buffer.argtypes = [win_p, buffer_p]
+set_buffer.restype  = ctypes.c_int
 
 type_isleaf = so.win_type_isleaf
 type_isleaf.argtypes = [win_p]

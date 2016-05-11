@@ -20,7 +20,10 @@ extern hook win_on_create;
 extern hook win_on_delete_pre;
 extern hook win_on_delete_post;
 
+extern hook win_on_buffer_set;
+
 extern win *win_root;
+
 
 int win_initsys(void);
 
@@ -31,6 +34,8 @@ int win_split(win *w, win_dir d);
 int win_delete(win *w);
 
 buffer *win_get_buffer(win *w);
+
+int win_set_buffer(win *w, buffer *b);
 
 win *win_get_parent(win *w);
 

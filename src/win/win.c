@@ -17,6 +17,8 @@ hook_add(win_on_delete_post, 1);
 
 hook_add(win_on_create, 1);
 
+hook_add(win_on_buffer_set, 2);
+
 static win *win_init_leaf(void);
 static win *win_init(void);
 
@@ -237,6 +239,26 @@ buffer *win_get_buffer(win *w)
 
     return w->cont.leaf.b;
 }
+
+int win_set_buffer(win *w, buffer *b)
+{
+    buffer *old;
+
+    if (!win_isleaf(w))
+        return -1;
+
+    if (!b)
+        return -1;
+
+    old = w->cont.leaf.b;
+
+    w->cont.leaf.b = b;
+
+    hook_call(win_on_buffer_set, w, old);
+
+    return 0;
+}
+
 
 uint win_get_offsetx(win *w)
 {

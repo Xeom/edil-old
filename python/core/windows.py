@@ -1,7 +1,7 @@
 import symbols.win
 
 import core.hook
-import core.buffer
+from core.buffer import Buffer
 import ctypes
 import cutil
 
@@ -89,7 +89,11 @@ class Window:
 
     @property
     def buffer(self):
-        return core.buffer.Buffer(symbols.win.get_buffer(self.struct))
+        return Buffer(symbols.win.get_buffer(self.struct))
+
+    @buffer.setter
+    def buffer(self, b):
+        symbols.win.set_buffer(self.struct, b.struct)
 
     @property
     def parent(self):
@@ -175,6 +179,11 @@ class hooks:
         symbols.win.on_select,
         Window,
         Window)
+
+    buffer_set = core.hook.Hook(
+        symbols.win.on_buffer_set,
+        Window,
+        Buffer)
 
     class sidebar:
         set_pre = core.hook.Hook(
