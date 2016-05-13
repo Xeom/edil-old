@@ -99,7 +99,7 @@ static void ui_updates_line_change(vec *args, hook h)
 {
     buffer *b;
     lineno *ln;
-    win    *iter, *last;
+    win    *iter, *first;
 
     unpack_arg(0, buffer, b);
     unpack_arg(1, lineno, ln);
@@ -110,23 +110,24 @@ static void ui_updates_line_change(vec *args, hook h)
     if (ln == NULL)
         return;
 
-    last = win_iter_last(win_root);
-    for (iter = win_iter_first(win_root);
-         iter != last;
-         iter = win_iter_next(iter))
-    {
+
+    first = win_iter_first(win_root);
+    iter = first;
+    do {
         if (b == win_get_buffer(iter))
-            ui_win_content_draw_line(iter, *ln);
-    }
+            ui_win_content_draw_lines_after(iter, *ln);
+
+        iter = win_iter_next(iter);
+    } while (iter != first);
 
     refresh();
 }
 
 static void ui_updates_line_draw_after(vec *args, hook h)
 {
-        buffer *b;
+    buffer *b;
     lineno *ln;
-    win    *iter, *last;
+    win    *iter, *first;
 
     unpack_arg(0, buffer, b);
     unpack_arg(1, lineno, ln);
@@ -137,14 +138,14 @@ static void ui_updates_line_draw_after(vec *args, hook h)
     if (ln == NULL)
         return;
 
-    last = win_iter_last(win_root);
-    for (iter = win_iter_first(win_root);
-         iter != last;
-         iter = win_iter_next(iter))
-    {
+    first = win_iter_first(win_root);
+    iter = first;
+    do {
         if (b == win_get_buffer(iter))
             ui_win_content_draw_lines_after(iter, *ln);
-    }
+
+        iter = win_iter_next(iter);
+    } while (iter != first);
 
     refresh();
 }
