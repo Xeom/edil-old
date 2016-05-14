@@ -19,7 +19,13 @@ class deferline_s(ctypes.Structure):
 
 deferline_p = ctypes.POINTER(deferline_s)
 
+class point_s(ctypes.Structure):
+    pass
+
+point_p = ctypes.POINTER(point_s)
+
 lineno = ctypes.c_size_t
+colno = ctypes.c_size_t
 
 on_batch_region = ctypes.cast(so.buffer_on_batch_region, hook_p)
 
@@ -36,6 +42,61 @@ class line:
     on_insert_pre  = ctypes.cast(so.buffer_line_on_insert_pre,  hook_p)
     on_insert_post = ctypes.cast(so.buffer_line_on_insert_post, hook_p)
 
+class point:
+    initsys = so.buffer_point_initsys
+    initsys.argtypes = []
+    initsys.restype  = ctypes.c_int
+
+    init = so.buffer_point_init
+    init.argtypes = [buffer_p, lineno, colno]
+    init.restype  = point_p
+
+    move_cols = so.buffer_point_move_cols
+    move_cols.argtypes = [point_p, ctypes.c_int]
+    move_cols.restype  = ctypes.c_int
+
+    move_lines = so.buffer_point_move_lines
+    move_lines.argtypes = [point_p, ctypes.c_int]
+    move_lines.restype  = ctypes.c_int
+
+    delete = so.buffer_point_delete
+    delete.argtypes = [point_p, ctypes.c_uint]
+    delete.restype  = ctypes.c_int
+
+    insert = so.buffer_point_insert
+    insert.argtypes = [point_p, ctypes.c_char_p]
+    insert.restype  = ctypes.c_int
+
+    enter = so.buffer_point_enter
+    enter.argtypes = [point_p]
+    enter.restype  = ctypes.c_int
+
+    get_ln = so.buffer_point_get_ln
+    get_ln.argtypes = [point_p]
+    get_ln.restype  = lineno
+
+    set_ln = so.buffer_point_set_ln
+    set_ln.argtypes = [point_p, lineno]
+
+    get_cn = so.buffer_point_get_cn
+    get_cn.argtypes = [point_p]
+    get_cn.restype  = colno
+
+    set_cn = so.buffer_point_set_cn
+    set_cn.argtypes = [point_p, colno]
+
+    get_buffer = so.buffer_point_get_buffer
+    get_buffer.argtypes = [point_p]
+    get_buffer.restype  = buffer_p
+
+    cmp = so.buffer_point_cmp
+    cmp.argtypes = [point_p, point_p]
+    cmp.restype  = ctypes.c_int
+
+    sub = so.buffer_point_sub
+    sub.argtypes = [point_p, point_p]
+    sub.restype  = ctypes.c_long
+
 class deferline:
     initsys = so.buffer_deferline_initsys
     initsys.argtypes = []
@@ -44,6 +105,10 @@ class deferline:
     insert = so.buffer_deferline_insert
     insert.argtypes = [deferline_p, ctypes.c_size_t, ctypes.c_char_p]
     insert.restype  = ctypes.c_int
+
+    get_vec = so.buffer_deferline_get_vec
+    get_vec.argtypes = [deferline_p]
+    get_vec.restype  = vec_p
 
     on_draw = ctypes.cast(so.buffer_deferline_on_draw, hook_p)
 

@@ -1,7 +1,5 @@
 from editor.cursor.cursor import cursors, BufferCursors
-from editor.cursor.point import Point
-
-import editor.cursor.point
+from core.point import Point
 
 class RegionCursor:
     def __init__(self, buffer):
@@ -21,25 +19,19 @@ class RegionCursor:
         self.anchor, self.runner = \
         self.runner, self.anchor
 
-    def insert_char(self, char):
-        if self.active:
-            self.region_delete()
-
-        self.runner.insert_char(char)
-
     def insert(self, string):
         if self.active:
             self.region_delete()
 
         self.runner.insert(string)
 
-    def delete_char(self):
+    def delete(self, n):
         if self.active:
             self.region_delete()
             self.deactivate()
 
         else:
-            self.runner.delete_char()
+            self.runner.delete(n)
 
     def enter(self):
         if self.active:
@@ -60,9 +52,9 @@ class RegionCursor:
     def region_delete(self):
         start = self.start
         end   = self.end
-
-        while end > start:
-            end.delete_char()
+        import sys
+        print(end - start, file=sys.stderr)
+        end.delete(end - start)
 
     @property
     def start(self):
@@ -81,3 +73,4 @@ class RegionCursor:
         return self.runner.cn
 
 BufferCursors.default = RegionCursor
+

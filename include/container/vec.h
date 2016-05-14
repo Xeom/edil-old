@@ -175,18 +175,18 @@ const char *vec_err_str(void);
  * code is the code to perform for each item of the vector.
  *
  */
-#define vec_foreach(vec, type, name, code)               \
-    {                                                    \
-    size_t _vec_len, _vec_index, _vec_index_next;        \
-    _vec_len = vec_len(vec);                             \
-    _vec_index_next = 0;                                 \
-    while ((_vec_index = _vec_index_next) < _vec_len)    \
-        {                                                \
-            type name;                                   \
-            _vec_index_next = _vec_index + 1;            \
-            name = *(type *)vec_item(vec, _vec_index);   \
-            {code;}                                      \
-        }                                                \
+#define vec_foreach(vec, type, name, code)                  \
+    {                                                       \
+        size_t _vec_len, _vec_index, _vec_index_next;       \
+        _vec_len = vec_len(vec);                            \
+        _vec_index_next = 0;                                \
+        while ((_vec_index = _vec_index_next) < _vec_len)   \
+        {                                                   \
+            type name;                                      \
+            _vec_index_next = _vec_index + 1;               \
+            name = *(type *)vec_item(vec, _vec_index);      \
+            {code;}                                         \
+        }                                                   \
     }
 
 /*

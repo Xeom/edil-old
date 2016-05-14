@@ -66,7 +66,7 @@ table *table_create(
 
     return rtn;
 }
-#include <stdio.h>
+
 void ctable_free(table *t)
 {
     size_t cap, ind;
@@ -90,7 +90,6 @@ void ctable_free(table *t)
 
     table_free(t);
 }
-        
 
 void table_free(table *t)
 {
@@ -292,22 +291,21 @@ int ctable_set(table *t, const char *k, const char *value)
         return 0;
     }
 }
-    
+
 int table_set(table *t, void *k, void *value)
 {
     int    new;
     size_t ind;
-
-    ASSERT_PTR(value, high,
-               return -1);
 
     ASSERT_PTR((char *)k, high,
                return -1);
 
     ind = table_find_key(t, k, &new);
 
-    memcpy(table_index_key (t, ind), k, t->keywidth);
-    memcpy(table_index_data(t, ind), value, t->width);
+    memcpy(table_index_key(t, ind), k, t->keywidth);
+
+    if (value)
+        memcpy(table_index_data(t, ind), value, t->width);
 
     if (new) ++(t->usage);
 
@@ -413,3 +411,42 @@ int table_delete(table *t, void *k)
 
     return 0;
 }
+
+void *table_iter_first(table *t)
+{
+    size_t size;
+    void *item;
+
+    if (!t->usage)
+        return NULL;
+
+    size = table_item_size(t);
+    item = t->data;
+
+    while (table_key_isnull(t, item))
+        item = ADDPTR(item, size);
+
+    return ADDPTR(item, t->keywidth);
+}
+
+void *table_iter_next(table *t, void *item)
+{
+    size_t size;
+    void *last;
+
+    item = SUBPTR(item, t->keywidth);
+
+    size = table_item_size(t);
+    last = t->data + size * (t->capacity - 1);
+
+    while (item < last)
+    {
+        item = ADDPTR(item, size);
+
+        if (!table_key_isnull(t, item))
+            return ADDPTR(item, t->keywidth);
+    }
+
+    return NULL;
+}
+

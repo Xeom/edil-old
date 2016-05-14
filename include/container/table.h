@@ -203,4 +203,35 @@ int ctable_delete(table *t, const char *k);
  */
 int table_delete(table *t, void *k);
 
+void *table_iter_first(table *t);
+
+void *table_iter_next(table *t, void *item);
+
+#define table_foreach(table, type, name, code)               \
+    {                                                        \
+        type *_table_ptr;                                    \
+        _table_ptr = table_iter_first(table);                \
+        while (_table_ptr)                                   \
+        {                                                    \
+            type name;                                       \
+            name = *_table_ptr;                              \
+            code;                                            \
+            _table_ptr = table_iter_next(table, _table_ptr); \
+        }                                                    \
+    }
+
+#define table_foreach_ptr(table, type, name, code)           \
+    {                                                        \
+        type *_table_ptr;                                    \
+        _table_ptr = table_iter_first(table);                \
+        while (_table_ptr)                                   \
+        {                                                    \
+            type name;                                       \
+            name = (type)_table_ptr;                         \
+            code;                                            \
+            _table_ptr = table_iter_next(table, _table_ptr); \
+        }                                                    \
+    }
+
+
 #endif /* CONTAINER_TABLE_H */
