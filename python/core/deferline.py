@@ -5,6 +5,7 @@ import symbols.buffer
 import core.hook
 from core.windows import Window
 from core.buffer  import Buffer
+from symbols.vec  import Vec
 
 def initsys():
     symbols.buffer.deferline.initsys()
@@ -18,6 +19,10 @@ class DeferLine:
             string = string.encode("ascii")
 
         symbols.buffer.deferline.insert(self.struct, index, string)
+
+    @property
+    def vec(self):
+        return Vec(symbols.buffer.deferline.get_vec(self.struct), ctypes.c_char)
 
 class hooks:
     draw = core.hook.Hook(

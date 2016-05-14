@@ -16,11 +16,19 @@ INC=include
 OBJ=obj
 
 STD=c99
-WARNINGS=all no-unused-parameter extra pedantic missing-prototypes fatal-errors format conversion declaration-after-statement error
+FOPTIONS=no-diagnostics-show-caret \
+         diagnostics-color=always
+
+WARNINGS=all no-unused-parameter extra pedantic \
+         missing-prototypes fatal-errors format \
+         conversion declaration-after-statement \
+         error
+
 LINKS=ncurses
+
 INCLUDES=include/ src/ test/
 
-TEST_NAMES=unit_table unit_vec
+TEST_NAMES=unit_table unit_vec unit_buffer
 
 SRC_NAMES=\
     core                   \
@@ -40,6 +48,7 @@ SRC_NAMES=\
         buffer/chunk       \
         buffer/line        \
         buffer/deferline   \
+        buffer/point       \
                            \
         container/table    \
         container/vec      \

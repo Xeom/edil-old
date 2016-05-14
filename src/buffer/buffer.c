@@ -392,3 +392,20 @@ lineno buffer_len(buffer *b)
     /* Wrap the chunk function */
     return buffer_chunk_get_total_len(b->currchunk);
 }
+
+size_t buffer_len_line(buffer *b, lineno ln)
+{
+    lineno offset;
+    chunk *c;
+    line  *l;
+
+    TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
+              return 0);
+    TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
+              return 0);
+
+    ASSERT_PTR(l = vec_lines_get((vec_lines *)c, offset), high,
+               return 0);
+
+    return buffer_line_len(l);
+}

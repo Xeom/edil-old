@@ -56,6 +56,35 @@ int ui_updates_initsys(void)
     return 0;
 }
 
+int ui_updates_hold(buffer *b)
+{
+    ui_updates_release();
+    ui_updates_holding_buffer = b;
+
+    return 0;
+}
+
+int ui_updates_release(void)
+{
+    win *first, *iter;
+
+    if (ui_updates_holding_buffer == NULL)
+        return 0;
+
+    first = win_iter_first(win_root);
+    iter = first;
+    do {
+        if (ui_updates_holding_buffer == win_get_buffer(iter))
+            ui_win_draw_subs(iter);
+
+        iter = win_iter_next(iter);
+    } while (iter != first);
+
+    ui_updates_holding_buffer = NULL;
+
+    return 0;
+}
+
 static void ui_updates_win_label_set(vec *args, hook h)
 {
     win *w;

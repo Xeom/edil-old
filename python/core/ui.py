@@ -57,6 +57,13 @@ class hooks:
                 symbols.buffer.lineno,
                 symbols.vec.Vec.Type(ctypes.c_char))
 
+
+def updates_hold(b):
+    symbols.ui.updates.hold(b.struct)
+
+def updates_release():
+    symbols.ui.updates.release()
+
 def initsys():
     symbols.ui.initsys()
     symbols.ui.resize()

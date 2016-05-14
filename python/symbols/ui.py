@@ -5,6 +5,7 @@ import cutil
 
 from symbols.hook     import hook_p
 from symbols.callback import callback_p
+from symbols.buffer   import buffer_p
 from symbols.win      import win_p
 
 #from symbols.face     import face_p
@@ -33,6 +34,21 @@ draw.restype  = ctypes.c_int
 resize = so.ui_resize
 resize.argtypes = []
 resize.restype  = ctypes.c_int
+
+class updates:
+    initsys = so.ui_updates_initsys
+    initsys.argtypes = []
+    initsys.restype  = ctypes.c_int
+
+    hold = so.ui_updates_hold
+    hold.argtypes = [buffer_p]
+    hold.restype  = ctypes.c_int
+
+    release = so.ui_updates_release
+    release.argtypes = []
+    release.restype  = ctypes.c_int
+
+    
 
 class face:
     colour_black   = cutil.functptr2type(so.face_colour_black,   ctypes.c_int)

@@ -8,6 +8,7 @@ D_FLAGS = $(addprefix -D, $(DEFINES))
 L_FLAGS = $(addprefix -l, $(LINKS))    # all the links... (-l*)
 W_FLAGS = $(addprefix -W, $(WARNINGS)) # all the warnings... (-W*)
 I_FLAGS = $(addprefix -I, $(INCLUDES)) # all the include dirs... (-I*)
+F_FLAGS = $(addprefix -f, $(FOPTIONS))
 
 OBJ_FILES  = $(call objify,$(SRC_NAMES))
 SRC_FILES  = $(call srcify,$(SRC_NAMES))

@@ -1,10 +1,11 @@
 import subprocess
 import cProfile
+import core.ui
 
 clipcmd = "xclip -selection clipboard -o -"
 
 def do_paste(cursor):
-#    editor.uiupdates.hold_buffer(cursor.buffer)
+    core.ui.updates_hold(cursor.buffer)
 
     clip = subprocess.check_output(clipcmd, shell=True)
     clip = clip.decode("ascii")
@@ -16,4 +17,4 @@ def do_paste(cursor):
         cursor.enter()
         cursor.insert(line)
 
- #   editor.uiupdates.release_buffer()
+    core.ui.updates_release()

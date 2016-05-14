@@ -78,7 +78,13 @@ int buffer_line_set_vec(line *l, vec *v)
     len = vec_char_len(v);
 
     if (len == 0)
+    {
+        /* If there was aready some text here, free it */
+        if (l->text)
+            free(l->text);
+
         l->text = NULL;
+    }
     else
         /* Resize line->text to fit the new text */
         ASSERT_PTR(l->text   = realloc(l->text, len),
@@ -91,4 +97,11 @@ int buffer_line_set_vec(line *l, vec *v)
     memcpy(l->text, vec_char_item(v, 0), len);
 
     return 0;
+}
+
+size_t buffer_line_len(line *l)
+{
+    ASSERT_PTR(l, high, return INVALID_INDEX);
+
+    return l->length;
 }

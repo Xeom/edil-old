@@ -78,4 +78,6 @@ vec *buffer_line_get_vec(line *l);
  */
 int buffer_line_set_vec(line *l, vec *v);
 
+size_t buffer_line_len(line *l);
+
 #endif /* BUFFER_LINE_H */

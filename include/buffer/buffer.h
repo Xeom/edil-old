@@ -155,4 +155,6 @@ int buffer_set_line(buffer *b, lineno ln, vec *l);
  */
 lineno buffer_len(buffer *b);
 
+size_t buffer_len_line(buffer *b, lineno ln);
+
 #endif /* BUFFER_CORE_H */

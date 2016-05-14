@@ -16,10 +16,12 @@ lib.so: $(OBJ_FILES)
 	cp $@ python/lib.so
 	@$(call psucc,"Copied lib.so to python")
 
+OBJFLAGS= -fPIC $(F_FLAGS) $(D_FLAGS) $(W_FLAGS) $(I_FLAGS)
+
 obj/%.o: src/%.c
 	@$(call pinfo,"Creating object file $@...")
 	mkdir -p $(@D)
-	$(CC) -c -g -fPIC $(D_FLAGS) $(W_FLAGS) $(I_FLAGS) --std=$(STD) $< -o $@
+	$(CC) -c -g $(OBJFLAGS) --std=$(STD) $< -o $@
 	@$(call psucc,"Created object file $@")
 
 test/%.out: test/%.c $(OBJ_FILES)
