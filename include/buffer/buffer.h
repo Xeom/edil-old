@@ -1,5 +1,5 @@
-#if !defined(BUFFER_CORE_H)
-# define BUFFER_CORE_H
+#if !defined(BUFFER_BUFFER_H)
+# define BUFFER_BUFFER_H
 # include "head.h"
 
 # include "container/table.h"
@@ -8,7 +8,6 @@
 # include "hook.h"
 
 # include "buffer/line.h"
-
 
 /* Note that for buffer_line_on*_pre functions, an operation can be   *
  * aborted by enabling the __READONLY property of the buffer. This    *
@@ -65,11 +64,37 @@ buffer *buffer_init(void);
  */
 void buffer_free(buffer *b);
 
+/*
+ * This function is used to enable batch mode of a buffer. When in batch mode,
+ * the range of lines between which any changes were made to the buffer is
+ * stored. Batch mode can be used to get performance increases when doing a lot
+ * of operations on a region of a buffer. Batch mode should be enabled before
+ * and disabled after the operations. This only invoes one hook call, to
+ * buffer_on_batch_region, rather than individual pre and post calls to specific
+ * hooks. This means that various applications may break if batch mode is used,
+ * as they rely on the other hooks, meaning batch mode is best used for special
+ * cases, like loading a file.
+ *
+ * @param b A pointer to the buffer to enable batch mode on.
+ *
+ * @return  0 on success, -1 on error.
+ *
+ */
 int buffer_batch_start(buffer *b);
 
+/*
+ * See buffer_batch_start.
+ * Disables batch mode of a buffer. Calls the buffer_on_batch_region hook with
+ * the linenumbers between which all changes took place.
+ *
+ * @param b A pointer to the buffer to disable batch mode on.
+ *
+ * @return  0 on success, -1 on error.
+ *
+ */
 int buffer_batch_end(buffer *b);
 
-line *buffer_get_line_struct(buffer *b, lineno ln);
+/* Possibly a bad idea ... line *buffer_get_line_struct(buffer *b, lineno ln);*/
 
 /*
  * Get the table of properties from a buffer. The table will be indexed with
@@ -85,7 +110,6 @@ line *buffer_get_line_struct(buffer *b, lineno ln);
  *
  */
 table *buffer_get_properties(buffer *b);
-
 
 /*
  * Create and insert a new line into a buffer at a particular line number.
@@ -155,6 +179,18 @@ int buffer_set_line(buffer *b, lineno ln, vec *l);
  */
 lineno buffer_len(buffer *b);
 
+/*
+ * Get the length of a specific line in a buffer, without having to call
+ * buffer_get_line and create a vector for the contents of the line. This
+ * is significantly faster, as the contents of the line do not have to be 
+ * copied.
+ *
+ * @param b  The buffer to find the length of a line in.
+ * @param ln The line number of the line to find the length of.
+ *
+ * @return   The number of characters in the line.
+ *
+ */
 size_t buffer_len_line(buffer *b, lineno ln);
 
-#endif /* BUFFER_CORE_H */
+#endif /* BUFFER_BUFFER_H */

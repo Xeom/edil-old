@@ -211,7 +211,7 @@ static inline chunk *buffer_get_containing_chunk(buffer *b, lineno ln)
 
     return c;
 }
-
+/*
 line *buffer_get_line_struct(buffer *b, lineno ln)
 {
     lineno offset;
@@ -224,7 +224,7 @@ line *buffer_get_line_struct(buffer *b, lineno ln)
 
     return vec_lines_get((vec_lines *)c, offset);
 }
-
+*/
 int buffer_insert(buffer *b, lineno ln)
 {
     lineno offset;

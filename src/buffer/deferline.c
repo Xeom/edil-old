@@ -41,15 +41,16 @@ deferline *buffer_deferline_init(vec *v)
     rtn = malloc(sizeof(deferline));
 
     rtn->v = v;
-    rtn->inserts = table_init(sizeof(char *), sizeof(int), NULL, NULL, (char *)&buffer_deferline_invalid_index);
+    rtn->inserts = table_init(sizeof(char *), sizeof(int), NULL, NULL,
+                              (char *)&buffer_deferline_invalid_index);
     rtn->insertindices = vec_init(sizeof(size_t));
 
     return rtn;
 }
-
+#include <stdio.h>
 int buffer_deferline_insert(deferline *dl, size_t index, char *str)
 {
-    char *new, **oldptr;
+   char *new, **oldptr;
     size_t inslen, oldlen;
 
     if (index > vec_len(dl->v))
@@ -70,12 +71,13 @@ int buffer_deferline_insert(deferline *dl, size_t index, char *str)
         sind = 0;
         slen = vec_len(dl->insertindices);
 
-        swidth  = slen << 1;
+        swidth  = slen;
         swidth |= swidth >> 16;
         swidth |= swidth >> 8;
         swidth |= swidth >> 4;
         swidth |= swidth >> 2;
         swidth |= swidth >> 1;
+        swidth += 1;
 
         while (swidth >>= 1)
         {
@@ -99,6 +101,11 @@ int buffer_deferline_insert(deferline *dl, size_t index, char *str)
     }
 
     return 0;
+}
+
+vec *buffer_deferline_get_vec(deferline *dl)
+{
+    return dl->v;
 }
 
 int buffer_deferline_dump(deferline *dl)

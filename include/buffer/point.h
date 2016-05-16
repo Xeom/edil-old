@@ -6,9 +6,10 @@
 
 typedef struct point_s point;
 
+/*
+ */
 extern hook buffer_point_on_move_pre;
 extern hook buffer_point_on_move_post;
-
 
 /* A point is basically a cursor. We do not call it a cursor since cursor     *
  * refers to a variety of objects that can be moved around and edit text. A   *
@@ -91,17 +92,45 @@ int buffer_point_delete(point *p, uint n);
  *
  */
 int buffer_point_insert(point *p, char *str);
+
+/*
+ * Insert a new line at a point's location. If the point is midway through a
+ * line, move the content of the line after the point onto the new line. The
+ * point is moved to the start of the new line.
+ *
+ * @param p The point to insert a new line at.
+ *
+ * @return  0 on success, -1 on error.
+ *
+ */
 int buffer_point_enter(point *p);
 
+/*
+ */
 lineno buffer_point_get_ln(point *p);
+
+/*
+ */
 void   buffer_point_set_ln(point *p, lineno ln);
 
+/*
+ */
 colno buffer_point_get_cn(point *p);
+
+/*
+ */
 void  buffer_point_set_cn(point *p, colno cn);
 
+/*
+ */
 buffer *buffer_point_get_buffer(point *p);
 
+/*
+ */
 int  buffer_point_cmp(point *a, point *b);
+
+/*
+ */
 long buffer_point_sub(point *a, point *b);
 
 #endif /* BUFFER_POINT_H */
