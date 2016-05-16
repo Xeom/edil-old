@@ -4,6 +4,36 @@ import core.hook
 from core.buffer import Buffer
 import ctypes
 import cutil
+import weakref
+
+class WindowContainer:
+    def __init__(self):
+        self.by_ptr = weakref.WeakValueDictionary()
+
+    def mount(self):
+        @hooks.delete_struct(50)
+        def handle_delete(struct):
+            ptr = cutil.ptr2int(struct)
+            w   = self.by_ptr.get(ptr)
+
+            if w == None:
+                return
+
+            w.valid = False
+
+        self.handle_delete = handle_delete
+
+    def __call__(self, struct):
+        ptr = cutil.ptr2int(struct)
+        w   = self.by_ptr.get(ptr)
+
+        if w != None:
+            return w
+
+        w = WindowObj(struct)
+        self.by_ptr[ptr] = w
+
+        return w
 
 class direction(symbols.win.dir):
     pass
@@ -20,20 +50,10 @@ def get_selected():
 def get_root():
     return Window(symbols.win.root)
 
-class Window:
+class WindowObj:
     def __init__(self, ptr):
         self.valid  = True
         self.struct = ctypes.cast(ptr, symbols.win.win_p)
-
-        @hooks.delete_struct(900)
-        def handle_delete(struct):
-            if not self.valid:
-                return
-
-            if struct == self.struct:
-                self.valid   = False
-
-        self.handle_delete = handle_delete
 
     @property
     def struct(self):
@@ -107,7 +127,7 @@ class Window:
         symbols.win.split(self.struct, direction)
 
     def __eq__(self, other):
-        if not isinstance(other, Window):
+        if not isinstance(other, WindowObj):
             return False
 
         return hash(self) == hash(other)
@@ -140,6 +160,9 @@ class Window:
 
     def issplitter(self):
         return bool(symbols.win.type_issplitter(self.struct))
+
+
+Window = WindowContainer()
 
 class hooks:
     class size:
@@ -206,3 +229,5 @@ class hooks:
             symbols.win.label.on_caption_set_post,
             Window,
             ctypes.c_char_p)
+
+Window.mount()

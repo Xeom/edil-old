@@ -3,19 +3,42 @@ import symbols.buffer
 import core.hook
 import core.properties
 import cutil
+import weakref
 
 from symbols.vec import VecFreeOnDel
 
-class Buffer:
-    def __init__(self, ptr):
-        self.struct = ctypes.cast(ptr, symbols.buffer.buffer_p)
+class BufferContainer:
+    def __init__(self):
+        self.by_ptr = weakref.WeakValueDictionary()
 
+    def mount(self):
         @hooks.delete_struct(50)
         def handle_delete(struct):
-            if struct == self.struct:
-                self.valid = False
+            ptr = cutil.ptr2int(struct)
+            b   = self.by_ptr.get(ptr)
+
+            if b == None:
+                return
+
+            b.valid = False
 
         self.handle_delete = handle_delete
+
+    def __call__(self, struct):
+        ptr = cutil.ptr2int(struct)
+        b   = self.by_ptr.get(ptr)
+
+        if b != None:
+            return b
+
+        b = BufferObj(struct)
+        self.by_ptr[ptr] = b
+
+        return b
+
+class BufferObj:
+    def __init__(self, ptr):
+        self.struct = ctypes.cast(ptr, symbols.buffer.buffer_p)
 
     @property
     def struct(self):
@@ -52,7 +75,7 @@ class Buffer:
         self.delete(index)
 
     def __eq__(self, other):
-        return  isinstance(other, Buffer) and \
+        return  isinstance(other, BufferObj) and \
             cutil.ptreq(self.struct, other.struct)
 
     def __hash__(self):
@@ -82,6 +105,8 @@ class Buffer:
         self.insert(0)
         self[0] = s
 
+Buffer = BufferContainer()
+
 class hooks:
     batch_region = core.hook.Hook(
         symbols.buffer.on_batch_region,
@@ -101,7 +126,6 @@ class hooks:
         symbols.buffer.on_delete,
         symbols.buffer.buffer_p,
         symbols.buffer.lineno)
-
 
     class line:
         change_pre  = core.hook.Hook(
@@ -135,3 +159,5 @@ class hooks:
             symbols.buffer.line.on_insert_post,
             Buffer,
             symbols.buffer.lineno)
+
+Buffer.mount()

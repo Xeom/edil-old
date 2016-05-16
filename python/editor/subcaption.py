@@ -47,7 +47,7 @@ class SubCaption:
 
     def addhookfunct(self, hook):
         def hf(*args):
-            args = filter(lambda a: isinstance(a, core.windows.Window),
+            args = filter(lambda a: isinstance(a, core.windows.WindowObj),
                           args)
 
             for w in args:
@@ -74,7 +74,7 @@ def handle_window_delete(w):
 @core.windows.hooks.create(100)
 @core.windows.hooks.split(100)
 def handle_window_change(*args):
-    args = filter(lambda w: isinstance(w, core.windows.Window), args)
+    args = filter(lambda w: isinstance(w, core.windows.WindowObj), args)
 
     for w in args:
         if w.isleaf():
