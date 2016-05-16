@@ -97,6 +97,9 @@ class point:
     sub.argtypes = [point_p, point_p]
     sub.restype  = ctypes.c_long
 
+    on_move_pre  = ctypes.cast(so.buffer_point_on_move_pre,  hook_p)
+    on_move_post = ctypes.cast(so.buffer_point_on_move_post, hook_p)
+
 class deferline:
     initsys = so.buffer_deferline_initsys
     initsys.argtypes = []

@@ -2,6 +2,7 @@
 
 #include "hook.h"
 #include "buffer/buffer.h"
+#include "buffer/point.h"
 
 #include "win/win.h"
 #include "win/label.h"
@@ -33,6 +34,7 @@ static void ui_updates_win_select     (vec *args, hook h);
 static void ui_updates_win_full_redraw(vec *args, hook h);
 static void ui_updates_line_change    (vec *args, hook h);
 static void ui_updates_line_draw_after(vec *args, hook h);
+static void ui_updates_point_move     (vec *args, hook h);
 
 int ui_updates_initsys(void)
 {
@@ -52,6 +54,8 @@ int ui_updates_initsys(void)
     hook_mount(&buffer_line_on_delete_post, ui_updates_line_draw_after, 800);
     hook_mount(&buffer_line_on_insert_post, ui_updates_line_draw_after, 800);
     hook_mount(&buffer_on_batch_region,     ui_updates_line_draw_after, 800);
+
+    hook_mount(&buffer_point_on_move_post,  ui_updates_point_move, 800);
 
     return 0;
 }
@@ -139,12 +143,11 @@ static void ui_updates_line_change(vec *args, hook h)
     if (ln == NULL)
         return;
 
-
     first = win_iter_first(win_root);
     iter = first;
     do {
         if (b == win_get_buffer(iter))
-            ui_win_content_draw_lines_after(iter, *ln);
+            ui_win_content_draw_line(iter, *ln);
 
         iter = win_iter_next(iter);
     } while (iter != first);
@@ -172,6 +175,34 @@ static void ui_updates_line_draw_after(vec *args, hook h)
     do {
         if (b == win_get_buffer(iter))
             ui_win_content_draw_lines_after(iter, *ln);
+
+        iter = win_iter_next(iter);
+    } while (iter != first);
+
+    refresh();
+}
+
+static void ui_updates_point_move(vec *args, hook h)
+{
+    point *p;
+    lineno *origln, ln;
+    win *iter, *first;
+    buffer *b;
+
+    unpack_arg(0, point,  p);
+    unpack_arg(1, lineno, origln);
+
+    ln = buffer_point_get_ln(p);
+    b  = buffer_point_get_buffer(p);
+
+    first = win_iter_first(win_root);
+    iter = first;
+    do {
+        if (b == win_get_buffer(iter))
+        {
+            ui_win_content_draw_line(iter, ln);
+            ui_win_content_draw_line(iter, *origln);
+        }
 
         iter = win_iter_next(iter);
     } while (iter != first);

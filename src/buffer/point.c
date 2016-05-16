@@ -20,8 +20,11 @@ static void buffer_point_move_ln(point *p, lineno ln);
 static void buffer_point_fix_cn(point *p);
 static void buffer_point_fix_ln(point *p);
 
-static int buffer_point_move_backward(point *p, uint n);
-static int buffer_point_move_forward(point *p, uint n);
+static int buffer_point_move_cols_backward(point *p, uint n);
+static int buffer_point_move_cols_forward(point *p, uint n);
+
+static int buffer_point_move_lines_backward(point *p, uint n);
+static int buffer_point_move_lines_forward(point *p, uint n);
 
 static long buffer_point_sub_abs(point *larger, point *smaller);
 
@@ -29,7 +32,8 @@ static void buffer_point_handle_line_delete(vec *args, hook h);
 static void buffer_point_handle_line_insert(vec *args, hook h);
 static void buffer_point_handle_line_change(vec *args, hook h);
 
-hook_add(buffer_point_move, 1);
+hook_add(buffer_point_on_move_pre,  1);
+hook_add(buffer_point_on_move_post, 3);
 
 int buffer_point_initsys(void)
 {
@@ -117,6 +121,8 @@ static void buffer_point_move_ln(point *p, lineno ln)
     vec_insert_end(subvec, 1, &p);
 
     p->ln = ln;
+
+    buffer_point_fix_cn(p);
 }
 
 static void buffer_point_fix_cn(point *p)
@@ -141,7 +147,7 @@ static void buffer_point_fix_ln(point *p)
         buffer_point_move_ln(p, buflen - 1);
 }
 
-static int buffer_point_move_backward(point *p, uint n)
+static int buffer_point_move_cols_backward(point *p, uint n)
 {
     lineno ln;
 
@@ -164,7 +170,7 @@ static int buffer_point_move_backward(point *p, uint n)
     return 0;
 }
 
-static int buffer_point_move_forward(point *p, uint n)
+static int buffer_point_move_cols_forward(point *p, uint n)
 {
     size_t buflen;
     size_t linelen;
@@ -198,49 +204,89 @@ static int buffer_point_move_forward(point *p, uint n)
 
 int buffer_point_move_cols(point *p, int n)
 {
+    int    rtn;
+    lineno origln;
+    colno  origcn;
+
+    origln = p->ln;
+    origcn = p->cn;
+
+    hook_call(buffer_point_on_move_pre, p);
+
     if (n < 0)
-        return buffer_point_move_backward(p, (uint)-n);
+        rtn = buffer_point_move_cols_backward(p, (uint)-n);
 
     else if (n > 0)
-        return buffer_point_move_forward(p, (uint)n);
+        rtn = buffer_point_move_cols_forward(p, (uint)n);
 
-    return 0;
+    hook_call(buffer_point_on_move_post, p, &origln, &origcn);
+
+    return rtn;
 }
 
-int buffer_point_move_lines(point *p, int n)
+static int buffer_point_move_lines_forward(point *p, uint n)
 {
-    if (n < 0)
-    {
-        if ((uint)-n > p->ln)
-            buffer_point_move_ln(p, 0);
-        else
-            buffer_point_move_ln(p, p->ln -= (uint)-n);
-    }
+    size_t buflen;
 
-    else if (n > 0)
-    {
-        size_t buflen;
+    buflen = buffer_len(p->b);
 
-        buflen = buffer_len(p->b);
-
-        if ((uint)n + p->ln > buflen)
-            buffer_point_move_ln(p, buflen - 1);
-        else
-            buffer_point_move_ln(p, p->ln + (uint)n);
-    }
+    if (n + p->ln >= buflen)
+        buffer_point_move_ln(p, buflen - 1);
+    else
+        buffer_point_move_ln(p, p->ln + n);
 
     buffer_point_fix_cn(p);
 
     return 0;
 }
 
+static int buffer_point_move_lines_backward(point *p, uint n)
+{
+    if (n >= p->ln)
+        buffer_point_move_ln(p, 0);
+    else
+    {
+        p->ln -= n;
+        buffer_point_move_ln(p, p->ln);
+    }
+
+    return 0;
+}
+
+int buffer_point_move_lines(point *p, int n)
+{
+    int rtn;
+    lineno origln;
+    colno  origcn;
+
+    origln = p->ln;
+    origcn = p->cn;
+
+    hook_call(buffer_point_on_move_pre, p);
+
+    if (n < 0)
+        rtn = buffer_point_move_lines_backward(p, (uint)-n);
+    else if (n > 0)
+        rtn = buffer_point_move_lines_forward(p, (uint)n);
+
+    buffer_point_fix_cn(p);
+
+    hook_call(buffer_point_on_move_post, p, &origln, &origcn);
+
+    return rtn;
+}
+
 int buffer_point_delete(point *p, uint n)
 {
     vec   *origline, *newline;
     colno  origcn;
+    lineno origln;
 
     origline = buffer_get_line(p->b, p->ln);
     origcn   = p->cn;
+    origln   = p->ln;
+
+    hook_call(buffer_point_on_move_pre, p);
 
     if (origline == NULL)
         return -1;
@@ -263,11 +309,14 @@ int buffer_point_delete(point *p, uint n)
     }
 
     vec_delete(newline, p->cn - n, vec_len(newline) - p->cn + n);
-    vec_insert_end(newline, vec_len(origline) - origcn, vec_item(origline, origcn));
+    vec_insert_end(newline, vec_len(origline) - origcn,
+                   vec_item(origline, origcn));
 
     p->cn -= n;
 
     buffer_set_line(p->b, p->ln, newline);
+
+    hook_call(buffer_point_on_move_post, p, &origln, &origcn);
 
     vec_free(origline);
     vec_free(newline);
@@ -279,6 +328,11 @@ int buffer_point_insert(point *p, char *str)
 {
     size_t inslen;
     vec   *l;
+    lineno origln;
+    colno  origcn;
+
+    origln = p->ln;
+    origcn = p->cn;
 
     if (buffer_len(p->b) == 0)
         buffer_insert(p->b, p->ln);
@@ -286,26 +340,36 @@ int buffer_point_insert(point *p, char *str)
     inslen = strlen(str);
     l      = buffer_get_line(p->b, p->ln);
 
+    hook_call(buffer_point_on_move_pre, p);
+
     vec_insert(l, p->cn, inslen, str);
 
     p->cn += inslen;
     buffer_set_line(p->b, p->ln, l);
+
+    hook_call(buffer_point_on_move_post, p, &origln, &origcn);
 
     return 0;
 }
 
 int buffer_point_enter(point *p)
 {
-    lineno newln;
+    lineno newln, origln;
     vec *start, *end;
+    colno origcn;
 
     start = buffer_get_line(p->b, p->ln);
+
+    origln = p->ln;
+    origcn = p->cn;
 
     if (start == NULL)
         return -1;
 
     end = vec_cut(start, p->cn, vec_len(start) - p->cn);
     vec_delete(start,    p->cn, vec_len(start) - p->cn);
+
+    hook_call(buffer_point_on_move_pre, p);
 
     buffer_set_line(p->b, p->ln, start);
 
@@ -317,9 +381,10 @@ int buffer_point_enter(point *p)
 
     buffer_point_move_ln(p, newln);
 
+    hook_call(buffer_point_on_move_post, p, &origln, &origcn);
+
     return 0;
 }
-
 
 lineno buffer_point_get_ln(point *p)
 {
@@ -328,8 +393,20 @@ lineno buffer_point_get_ln(point *p)
 
 void buffer_point_set_ln(point *p, lineno ln)
 {
+    lineno origln;
+    colno  origcn;
+
+    origln = p->ln;
+    origcn = p->cn;
+
+    hook_call(buffer_point_on_move_pre, p);
+
     p->ln = ln;
+
     buffer_point_fix_ln(p);
+    buffer_point_fix_cn(p);
+
+    hook_call(buffer_point_on_move_post, p, &origln, &origcn);
 }
 
 colno buffer_point_get_cn(point *p)
@@ -339,8 +416,18 @@ colno buffer_point_get_cn(point *p)
 
 void buffer_point_set_cn(point *p, lineno cn)
 {
+    lineno origln;
+    colno  origcn;
+
+    origln = p->ln;
+    origcn = p->cn;
+
+    hook_call(buffer_point_on_move_pre, p);
+
     p->cn = cn;
     buffer_point_fix_cn(p);
+
+    hook_call(buffer_point_on_move_post, p, &origln, &origcn);
 }
 
 buffer *buffer_point_get_buffer(point *p)
@@ -423,7 +510,18 @@ static void buffer_point_handle_line_delete(vec *args, hook h)
         );
 
     vec_foreach(tomove, point *, p,
+                lineno origln;
+                colno  origcn;
+
+                origln = p->ln;
+                origcn = p->cn;
+
+                hook_call(buffer_point_on_move_pre, p);
+
                 buffer_point_move_ln(p, p->ln - 1);
+
+                hook_call(buffer_point_on_move_post, p, &origln, &origcn);
+
         );
 
     vec_free(tomove);
@@ -450,7 +548,18 @@ static void buffer_point_handle_line_change(vec *args, hook h)
         return;
 
     vec_foreach(subvec, point *, p,
+                lineno origln;
+                colno  origcn;
+
+                origln = p->ln;
+                origcn = p->cn;
+
+                hook_call(buffer_point_on_move_pre, p);
+
                 buffer_point_fix_cn(p);
+
+                hook_call(buffer_point_on_move_post, p, &origln, &origcn);
+
         );
 }
 
@@ -481,7 +590,17 @@ static void buffer_point_handle_line_insert(vec *args, hook h)
         );
 
     vec_foreach(tomove, point *, p,
+                lineno origln;
+                colno  origcn;
+
+                origln = p->ln;
+                origcn = p->cn;
+
+                hook_call(buffer_point_on_move_pre, p);
+
                 buffer_point_move_ln(p, p->ln + 1);
+
+                hook_call(buffer_point_on_move_post, p, &origln, &origcn);
         );
 
     vec_free(tomove);
