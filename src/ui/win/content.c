@@ -65,7 +65,7 @@ int ui_win_content_draw_line(win *w, lineno ln)
     uint    sizex, sizey;
     uint    offx,  offy;
     int     currx, curry;
-
+    
     b    = win_get_buffer(w);
 
     numlines = buffer_len(b);

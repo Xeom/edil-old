@@ -28,7 +28,7 @@ def cur_right(keys):
 
 @curmap.add(Key("BACKSPACE"))
 def cur_delete(keys):
-    cursors.current.delete_char()
+    cursors.current.delete(1)
 
 @curmap.add(Key("A", con=True))
 def cur_activate(keys):
@@ -37,8 +37,6 @@ def cur_activate(keys):
 @curmap.add(Key("A", esc=True))
 def cur_deactivate(keys):
     cursors.current.deactivate()
-
-import sys
 
 @curmap.add(Key("J", con=True))
 def cur_enter(keys):
@@ -53,7 +51,7 @@ def cur_insert(keys):
     if len(kstr) != 1:
         raise NO
 
-    cursors.current.insert_char(kstr)
+    cursors.current.insert(kstr)
 
 for char in ("!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ "
              "abcdefghijklmnopqrstuvwxyz"

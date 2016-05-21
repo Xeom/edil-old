@@ -44,17 +44,18 @@ class HookFunct:
         pyargs = []
 
         # Extract arguments and cast them to their correct types
-        for type, arg in zip(self.parent.types, cargs):
-            if issubclass(type, ctypes.Structure)    or \
-               issubclass(type, ctypes._SimpleCData) or \
-               issubclass(type, ctypes._Pointer):
+        for typ, arg in zip(self.parent.types, cargs):
+            if isinstance(typ, type) and ( \
+               issubclass(typ, ctypes.Structure)    or \
+               issubclass(typ, ctypes._SimpleCData) or \
+               issubclass(typ, ctypes._Pointer)):
                 # If the type is a raw ctype, then our argument is a ptr
                 # to that type, and we dereference it.
-                value = ctypes.cast(arg, ctypes.POINTER(type)).contents
+                value = ctypes.cast(arg, ctypes.POINTER(typ)).contents
 
             else:
                 # Otherwise, we simply hand the pointer to the class
-                value = type(arg)
+                value = typ(arg)
 
             pyargs.append(value)
 

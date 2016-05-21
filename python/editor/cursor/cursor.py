@@ -5,8 +5,6 @@ import core.ui
 
 from core.face import Face
 
-import editor.cursor.point
-
 class BufferCursors:
     default = None
 
@@ -58,7 +56,7 @@ class Cursors:
 
 cursors = Cursors()
 
-@core.deferline.hooks.draw(500)
+@core.deferline.hooks.draw(300)
 def handle_line_draw(w, b, ln, li):
     if w != core.windows.get_selected():
         return
@@ -72,3 +70,8 @@ def handle_line_draw(w, b, ln, li):
     face = Face(Face.white, Face.black)
 
     li.insert(cursors.current.cn, face.serialize(1))
+
+@core.windows.hooks.select(800)
+def handle_win_select(w1, w2):
+    core.ui.draw_window_line(w1, cursors.get_buffer_cursor(w1.buffer).ln)
+    core.ui.draw_window_line(w2, cursors.get_buffer_cursor(w2.buffer).ln)

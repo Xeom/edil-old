@@ -1,6 +1,5 @@
 #include <stdarg.h>
 #include <stdlib.h>
-#include <stdio.h>
 
 #include "container/vec.h"
 #include "err.h"

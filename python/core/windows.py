@@ -20,6 +20,7 @@ class WindowContainer:
                 return
 
             w.valid = False
+            del self.by_ptr[ptr]
 
         self.handle_delete = handle_delete
 

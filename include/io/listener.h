@@ -4,11 +4,11 @@
 # include <stddef.h>
 # include <stdio.h>
 
-typedef void (*listenf_none)();
-typedef void (*listenf_char)(char);
-typedef void (*listenf_str )(char *, size_t);
-
 typedef struct listener_s listener;
+
+typedef void (*listenf_none)(listener *);
+typedef void (*listenf_char)(listener *, char);
+typedef void (*listenf_str )(listener *, char *, size_t);
 
 typedef enum
 {
@@ -20,8 +20,10 @@ typedef enum
 
 int io_listener_initsys(void);
 
-listener *io_listener_add(FILE *stream, listen_type type, size_t limit,
+listener *io_listener_init(FILE *stream, listen_type type, size_t limit,
                     listenf_char charf, listenf_str strf, listenf_none nonef);
+
+void io_listener_free(listener *li);
 
 int io_listener_listen(void);
 

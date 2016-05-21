@@ -10,7 +10,7 @@ include $(DEP_FILES)
 
 lib.so: $(OBJ_FILES)
 	@$(call pinfo,"Linking...")
-	$(CC) -shared $(W_FLAGS) $(I_FLAGS) $(L_FLAGS) $^ -o lib.so
+	$(CC) -g -shared $(W_FLAGS) $(I_FLAGS) $(L_FLAGS) $^ -o lib.so
 	@$(call psucc,"Linked into lib.so")
 	@$(call pinfo,"Copying lib.so to python...")
 	cp $@ python/lib.so

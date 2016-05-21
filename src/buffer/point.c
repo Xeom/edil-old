@@ -4,6 +4,7 @@
 #include "container/vec.h"
 #include "buffer/buffer.h"
 #include "hook.h"
+#include "err.h"
 
 #include "buffer/point.h"
 
@@ -37,21 +38,27 @@ hook_add(buffer_point_on_move_post, 3);
 
 int buffer_point_initsys(void)
 {
-    table_create(&buffer_point_all,
-                 sizeof(table), sizeof(buffer *),
-                 NULL, NULL, NULL);
+    TRACE_PTR(table_create(&buffer_point_all,
+                            sizeof(table), sizeof(buffer *),
+                            NULL, NULL, NULL),
+              return -1);
 
-    hook_mount(&buffer_line_on_delete_post,
-               buffer_point_handle_line_delete, 600);
-    hook_mount(&buffer_line_on_insert_post,
-               buffer_point_handle_line_insert, 600);
-    hook_mount(&buffer_line_on_change_post,
-               buffer_point_handle_line_change, 600);
+    TRACE_INT(hook_mount(&buffer_line_on_delete_post,
+                          buffer_point_handle_line_delete, 600),
+              return -1);
+
+    TRACE_INT(hook_mount(&buffer_line_on_insert_post,
+                          buffer_point_handle_line_insert, 600),
+              return -1);
+
+    TRACE_INT(hook_mount(&buffer_line_on_change_post,
+                          buffer_point_handle_line_change, 600),
+              return -1);
 
     return 0;
 }
 
-static size_t buffer_point_invalid_index = INVALID_INDEX;
+static size_t point_invalid_index = INVALID_INDEX;
 
 point *buffer_point_init(buffer *b, lineno ln, colno cn)
 {
@@ -59,7 +66,9 @@ point *buffer_point_init(buffer *b, lineno ln, colno cn)
     vec   *subvec;
     point *rtn;
 
-    rtn     = malloc(sizeof(point));
+    ASSERT_PTR(b, high, return NULL);
+    ASSERT_PTR(rtn = malloc(sizeof(point)), terminal, return NULL);
+
     rtn->ln = ln;
     rtn->cn = cn;
     rtn->b  = b;
@@ -71,21 +80,36 @@ point *buffer_point_init(buffer *b, lineno ln, colno cn)
 
     if (subtable == NULL)
     {
-        subtable = table_init(sizeof(vec), sizeof(lineno),
-                              NULL, NULL, (void *)&buffer_point_invalid_index);
-        table_set(&buffer_point_all, &b, subtable);
+        TRACE_INT(table_set(&buffer_point_all, &b, NULL),
+                  free(rtn);
+                  return NULL);
+        TRACE_PTR(subtable = table_get(&buffer_point_all, &b),
+                  free(rtn);
+                  return NULL);
+        TRACE_PTR(table_create(subtable, sizeof(vec), sizeof(lineno),
+                               NULL, NULL, (void *)&point_invalid_index),
+                  free(rtn);
+                  return NULL);
     }
 
     subvec = table_get(subtable, &(rtn->ln));
 
     if (subvec == NULL)
     {
-        table_set(subtable, &(rtn->ln), NULL);
-        subvec = table_get(subtable, &(rtn->ln));
-        vec_create(subvec, sizeof(point *));
+        TRACE_INT(table_set(subtable, &(rtn->ln), NULL),
+                  free(rtn);
+                  return NULL);
+        TRACE_PTR(subvec = table_get(subtable, &(rtn->ln)),
+                  free(rtn);
+                  return NULL);
+        TRACE_PTR(vec_create(subvec, sizeof(point *)),
+                  free(rtn);
+                  return NULL);
     }
 
-    vec_insert_end(subvec, 1, &rtn);
+    TRACE_INT(vec_insert_end(subvec, 1, &rtn),
+              free(rtn);
+              return NULL);
 
     return rtn;
 }
@@ -101,7 +125,9 @@ static void buffer_point_move_ln(point *p, lineno ln)
     subtable = table_get(&buffer_point_all, &(p->b));
     subvec   = table_get(subtable, &(p->ln));
 
+    fprintf(stderr, "%lu : %lu\n", vec_len(subvec),vec_find(subvec, &p));
     vec_delete(subvec, vec_find(subvec, &p), 1);
+    fprintf(stderr, "%lu : \n", vec_len(subvec));
 
     if (vec_len(subvec) == 0)
     {
@@ -245,10 +271,7 @@ static int buffer_point_move_lines_backward(point *p, uint n)
     if (n >= p->ln)
         buffer_point_move_ln(p, 0);
     else
-    {
-        p->ln -= n;
-        buffer_point_move_ln(p, p->ln);
-    }
+        buffer_point_move_ln(p, p->ln - n);
 
     return 0;
 }
@@ -347,6 +370,8 @@ int buffer_point_insert(point *p, char *str)
     p->cn += inslen;
     buffer_set_line(p->b, p->ln, l);
 
+    vec_free(l);
+
     hook_call(buffer_point_on_move_post, p, &origln, &origcn);
 
     return 0;
@@ -401,7 +426,7 @@ void buffer_point_set_ln(point *p, lineno ln)
 
     hook_call(buffer_point_on_move_pre, p);
 
-    p->ln = ln;
+    buffer_point_move_ln(p, ln);
 
     buffer_point_fix_ln(p);
     buffer_point_fix_cn(p);
@@ -490,8 +515,8 @@ static void buffer_point_handle_line_delete(vec *args, hook h)
     table  *subtable;
     vec    *tomove;
 
-    b  = *(buffer **)vec_item(args, 0);
-    ln = *(lineno  *)vec_item(args, 1);
+    b  =  *(buffer **)vec_item(args, 0);
+    ln = **(lineno **)vec_item(args, 1);
 
     subtable = table_get(&buffer_point_all, &b);
 
@@ -519,9 +544,9 @@ static void buffer_point_handle_line_delete(vec *args, hook h)
                 hook_call(buffer_point_on_move_pre, p);
 
                 buffer_point_move_ln(p, p->ln - 1);
+                buffer_point_fix_ln(p);
 
                 hook_call(buffer_point_on_move_post, p, &origln, &origcn);
-
         );
 
     vec_free(tomove);
@@ -534,8 +559,8 @@ static void buffer_point_handle_line_change(vec *args, hook h)
     table *subtable;
     vec   *subvec;
 
-    b  = *(buffer **)vec_item(args, 0);
-    ln = *(lineno  *)vec_item(args, 1);
+    b  =  *(buffer **)vec_item(args, 0);
+    ln = **(lineno **)vec_item(args, 1);
 
     subtable = table_get(&buffer_point_all, &b);
 
@@ -570,8 +595,8 @@ static void buffer_point_handle_line_insert(vec *args, hook h)
     table  *subtable;
     vec    *tomove;
 
-    b  = *(buffer **)vec_item(args, 0);
-    ln = *(lineno  *)vec_item(args, 1);
+    b  =  *(buffer **)vec_item(args, 0);
+    ln = **(lineno **)vec_item(args, 1);
 
     subtable = table_get(&buffer_point_all, &b);
 
@@ -581,10 +606,10 @@ static void buffer_point_handle_line_insert(vec *args, hook h)
     tomove = vec_init(sizeof(point *));
 
     table_foreach_ptr(subtable, vec *, v,
+                      fprintf(stderr, "ln %lu\n", vec_len(v));
                       vec_foreach(v, point *, p,
                                   if (p->ln < ln)
                                       continue;
-
                                   vec_insert_end(tomove, 1, &p);
                           );
         );
@@ -598,7 +623,8 @@ static void buffer_point_handle_line_insert(vec *args, hook h)
 
                 hook_call(buffer_point_on_move_pre, p);
 
-                buffer_point_move_ln(p, p->ln + 1);
+                if (p->ln + 1 < buffer_len(p->b))
+                    buffer_point_move_ln(p, p->ln + 1);
 
                 hook_call(buffer_point_on_move_post, p, &origln, &origcn);
         );

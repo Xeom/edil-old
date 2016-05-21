@@ -1,6 +1,8 @@
 import ctypes
 from shared import lib as so
 
+import cutil
+
 class vec_s(ctypes.Structure):
     _fields_ = [ ("data",     ctypes.c_void_p),
                  ("width",    ctypes.c_size_t),
@@ -19,9 +21,7 @@ def check_nonzro_return(value, func, args):
     return value
 
 def check_null_return(value, func, args):
-    cast = ctypes.cast(value, ctypes.c_void_p)
-
-    if cast.value == None:
+    if cutil.isnull(value):
         raise VecErr(err_str())
 
     return value

@@ -52,8 +52,7 @@ class RegionCursor:
     def region_delete(self):
         start = self.start
         end   = self.end
-        import sys
-        print(end - start, file=sys.stderr)
+
         end.delete(end - start)
 
     @property

@@ -177,6 +177,8 @@ void buffer_free(buffer *b)
 
 int buffer_batch_start(buffer *b)
 {
+    ASSERT_PTR(b, high, return -1);
+
     b->batch_enabled = 1;
     b->batch_start   = INVALID_INDEX;
     b->batch_end     = INVALID_INDEX;
@@ -186,6 +188,8 @@ int buffer_batch_start(buffer *b)
 
 int buffer_batch_end(buffer *b)
 {
+    ASSERT_PTR(b, high, return -1);
+
     b->batch_enabled = 0;
 
     if (b->batch_start == INVALID_INDEX)
@@ -198,6 +202,8 @@ int buffer_batch_end(buffer *b)
 
 table *buffer_get_properties(buffer *b)
 {
+    ASSERT_PTR(b, high, return NULL);
+
     return b->properties;
 }
 

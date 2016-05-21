@@ -1,7 +1,7 @@
 #!/bin/python
-#import cProfile, pstats, io
-#pr = cProfile.Profile()
-#pr.enable()
+import cProfile, pstats, io, select, sys
+pr = cProfile.Profile()
+pr.enable()
 
 import core.ui
 import core.windows
@@ -11,6 +11,7 @@ import core.keymap
 import core.table
 import core.buffer
 import core.deferline
+import core.point
 import ctypes
 import shared
 import symbols
@@ -21,11 +22,11 @@ core.windows.initsys()
 core.deferline.initsys()
 core.ui.initsys()
 core.key.initsys()
-
+core.point.initsys()
 core.ui.refresh()
-
-
-import editor.uiupdates
+symbols.buffer.log.initsys()
+symbols.io.listener.initsys()
+#import editor.uiupdates
 
 import editor.cursor.regioncursor
 import editor.cursor.cursor
@@ -33,6 +34,8 @@ import editor.keymap.keymap
 import editor.clipboard
 import editor.files
 import editor.buffers.ring
+
+ctypes.cast(shared.lib.err_stream, ctypes.POINTER(ctypes.c_void_p)).contents.value = symbols.buffer.log.stream()
 
 from editor.subcaption   import SubCaption
 from core.key import Key
@@ -66,10 +69,18 @@ def getselected(win):
 @core.deferline.hooks.draw(200)
 def addlineno(w, b, ln, li):
     face = Face(Face.black, Face.black, bright=True)
-    string =  hex(ln.value)[2:].zfill(4) + " "
-    string = face.serialize(len(string) - 1) + string.encode("ascii")
+    prefix =  hex(ln.value)[2:].zfill(4) + "> "
+    prefix = face.serialize(len(prefix)) + prefix.encode("ascii")
 
-    li.insert(0, string)
+    li.insert(0, prefix)
+
+@core.deferline.hooks.draw(400)
+def addeol(w, b, ln, li):
+    face = Face(Face.black, Face.black, bright=True)
+    suffix = "<"
+    suffix = b" " + face.serialize(len(suffix)) + suffix.encode("ascii")
+
+    li.insert(len(li.vec), suffix)
 
 mastermap = core.keymap.maps["master"]
 @mastermap.add(Key("V", con=True))
@@ -96,6 +107,8 @@ def mastersave(keys):
         core.windows.get_selected().buffer)
 
 while alive:
+    symbols.io.listener.listen()
+    continue
     char = symbols.lib.getch()
 
     if char == symbols.io.key.resize:
@@ -107,10 +120,13 @@ while alive:
 core.ui.killsys()
 
 #symbols.hook.killsys()
-#pr.disable()
-#s = io.StringIO()
-#sortby = 'cumulative'
-#ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
-#ps.print_stats()
-#import sys
-#print(s.getvalue(), file=sys.stderr)
+pr.disable()
+
+sortby = 'tottime'
+import sys
+ps = pstats.Stats(pr, stream=sys.stderr)
+ps.strip_dirs()
+ps.sort_stats(sortby)
+#ps.print_stats(15)
+#ps.print_callers('cast')
+

@@ -7,13 +7,16 @@ def functptr2type(fptr, type):
     return ctypes.cast(fptr, ctypes.POINTER(type)).contents
 
 def ptr2int(p):
-    return ctypes.cast(p, ctypes.c_void_p).value
+    if isinstance(p, ctypes._Pointer):
+        return ctypes.addressof(p.contents)
+    else:
+        return p.value
 
 def ptreq(a, b):
     return ctypes.cast(a, ctypes.c_void_p).value == ctypes.cast(b, ctypes.c_void_p).value
 
 def isnull(ptr):
-    return ctypes.cast(ptr, ctypes.c_void_p).value == None
+    return not bool(ptr)#ctypes.cast(ptr, ctypes.c_void_p).value == None
 
 def str2char(s):
     if isinstance(s, str):

@@ -82,6 +82,9 @@ def nc_refresh():
 def killsys():
     symbols.ui.killsys()
 
+def draw_window_line(w, ln):
+    symbols.ui.win.content.draw_line(w.struct, ln)
+
 def draw_buffer_line(b, ln):
     for w in core.windows.get_root():
         if w.buffer == b:

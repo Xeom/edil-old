@@ -32,6 +32,15 @@ on_batch_region = ctypes.cast(so.buffer_on_batch_region, hook_p)
 on_create = ctypes.cast(so.buffer_on_create, hook_p)
 on_delete = ctypes.cast(so.buffer_on_delete, hook_p)
 
+class log:
+    initsys = so.buffer_log_initsys
+    initsys.argtypes = []
+    initsys.restype  = ctypes.c_int
+
+    stream = so.buffer_log_stream
+    stream.argtypes = []
+    stream.restype  = ctypes.c_void_p
+
 class line:
     on_change_pre  = ctypes.cast(so.buffer_line_on_change_pre,  hook_p)
     on_change_post = ctypes.cast(so.buffer_line_on_change_post, hook_p)

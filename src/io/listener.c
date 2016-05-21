@@ -18,7 +18,6 @@
 
 #include <stdlib.h>
 
-#include "io/key.h"
 #include "container/vec.h"
 #include "err.h"
 
@@ -40,36 +39,56 @@ struct listener_s
     size_t limit;
 };
 
-#define listener_fd(li) (fileno((li).stream))
-#define listener_read_full_blocksize 1024
+#define LISTENER_FD(li) (fileno((li).stream))
 
-vec listeners;
+static vec listeners;
 
 static int io_listener_fill_set(fd_set *set);
 static int io_listener_read(listener *li);
-static int io_listener_update_set(fd_set *set);
+static int io_listener_update_set(fd_set *set, int numbits);
 
 /* Should be moved from here someday */
 #include <ncurses.h>
-static void io_listener_handle_chr_wrap(void)
+#include "io/key.h"
+#include "ui/ui.h"
+static void io_listener_handle_chr_wrap(listener *li)
 {
     int ch;
     ch = getch();
 
-    io_key_handle_chr(ch);
+    if (ch != KEY_RESIZE)
+        io_key_handle_chr(ch);
 }
 
 int io_listener_initsys(void)
 {
     vec_create(&listeners, sizeof(listener));
 
-    io_listener_add(stdin, read_none, 0, NULL, NULL, io_listener_handle_chr_wrap);
+
+    io_listener_init(stdin, read_none, 0,
+                     NULL, NULL, io_listener_handle_chr_wrap);
 
     return 0;
 }
 
-listener *io_listener_add(FILE *stream, listen_type type, size_t limit,
-                    listenf_char charf, listenf_str strf, listenf_none nonef)
+void io_listener_free(listener *li)
+{
+    void *first;
+    ptrdiff_t offset;
+    size_t    index;
+
+    first = vec_item(&listeners, 0);
+    ASSERT((void *)li >= first, high, return);
+
+    offset = (char *)li - (char *)first;
+    index  = (size_t)offset / sizeof(listener);
+    ASSERT(((size_t)offset) % sizeof(listener) == 0, high, return);
+
+    vec_delete(&listeners, index, 1);
+}
+
+listener *io_listener_init(FILE *stream, listen_type type, size_t limit,
+                       listenf_char charf, listenf_str strf, listenf_none nonef)
 {
     listener new;
 
@@ -96,7 +115,8 @@ listener *io_listener_add(FILE *stream, listen_type type, size_t limit,
         new.funct.nonef = nonef;
     }
 
-    vec_insert_end(&listeners, 1, &new);
+    TRACE_INT(vec_insert_end(&listeners, 1, &new),
+              return NULL);
 
     return vec_item(&listeners, vec_len(&listeners) - 1);
 }
@@ -113,7 +133,7 @@ static int io_listener_fill_set(fd_set *set)
                 if (li.ended)
                     continue;
 
-                fd = listener_fd(li);
+                fd = LISTENER_FD(li);
                 maxfd = MAX(maxfd, fd);
                 FD_SET(fd, set);
         );
@@ -129,11 +149,10 @@ static int io_listener_read(listener *li)
 
         chr = fgetc(li->stream);
         ASSERT(chr != EOF, high,
-               fprintf(stderr, "%p\n", (void *)li);
                li->ended = 1;
                return -1);
 
-        li->funct.charf((char)chr);
+        li->funct.charf(li, (char)chr);
     }
 /* READ_LINE AND READ_FULL ARE UNTESTED AND LIKELY ON FIRE (!!!) */
     else if (li->type == read_line)
@@ -164,7 +183,7 @@ static int io_listener_read(listener *li)
                 break;
         }
 
-        li->funct.strf(vec_item(chars, 0), vec_len(chars));
+        li->funct.strf(li, vec_item(chars, 0), vec_len(chars));
         vec_free(chars);
     }
 
@@ -193,40 +212,52 @@ static int io_listener_read(listener *li)
             size = MIN(size << 1, li->limit);
         }
 
-        li->funct.strf(buf, size);
+        li->funct.strf(li, buf, size);
 /* TODO: ERRAHS */
         free(buf);
     }
     else if (li->type == read_none)
     {
-        li->funct.nonef();
+        li->funct.nonef(li);
     }
     return 0;
 }
 
-
-static int io_listener_update_set(fd_set *set)
+static int io_listener_update_set(fd_set *set, int numbits)
 {
-    size_t i;
+    size_t i, len;
+    static size_t last;
 
-    for (i = 0; i < vec_len(&listeners); ++i)
+    len = vec_len(&listeners);
+
+    for (i = last; i < len + last; ++i)
     {
         listener *li;
 
-        li = vec_item(&listeners, i);
-        if (FD_ISSET(listener_fd(*li), set))
+        li = vec_item(&listeners, i % len);
+        if (FD_ISSET(LISTENER_FD(*li), set))
+        {
             io_listener_read(li);
+
+            if ((--numbits) <= 0)
+                break;
+        }
     }
+
+    last =  i % len;
 
     return 0;
 }
 
 int io_listener_listen(void)
 {
+    int    numbits;
     fd_set set;
 
-    select(io_listener_fill_set(&set) + 1, &set, NULL, NULL, NULL);
-    io_listener_update_set(&set);
+    numbits = select(io_listener_fill_set(&set) + 1,
+                     &set, NULL, NULL, NULL);
+
+    io_listener_update_set(&set, numbits);
 
     return 0;
 }

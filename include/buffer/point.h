@@ -4,6 +4,7 @@
 
 # include "buffer/line.h"
 
+
 typedef struct point_s point;
 
 /*

@@ -86,3 +86,12 @@ class keymap:
     delete = so.keymap_delete
     delete.argtypes = [keymap_p, vec_p]
     delete.restype  = ctypes.c_int
+
+class listener:
+    initsys = so.io_listener_initsys
+    initsys.argtypes = []
+    initsys.restype  = ctypes.c_int
+
+    listen = so.io_listener_listen
+    listen.argtypes = []
+    listen.restype  = ctypes.c_int

@@ -49,6 +49,7 @@ SRC_NAMES=\
         buffer/line        \
         buffer/deferline   \
         buffer/point       \
+        buffer/log         \
                            \
         container/table    \
         container/vec      \
@@ -67,7 +68,8 @@ SRC_NAMES=\
                            \
         io/file            \
         io/key             \
-        io/keymap
+        io/keymap          \
+        io/listener
 
 
 DEPS_FILE=deps.mk

@@ -1,7 +1,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "err.h"
+
 #include "container/vec.h"
+
 
 vecerr_t vecerr;
 
@@ -17,17 +20,16 @@ static int vec_realloc(vec *v)
     v->data = realloc(v->data, v->capacity);
 
     /* Check allocs :D */
-    if (v->data == NULL)
-    {
-        /* Set the capacity and length to 0 to try and prevent *
-         * anything segfaulting off of this                    */
-        v->length   = 0;
-        v->capacity = 0;
 
-        ERR(NO_MEMORY, -1);
-    }
+    ASSERT_PTR(v->data, terminal,
+               /* Set the capacity and length to 0 to try and *
+                * prevent anything segfaulting off of this    */
+               v->length   = 0;
+               v->capacity = 0;
+               return -1;
+        );
 
-    ERR(OK, 0);
+    return 0;
 }
 
 static int vec_resize_bigger(vec *v)
@@ -38,10 +40,10 @@ static int vec_resize_bigger(vec *v)
 
     /* If we have enough capacity we can just return */
     if (v->capacity >= length)
-        ERR(OK, 0);
+        return 0;
 
-    /* If due to errors, we get a capacity of 0, *
-     * set it to the minimum allowable value     */
+    /* If the vec is new, we get a capacity of 0, *
+     * set it to the minimum allowable value.     */
     if (v->capacity < v->width)
         v->capacity = v->width;
 
@@ -51,7 +53,9 @@ static int vec_resize_bigger(vec *v)
         v->capacity <<= 1;
 
     /* Now that we've changed v->capacity, we gotta realloc */
-    return vec_realloc(v);
+    TRACE_INT(vec_realloc(v), return -1);
+
+    return 0;
 }
 
 static int vec_resize_smaller(vec *v)
@@ -65,7 +69,7 @@ static int vec_resize_smaller(vec *v)
      * our capacity is at minimum already, return    */
     if (length >= v->capacity >> 2 ||
         width  == v->capacity)
-        ERR(OK, 0);
+        return 0;
 
     /* If we need to shrink, halve the capacity, and if *
      * we still need shrink, keep doing it              */
@@ -75,7 +79,9 @@ static int vec_resize_smaller(vec *v)
            width  < v->capacity);
 
     /* Now that we've changed v->capacity, we gotta realloc */
-    return vec_realloc(v);
+    TRACE_INT(vec_realloc(v), return -1);
+
+    return 0;
 }
 
 static vec *vec_init_raw(size_t width)
@@ -83,19 +89,15 @@ static vec *vec_init_raw(size_t width)
     vec *rtn;
 
     /* We cannot have zero width vectors */
-    if (width == 0)
-        ERR(INVALID_WIDTH, NULL);
+    ASSERT(width != 0, high, return NULL);
 
-    rtn = malloc(sizeof(vec));
+    ASSERT_PTR(rtn = malloc(sizeof(vec)),
+               high, return NULL);
 
-    /* Check allocated struct vec_s */
-    if (rtn == NULL)
-        ERR(NO_MEMORY, NULL);
+    ASSERT_PTR(vec_create(rtn, width),
+               high, return NULL);
 
-    vec_create(rtn, width);
-    /* Data must be null so realloc will malloc */
-
-    ERR(OK, rtn);
+    return rtn;
 }
 
 vec *vec_create(void *mem, size_t width)
@@ -116,22 +118,14 @@ vec *vec_init(size_t width)
 {
     vec *rtn;
 
-    rtn = vec_init_raw(width);
+    TRACE_PTR(rtn = vec_init_raw(width), return NULL);
 
-    if (rtn == NULL)
-        return NULL;
+    TRACE_INT(vec_resize_bigger(rtn),
+              free(rtn);
+              return NULL;
+        );
 
-    /* We set our capacity to the vector's     *
-     * width (one item) and allocate it.       *
-     * Vector's capacities are always at least *
-     * their width                             */
-    if (vec_resize_bigger(rtn) != 0)
-    {
-        free(rtn);
-        return NULL;
-    }
-
-    ERR(OK, rtn);
+    return rtn;
 }
 
 void vec_free(vec *v)
@@ -154,15 +148,14 @@ void *vec_item(vec *v, size_t index)
     size_t offset;
 
     /* Check yo pointers */
-    if (v == NULL)
-        ERR(NULL_VEC, NULL);
+    ASSERT_PTR(v, high, return NULL);
 
     /* Calculate and copy to offset */
     offset = index * v->width;
 
     /* Check that index is in bounds */
-    if (offset + v->width > v->length)
-        ERR(INVALID_INDEX, NULL);
+    ASSERT(offset + v->width <= v->length,
+           high, return NULL);
 
     return ADDPTR(v->data, offset);
 }
@@ -171,8 +164,7 @@ int vec_delete(vec *v, size_t index, size_t n)
 {
     size_t offset, amount;
 
-    if (v == NULL)
-        ERR(NULL_VEC, -1);
+    ASSERT_PTR(v, high, return -1);
 
     /* Calculate the offset of the startbyte of the     *
      * deletion, and the amount of bytes we will delete */
@@ -180,8 +172,7 @@ int vec_delete(vec *v, size_t index, size_t n)
     amount =     n * v->width;
 
     /* Check that the range to delete isn't out of bounds */
-    if (offset + amount > v->length)
-        ERR(INVALID_INDEX, -1);
+    ASSERT(offset + amount <= v->length, high, return -1);
 
     /* Move memory beyond offset backwards by amount. */
     memmove(ADDPTR(v->data, offset),
@@ -191,7 +182,9 @@ int vec_delete(vec *v, size_t index, size_t n)
     /* Modify length and resize */
     v->length -= amount;
 
-    return vec_resize_smaller(v);
+    TRACE_INT(vec_resize_smaller(v), return -1);
+
+    return 0;
 }
 
 int vec_insert(vec *v, size_t index, size_t n, const void *new)
@@ -338,7 +331,7 @@ int vec_contains(vec *v, const void *item)
         /* If there's a match, return 1 */
         if (memcmp(cmp, item, width) == 0)
             ERR(OK, 1);
-        
+
         /* Increment cmp by width */
         cmp = ADDPTR(cmp, width);
     }

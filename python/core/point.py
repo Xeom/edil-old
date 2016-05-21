@@ -1,3 +1,7 @@
+import ctypes
+
+import core.hook
+
 from core.buffer import Buffer
 
 import symbols.buffer
@@ -74,3 +78,14 @@ class Point:
 
     def __sub__(self, other):
         return symbols.buffer.point.sub(self.struct, other.struct)
+
+class hooks:
+    move_pre = core.hook.Hook(
+        symbols.buffer.point.on_move_pre,
+        Point)
+
+    move_post = core.hook.Hook(
+        symbols.buffer.point.on_move_post,
+        Point,
+        ctypes.c_ulong,
+        ctypes.c_ulong)

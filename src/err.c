@@ -1,165 +1,103 @@
-#include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
-
-#include "container/vec.h"
+#include <stdio.h>
+#include <time.h>
 
 #include "err.h"
 
-
-struct err_s
+char *err_lvl_prefixes[] =
 {
-    const char *title;
-    const char *detail;
-    errlvl lvl;
+    "[ low] ",
+    "[ med] ",
+    "[high] ",
+    "[crit] ",
+    "[term] ",
+    ""
 };
 
-#define FUCK_IT(err)                                \
-    {                                               \
-        fputs("\n", stderr); fputs(err, stderr);    \
-        fputs("\nFuck it.\n", stderr); abort();     \
-    }
+FILE *err_stream       = NULL;
+uint max_err_per_second = 5;
 
-#define FUCK_VEC_ERR(err)                                               \
-    {                                                                   \
-        fputs("\n", stderr);                                            \
-        fputs(err, stderr);                                             \
-        FUCK_IT(vec_err_str());                                         \
-    }
+err_lvl err_min_quit_lvl   = terminal;
+err_lvl err_min_care_lvl   = low;
+err_lvl err_min_detail_lvl = low;
 
-/*
-    [
-        &[{char* title, char* detail, errlvl lvl}, ...low priority errors],
-        &[...medium priority errors],
-        &[...high priority errors],
-         ...all other error lvls
-    ]
-*/
-vec *err_queue;
+err_lvl err_last_lvl;
 
-void err_initsys(void)
+static int err_are_we_dying(void);
+
+static int err_are_we_dying(void)
 {
-    errlvl i;
-    vec   *newv;
+    static uint last_err_time = 0;
+    static uint errs_this_sec = 0;
 
-    err_min_quit_lvl   = terminal;
-    err_min_alert_lvl  = medium;
-    err_min_detail_lvl = errlvl_end;
-
-    err_queue = vec_init(sizeof(vec *));
-
-    if (err_queue == NULL)
-        FUCK_VEC_ERR("err_init: Could not allocate err_queue main vector");
-
-    i = errlvl_end;
-
-    while (i--)
+    if ((uint)time(NULL) == last_err_time)
+        errs_this_sec++;
+    else
     {
-        newv = vec_init(sizeof(err));
-
-        if (newv == NULL)
-            FUCK_VEC_ERR("err_init: Could not allocate err_queue sub-vector");
-
-        if (vec_insert_end(err_queue, 1, &newv))
-            FUCK_VEC_ERR("err_init: Could not push sub-vector into err_queue");
+        last_err_time = (uint)time(NULL);
+        errs_this_sec = 0;
     }
-}
 
-int err_killsys(void)
-{
-    vec_foreach(err_queue, vec *, subqueue,
-                vec_free(subqueue);
-        );
+    if (errs_this_sec == max_err_per_second)
+    {
+        fputs("Too many errors, ignoring further errors ...\n", err_stream);
+        return 1;
+    }
 
-    vec_free(err_queue);
+    if (errs_this_sec > max_err_per_second)
+        return 1;
 
     return 0;
 }
 
-void err_new(errlvl level, const char *title, const char *detail)
+void err_new(err_lvl lvl, const char *title, const char *content)
 {
-    vec **subptr, *subqueue;
-    err  *e;
-    fputs(title,  stderr);
-    fputs("\n",   stderr);
-    fputs(detail, stderr);
-    fputs("\n",   stderr);
-    return;
-    e = malloc(sizeof(err));
+    char  *prefix;
+    size_t plen, tlen, clen;
+    static char *errstr = NULL;
 
-    if (e == NULL)
-        FUCK_IT("err_new: Could not allocate memory for error");
+    err_last_lvl = lvl;
 
-    if (title == NULL)
-        title = "Unknown error";
+    if (lvl < err_min_care_lvl)
+        return;
 
-    e->title = title;
+    if (err_are_we_dying())
+        return;
 
-    if (detail == NULL)
-        detail = "";
+    if (err_stream == NULL)
+        err_stream = stderr;
 
-    e->detail = detail;
+    prefix = err_lvl_prefixes[lvl];
 
-    if (level >= errlvl_end)
-    {
-        level = high;
-    }
+    plen = strlen(prefix);
+    clen = strlen(content);
+    tlen = strlen(title);
 
-    subptr = (vec **)vec_item(err_queue, level);
+    errstr = realloc(errstr, plen + MAX(tlen, clen) + 1);
 
-    if (subptr == NULL)
-        FUCK_VEC_ERR("Error getting pointer to subqueue");
+    memcpy(errstr, prefix, plen);
+    memcpy(errstr + plen, title, tlen);
 
-    subqueue = *subptr;
+    errstr[plen + tlen    ] = '\n';
 
-    if (subqueue == NULL)
-        FUCK_VEC_ERR("err_new: Error getting error subqueue");
+    fwrite(errstr, plen + tlen + 1, 1, err_stream);
+    fflush(err_stream);
 
-    if (vec_insert(subqueue, 0, 1, e))
-        FUCK_VEC_ERR("err_new: Error pushing error to subqueue");
-}
+    if (lvl < err_min_detail_lvl)
+        return;
 
-err *err_pop(void)
-{
-    errlvl level;
-    vec *subqueue;
-    err *rtn;
+    memset(errstr, ' ', plen);
+    memcpy(errstr + plen, content, clen);
 
-    level = errlvl_end;
-    while (--level)
-    {
-        subqueue = *(vec **)vec_item(err_queue, level);
+    errstr[plen + clen    ] = '\n';
 
-        if (subqueue == NULL)
-        {
-            err_new(critical, "err_get: Could not fetch error subqueue",
-                    vec_err_str());
-            return NULL;
-        }
+    fwrite(errstr, plen + clen + 1, 1, err_stream);
+    fflush(err_stream);
 
-        if (vec_len(subqueue))
-        {
-            rtn = vec_item(subqueue, vec_len(subqueue) - 1);
-            vec_delete(subqueue, vec_len(subqueue) - 1, 1);
-            return rtn;
-        }
-    }
+    if (lvl < err_min_quit_lvl)
+        return;
 
-    return NULL;
-}
-
-const char *err_get_detail(err *e)
-{
-    if (e == NULL)
-        return NULL;
-
-    return e->detail;
-}
-
-
-const char *err_get_title(err *e)
-{
-    if (e == NULL)
-        return NULL;
-
-    return e->title;
+    /* TODO: Graceful and less violent method of doing that */
+    abort();
 }
