@@ -18,21 +18,6 @@ struct vec_s
     size_t capacity;  /* The amount, in bytes, of memory allocated for the vector */
 };
 
-/* Used for representing vector errors */
-typedef enum
-{
-    E_VEC_OK,
-    E_VEC_NULL_VALUE,
-    E_VEC_NULL_VEC,
-    E_VEC_INVALID_INDEX,
-    E_VEC_INVALID_VALUE,
-    E_VEC_NO_MEMORY,
-    E_VEC_INVALID_WIDTH
-} vecerr_t;
-
-/* The last vector error */
-extern vecerr_t vecerr;
-
 /*
  * Initialize and return a new vector.
  *
@@ -154,12 +139,6 @@ size_t vec_rfind(vec *v, const void *item);
  *
  */
 vec *vec_cut(vec *v, size_t index, size_t n);
-
-/*
- * Return the name, as a a string, of the last error that happened in a vec operation.
- *
- */
-const char *vec_err_str(void);
 
 /*
  * Perform a chunk of code, once for every item in a vector, starting at index 0,

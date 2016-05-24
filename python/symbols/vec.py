@@ -16,13 +16,13 @@ class VecErr(Exception):
 
 def check_nonzro_return(value, func, args):
     if value == -1:
-        raise VecErr(err_str())
+        raise VecErr()
 
     return value
 
 def check_null_return(value, func, args):
     if cutil.isnull(value):
-        raise VecErr(err_str())
+        raise VecErr()
 
     return value
 
@@ -81,11 +81,6 @@ cut = so.vec_cut
 cut.argtypes = [vec_p, ctypes.c_size_t, ctypes.c_size_t]
 cut.restype  = vec_p
 cut.errcheck = check_null_return
-
-# const char *vec_err_str(void)
-err_str = so.vec_err_str
-err_str.argtypes = []
-err_str.restype  = ctypes.c_char_p
 
 class Vec:
     def __init__(self, struct, type):

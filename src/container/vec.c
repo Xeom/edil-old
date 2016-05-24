@@ -5,15 +5,9 @@
 
 #include "container/vec.h"
 
-
-vecerr_t vecerr;
-
 static int vec_realloc(vec *v);
 static int vec_resize_bigger(vec *v);
 static int vec_resize_smaller(vec *v);
-
-/* Set vecerr to an error with suffix err and return rtn */
-#define ERR(err, rtn) {vecerr = E_VEC_ ## err; return rtn;}
 
 static int vec_realloc(vec *v)
 {
@@ -191,11 +185,8 @@ int vec_insert(vec *v, size_t index, size_t n, const void *new)
 {
     size_t offset, amount, displaced;
 
-    if (v == NULL)
-        ERR(NULL_VEC, -1);
+    ASSERT_PTR(v,   high, return -1);
 
-    if (new == NULL)
-        ERR(NULL_VALUE, -1);
 
     /* Calculate the offset of the startbyte of the       *
      * insertion, and the amount of bytes we will insert, *
@@ -205,14 +196,14 @@ int vec_insert(vec *v, size_t index, size_t n, const void *new)
     displaced = v->length - offset;
 
     /* Make sure we're in bounds */
-    if (offset > v->length)
-        ERR(INVALID_INDEX, -1);
+    ASSERT(offset <= v->length,
+           high, return -1);
 
     /* We adjust length and realloc before moving anything */
     v->length += amount;
 
-    if (vec_resize_bigger(v) == -1)
-        return -1;
+    TRACE_INT(vec_resize_bigger(v),
+              return -1);
 
     /* If any data is displaced, we move it forward to make *
      * room for inserted data.                              */
@@ -221,24 +212,26 @@ int vec_insert(vec *v, size_t index, size_t n, const void *new)
                 ADDPTR(v->data, offset),
                 displaced);
 
-    /* We insert the new data */
-    memmove(ADDPTR(v->data, offset),
-            new, amount);
+    if (new)
+        /* We insert the new data */
+        memcpy(ADDPTR(v->data, offset),
+               new, amount);
+    else
+        /* If it's null, we just set to 0.. */
+        memset(ADDPTR(v->data, offset),
+               0, amount);
 
-    ERR(OK, 0);
+    return 0;
 }
 
 size_t vec_len(vec *v)
 {
-    if (v == NULL)
-        ERR(NULL_VEC, 0);
-
-    if (v->width == 0)
-        ERR(INVALID_WIDTH, 0);
+    ASSERT_PTR(v, high, return 0);
+    ASSERT(v->width != 0, critical, return 0);
 
     /* To get the number of items, divide *
      * length in bytes by width in bytes  */
-    ERR(OK, v->length / v->width);
+    return v->length / v->width;
 }
 
 size_t vec_find(vec *v, const void *item)
@@ -246,11 +239,9 @@ size_t vec_find(vec *v, const void *item)
     void *cmp, *last;
     size_t width, index;
 
-    if (v == NULL)
-        ERR(NULL_VEC, INVALID_INDEX);
-
-    if (item == NULL)
-        ERR(NULL_VALUE, INVALID_INDEX);
+    /* Check the values */
+    ASSERT_PTR(v,    high, return INVALID_INDEX);
+    ASSERT_PTR(item, high, return INVALID_INDEX);
 
     /* Get the first item of the list, and *
      * the one just past the end (invalid) */
@@ -263,7 +254,7 @@ size_t vec_find(vec *v, const void *item)
     {
         /* If there's a match, return the index */
         if (memcmp(cmp, item, width) == 0)
-            ERR(OK, index);
+            return index;
 
         /* Increment cmp by width, and index by 1 */
         cmp = ADDPTR(cmp, width);
@@ -271,7 +262,9 @@ size_t vec_find(vec *v, const void *item)
     }
 
     /* No match */
-    ERR(INVALID_VALUE, INVALID_INDEX);
+    ERR_NEW(high, "Invalid value", "The value is not in the vec");
+
+    return INVALID_INDEX;
 }
 
 size_t vec_rfind(vec *v, const void *item)
@@ -280,11 +273,8 @@ size_t vec_rfind(vec *v, const void *item)
     size_t width, index;
 
     /* Check the values */
-    if (v == NULL)
-        ERR(NULL_VEC, INVALID_INDEX);
-
-    if (item == NULL)
-        ERR(NULL_VALUE, INVALID_INDEX);
+    ASSERT_PTR(v,    high, return INVALID_INDEX);
+    ASSERT_PTR(item, high, return INVALID_INDEX);
 
     /* Get the first item of the list, and *
      * the one just past the end (invalid) */
@@ -302,11 +292,13 @@ size_t vec_rfind(vec *v, const void *item)
 
         /* If there's a match, return the index */
         if (memcmp(cmp, item, width) == 0)
-            ERR(OK, index);
+            return index;
     }
 
     /* No match */
-    ERR(INVALID_VALUE, INVALID_INDEX);
+    ERR_NEW(high, "Invalid value", "The value is not in the vec");
+
+    return INVALID_INDEX;
 }
 
 int vec_contains(vec *v, const void *item)
@@ -314,11 +306,9 @@ int vec_contains(vec *v, const void *item)
     void *cmp, *last;
     size_t width;
 
-    if (v == NULL)
-        ERR(NULL_VEC, 0);
-
-    if (item == NULL)
-        ERR(NULL_VALUE, 0);
+    /* Check the values */
+    ASSERT_PTR(v,    high, return -1);
+    ASSERT_PTR(item, high, return -1);
 
     /* Get the first item of the list, and *
      * the one just past the end (invalid) */
@@ -330,14 +320,14 @@ int vec_contains(vec *v, const void *item)
     {
         /* If there's a match, return 1 */
         if (memcmp(cmp, item, width) == 0)
-            ERR(OK, 1);
+            return 1;
 
         /* Increment cmp by width */
         cmp = ADDPTR(cmp, width);
     }
 
     /* No match */
-    ERR(OK, 0);
+    return 0;
 }
 
 /* Yes I can make this from the others, but fuck it, *
@@ -348,8 +338,7 @@ vec *vec_cut(vec *v, size_t index, size_t n)
     vec   *rtn;
     size_t width, offset, amount;
 
-    if (v == NULL)
-        ERR(NULL_VEC, NULL);
+    ASSERT_PTR(v, high, return NULL);
 
     width = v->width;
 
@@ -359,8 +348,7 @@ vec *vec_cut(vec *v, size_t index, size_t n)
     amount =     n * width;
 
     /* Ensure we have a valid range */
-    if (offset + amount > v->length)
-        ERR(INVALID_INDEX, NULL);
+    ASSERT(offset + amount <= v->length, high, return NULL);
 
     /* Starting point for cut */
     slice = ADDPTR(v->data, offset);
@@ -369,41 +357,12 @@ vec *vec_cut(vec *v, size_t index, size_t n)
     rtn = vec_init_raw(width);
     rtn->length = n;
 
-    if (vec_resize_bigger(rtn) != 0)
-    {
-        vec_free(rtn);
-        return NULL;
-    }
+    TRACE_INT(vec_resize_bigger(rtn),
+              vec_free(rtn);
+              return NULL);
 
     /* Copy the data for the cut to the new vector */
     memcpy(rtn->data, slice, amount);
 
     return rtn;
-}
-
-const char *vec_err_str(void)
-{
-    if (vecerr == E_VEC_NULL_VALUE)
-        return "E_VEC_NULL_VALUE";
-
-    if (vecerr == E_VEC_NULL_VEC)
-        return "E_VEC_NULL_VEC";
-
-    if (vecerr == E_VEC_INVALID_INDEX)
-        return "E_VEC_INVALID_INDEX";
-
-    if (vecerr == E_VEC_INVALID_VALUE)
-        return "E_VEC_INVALID_VALUE";
-
-    if (vecerr == E_VEC_NO_MEMORY)
-        return "E_VEC_NO_MEMORY";
-
-    if (vecerr == E_VEC_INVALID_WIDTH)
-        return "E_VEC_INVALID_WIDTH";
-
-    /* Great error. */
-    if (vecerr == E_VEC_OK)
-        return "E_VEC_OK";
-
-    return "<Unknown vec error>";
 }
