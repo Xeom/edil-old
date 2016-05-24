@@ -6,6 +6,11 @@ from symbols.vec    import vec_p
 from symbols.buffer import buffer_p
 
 
+class listener_s(ctypes.Structure):
+    pass
+
+listener_p = ctypes.POINTER(listener_s)
+
 class key_s(ctypes.Structure):
     _fields_ = [("modifiers", ctypes.c_char),
                 ("keyname",   ctypes.c_char *
@@ -15,6 +20,10 @@ class keymap_s(ctypes.Structure):
     pass
 
 keymap_p = ctypes.POINTER(keymap_s)
+
+listenf_none_f = ctypes.CFUNCTYPE(listener_p)
+listenf_char_f = ctypes.CFUNCTYPE(listener_p, ctypes.c_char)
+listenf_str_f  = ctypes.CFUNCTYPE(listener_p, ctypes.POINTER(ctypes.c_char), ctypes.c_size_t)
 
 class key:
     set_name = so.io_key_set_name
@@ -95,3 +104,8 @@ class listener:
     listen = so.io_listener_listen
     listen.argtypes = []
     listen.restype  = ctypes.c_int
+
+    init = so.io_listener_init
+    init.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_size_t,
+                     listenf_char_f, listenf_str_f, listenf_none_f]
+    init.restype  = listener_p
