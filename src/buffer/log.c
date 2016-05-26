@@ -18,55 +18,56 @@
 #include "io/listener.h"
 #include "container/table.h"
 #include "buffer/buffer.h"
+#include "err.h"
 
 #include "buffer/log.h"
 
-static table log_buffers_by_listeners;
+static table log_points_by_listeners;
 
-static void buffer_log_handle_line(listener *li, char *str, size_t n)
+static void buffer_log_point_handle_line(listener *li, char *str, size_t n)
 {
-    buffer **b;
-    vec    *l;
+    point **p;
+    int     newline;
 
-    b = table_get(&log_buffers_by_listeners, &li);
+    ASSERT_PTR(p = table_get(&log_points_by_listeners, &li),
+               high, return);
+
+    newline = 0;
 
     if (str[n - 1] == '\n')
-        n--;
+    {
+        newline = 1;
+        str[n - 1] = '\0';
+    }
 
-    l = vec_init(1);
-    vec_insert(l, 0, n, str);
+    buffer_point_insert(*p, str);
 
-    buffer_insert(*b, 0);
-    buffer_set_line(*b, 0, l);
-
-    vec_free(l);
+    if (newline)
+        buffer_point_enter(*p);
 }
 
 int buffer_log_initsys(void)
 {
-    table_create(&log_buffers_by_listeners,
-                 sizeof(buffer *), sizeof(listener *), NULL, NULL, NULL);
+    table_create(&log_points_by_listeners,
+                 sizeof(point *), sizeof(listener *), NULL, NULL, NULL);
 
     return 0;
 }
 
-FILE *buffer_log_stream(void)
+FILE *buffer_log_point_stream(point *p)
 {
     listener *li;
-    buffer *b;
-    int pipefd[2];
-
-    FILE *anus, *mouth;
-
-    b = buffer_init();
+    FILE     *anus, *mouth;
+    int       pipefd[2];
 
     pipe(pipefd);
     anus  = fdopen(pipefd[0], "r");
     mouth = fdopen(pipefd[1], "w");
 
-    li = io_listener_init(anus, read_line, 0, NULL, buffer_log_handle_line, NULL);
+    li = io_listener_init(anus, read_line, 0, NULL,
+                          buffer_log_point_handle_line, NULL);
 
-    table_set(&log_buffers_by_listeners, &li, &b);
+    table_set(&log_points_by_listeners, &li, &p);
 
     return mouth;
 }

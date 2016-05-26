@@ -37,10 +37,6 @@ class log:
     initsys.argtypes = []
     initsys.restype  = ctypes.c_int
 
-    stream = so.buffer_log_stream
-    stream.argtypes = []
-    stream.restype  = ctypes.c_void_p
-
 class line:
     on_change_pre  = ctypes.cast(so.buffer_line_on_change_pre,  hook_p)
     on_change_post = ctypes.cast(so.buffer_line_on_change_post, hook_p)
