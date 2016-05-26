@@ -17,9 +17,9 @@ struct point_s
 
 static table buffer_point_all;
 
-static void buffer_point_move_ln(point *p, lineno ln);
-static void buffer_point_fix_cn(point *p);
-static void buffer_point_fix_ln(point *p);
+static int buffer_point_move_ln(point *p, lineno ln);
+static int buffer_point_fix_cn(point *p);
+static int buffer_point_fix_ln(point *p);
 
 static int buffer_point_move_cols_backward(point *p, uint n);
 static int buffer_point_move_cols_forward(point *p, uint n);
@@ -114,44 +114,53 @@ point *buffer_point_init(buffer *b, lineno ln, colno cn)
     return rtn;
 }
 
-static void buffer_point_move_ln(point *p, lineno ln)
+static int buffer_point_move_ln(point *p, lineno ln)
 {
     table *subtable;
     vec   *subvec;
 
     if (ln == p->ln)
-        return;
+        return 0;
 
-    subtable = table_get(&buffer_point_all, &(p->b));
-    subvec   = table_get(subtable, &(p->ln));
+    ASSERT_PTR(subtable = table_get(&buffer_point_all, &(p->b)),
+               critical, return -1);
+    ASSERT_PTR(subvec   = table_get(subtable, &(p->ln)),
+               critical, return -1);
 
-    fprintf(stderr, "%lu : %lu\n", vec_len(subvec),vec_find(subvec, &p));
-    vec_delete(subvec, vec_find(subvec, &p), 1);
-    fprintf(stderr, "%lu : \n", vec_len(subvec));
+    ASSERT_INT(vec_delete(subvec, vec_find(subvec, &p), 1),
+               critical, return -1);
 
     if (vec_len(subvec) == 0)
     {
         vec_kill(subvec);
-        table_delete(subtable, &(p->ln));
+        ASSERT_INT(table_delete(subtable, &(p->ln)),
+                   critical, return -1);
     }
 
     subvec = table_get(subtable, &ln);
 
     if (subvec == NULL)
     {
-        table_set(subtable, &ln, NULL);
-        subvec = table_get(subtable, &ln);
-        vec_create(subvec, sizeof(point *));
+        ASSERT_INT(table_set(subtable, &ln, NULL),
+                   critical, return -1);
+        ASSERT_PTR(subvec = table_get(subtable, &ln),
+                   critical, return -1);
+        ASSERT_PTR(vec_create(subvec, sizeof(point *)),
+                   critical, return -1);
     }
 
-    vec_insert_end(subvec, 1, &p);
+    ASSERT_INT(vec_insert_end(subvec, 1, &p),
+               critical, return -1);
 
     p->ln = ln;
 
-    buffer_point_fix_cn(p);
+    TRACE_INT(buffer_point_fix_cn(p),
+              return -1);
+
+    return 0;
 }
 
-static void buffer_point_fix_cn(point *p)
+static int buffer_point_fix_cn(point *p)
 {
     size_t linelen;
 
@@ -159,18 +168,24 @@ static void buffer_point_fix_cn(point *p)
 
     if (p->cn > linelen)
         p->cn = linelen;
+
+    return 0;
 }
 
-static void buffer_point_fix_ln(point *p)
+static int buffer_point_fix_ln(point *p)
 {
     size_t buflen;
 
     buflen = buffer_len(p->b);
 
     if (buflen == 0)
-        buffer_point_move_ln(p, 0);
+        TRACE_INT(buffer_point_move_ln(p, 0),
+                  return -1);
     else if (p->ln >= buflen)
-        buffer_point_move_ln(p, buflen - 1);
+        TRACE_INT(buffer_point_move_ln(p, buflen - 1),
+                  return -1);
+
+    return 0;
 }
 
 static int buffer_point_move_cols_backward(point *p, uint n)
@@ -191,7 +206,8 @@ static int buffer_point_move_cols_backward(point *p, uint n)
     else
         p->cn -= n;
 
-    buffer_point_move_ln(p, ln);
+    TRACE_INT(buffer_point_move_ln(p, ln),
+              return -1);
 
     return 0;
 }
@@ -223,7 +239,8 @@ static int buffer_point_move_cols_forward(point *p, uint n)
     if (p->cn > linelen)
         p->cn = linelen;
 
-    buffer_point_move_ln(p, ln);
+    TRACE_INT(buffer_point_move_ln(p, ln),
+              return -1);
 
     return 0;
 }
@@ -257,11 +274,14 @@ static int buffer_point_move_lines_forward(point *p, uint n)
     buflen = buffer_len(p->b);
 
     if (n + p->ln >= buflen)
-        buffer_point_move_ln(p, buflen - 1);
+        TRACE_INT(buffer_point_move_ln(p, buflen - 1),
+                  return -1);
     else
-        buffer_point_move_ln(p, p->ln + n);
+        TRACE_INT(buffer_point_move_ln(p, p->ln + n),
+                  return -1);
 
-    buffer_point_fix_cn(p);
+    TRACE_INT(buffer_point_fix_cn(p),
+              return -1);
 
     return 0;
 }
@@ -269,9 +289,11 @@ static int buffer_point_move_lines_forward(point *p, uint n)
 static int buffer_point_move_lines_backward(point *p, uint n)
 {
     if (n >= p->ln)
-        buffer_point_move_ln(p, 0);
+        TRACE_INT(buffer_point_move_ln(p, 0),
+                  return -1);
     else
-        buffer_point_move_ln(p, p->ln - n);
+        TRACE_INT(buffer_point_move_ln(p, p->ln - n),
+                  return -1);
 
     return 0;
 }
@@ -314,6 +336,9 @@ int buffer_point_delete(point *p, uint n)
     if (origline == NULL)
         return -1;
 
+    if (n > 10)
+        buffer_batch_start(p->b);
+
     while (n > p->cn && p->ln)
     {
         buffer_point_move_ln(p, p->ln - 1);
@@ -328,6 +353,8 @@ int buffer_point_delete(point *p, uint n)
     if (newline == NULL)
     {
         vec_free(origline);
+        buffer_batch_end(p->b);
+
         return -1;
     }
 
@@ -339,10 +366,12 @@ int buffer_point_delete(point *p, uint n)
 
     buffer_set_line(p->b, p->ln, newline);
 
+    buffer_batch_end(p->b);
     hook_call(buffer_point_on_move_post, p, &origln, &origcn);
 
     vec_free(origline);
     vec_free(newline);
+
 
     return 0;
 }
@@ -383,7 +412,10 @@ int buffer_point_enter(point *p)
     vec *start, *end;
     colno origcn;
 
-    start = buffer_get_line(p->b, p->ln);
+    ASSERT_PTR(p, high, return -1);
+
+    TRACE_PTR(start = buffer_get_line(p->b, p->ln),
+              return -1);
 
     origln = p->ln;
     origcn = p->cn;
@@ -391,22 +423,42 @@ int buffer_point_enter(point *p)
     if (start == NULL)
         return -1;
 
-    end = vec_cut(start, p->cn, vec_len(start) - p->cn);
-    vec_delete(start,    p->cn, vec_len(start) - p->cn);
+    TRACE_PTR(end = vec_cut(start, p->cn, vec_len(start) - p->cn),
+              vec_free(start);
+              return -1);
+    TRACE_INT(vec_delete(start,    p->cn, vec_len(start) - p->cn),
+              vec_free(start);
+              vec_free(end);
+              return -1);
 
     hook_call(buffer_point_on_move_pre, p);
 
-    buffer_set_line(p->b, p->ln, start);
+    TRACE_INT(buffer_set_line(p->b, p->ln, start),
+              vec_free(start);
+              vec_free(end);
+              return -1);
 
     newln = p->ln + 1;
     p->cn = 0;
 
-    buffer_insert(p->b, newln);
-    buffer_set_line(p->b, newln, end);
+    TRACE_INT(buffer_insert(p->b, newln),
+              vec_free(start);
+              vec_free(end);
+              return -1);
+    TRACE_INT(buffer_set_line(p->b, newln, end),
+              vec_free(start);
+              vec_free(end);
+              return -1);
 
-    buffer_point_move_ln(p, newln);
+    TRACE_INT(buffer_point_move_ln(p, newln),
+              vec_free(start);
+              vec_free(end);
+              return -1);
 
     hook_call(buffer_point_on_move_post, p, &origln, &origcn);
+
+    vec_free(start);
+    vec_free(end);
 
     return 0;
 }
