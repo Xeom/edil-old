@@ -4,6 +4,12 @@
 
 # include "win.h"
 
+extern hook ui_win_content_on_draw_pre;
+extern hook ui_win_content_on_draw_post;
+
+extern hook ui_win_content_on_draw_line_pre;
+extern hook ui_win_content_on_draw_line_post;
+
 int ui_win_content_draw_subs(win *w);
 
 int ui_win_content_draw(win *w);

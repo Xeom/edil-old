@@ -120,8 +120,8 @@ static void ui_updates_win_full_redraw(vec *args, hook h)
     unpack_arg(0, win, w);
     b = win_get_buffer(w);
 
-    if (ui_updates_holding_buffer == b)
-        return;
+    if (b && ui_updates_holding_buffer == b)
+          return;
 
     ui_win_draw_subs(w);
 
@@ -194,6 +194,9 @@ static void ui_updates_point_move(vec *args, hook h)
 
     ln = buffer_point_get_ln(p);
     b  = buffer_point_get_buffer(p);
+
+    if (ui_updates_holding_buffer == b)
+        return;
 
     first = win_iter_first(win_root);
     iter = first;

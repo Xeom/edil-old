@@ -20,17 +20,17 @@ typedef enum
 
 
 #define ASSERT(code, level, fail)                       \
-    {                                                   \
+    do {                                                \
         if ( ! (code) )                                 \
         {                                               \
             err_new(level, "Assertion failed",          \
                     "(" #code ") returned 0" ERRLOC);   \
             {fail;}                                     \
         }                                               \
-    }
+    } while (0)
 
 #define ASSERT_PTR(code, level, fail)                   \
-    {                                                   \
+    do {                                                \
         if ( (code) == NULL )                           \
         {                                               \
             err_new(level, "Expected Non-NULL pointer", \
@@ -38,21 +38,21 @@ typedef enum
                     ERRLOC);                            \
             {fail;}                                     \
         }                                               \
-    }
+    } while (0)
 
 #define ASSERT_INT(code, level, fail)                   \
-    {                                                   \
-        if ( (code) != 0 )                              \
+    do {                                                \
+        if ( (int)(code) == -1 )                        \
         {                                               \
             err_new(level, "Expected 0 Return",         \
                     "(" #code ") returned non-zero"     \
                     ERRLOC);                            \
             {fail;}                                     \
         }                                               \
-    }
+    } while (0)
 
 #define ASSERT_IND(code, level, fail)                   \
-    {                                                   \
+    do {                                                \
         if ( (code) == INVALID_INDEX )                  \
         {                                               \
             err_new(level, "Invalid Index",             \
@@ -60,17 +60,17 @@ typedef enum
                     ERRLOC);                            \
             {fail;}                                     \
         }                                               \
-    }
+    } while (0)
 
 #define ASSERT_NCR(code, level, fail)                   \
-    {                                                   \
+    do {                                                \
         if ( (code) == ERR )                            \
         {                                               \
             err_new(level, "Ncurses error",             \
                     "(" #code ") returned ERR" ERRLOC); \
             {fail;}                                     \
         }                                               \
-    }
+    } while(0)
 
 #define TRACE(code, fail)     ASSERT    (code, err_last_lvl, fail)
 #define TRACE_PTR(code, fail) ASSERT_PTR(code, err_last_lvl, fail)
@@ -105,7 +105,7 @@ extern err_lvl err_last_lvl;
 /*
  * Raises a new error to the error system
  *
- * level is an errlvl, not errlvl_end though.
+ * level is an err_lvl, not errlvl_end though.
  *
  * title is a quick overview of the error.
  *     It should start with the name of the function producing the error, followed by a colon
@@ -115,5 +115,7 @@ extern err_lvl err_last_lvl;
  *
  */
 void err_new(err_lvl lvl, const char *title, const char *details);
+
+int err_create_log_buffer(void);
 
 #endif /* ERR_H */

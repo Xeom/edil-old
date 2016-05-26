@@ -180,13 +180,12 @@ int vec_delete(vec *v, size_t index, size_t n)
 
     return 0;
 }
-
+#include <unistd.h>
 int vec_insert(vec *v, size_t index, size_t n, const void *new)
 {
     size_t offset, amount, displaced;
 
-    ASSERT_PTR(v,   high, return -1);
-
+    ASSERT_PTR(v, high, return -1);
 
     /* Calculate the offset of the startbyte of the       *
      * insertion, and the amount of bytes we will insert, *
@@ -226,7 +225,9 @@ int vec_insert(vec *v, size_t index, size_t n, const void *new)
 
 size_t vec_len(vec *v)
 {
-    ASSERT_PTR(v, high, return 0);
+    size_t *a;
+    a = NULL;
+    ASSERT_PTR(v, high, return *a);
     ASSERT(v->width != 0, critical, return 0);
 
     /* To get the number of items, divide *

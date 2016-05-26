@@ -14,10 +14,20 @@ class BufferCursors:
 
         self.buffer   = buffer
 
-    def spawn(self, cls=None):
+    def spawn(self, cls=None, select=False):
         if cls == None:
             cls = self.default
+
         self.cursors.append(cls(self.buffer))
+
+        if select:
+            self.selectind = len(self.cursors) - 1
+
+    def remove_selected(self):
+        del self.cursors[self.selectind]
+
+        if self.selectind >= len(self.cursors):
+            self.selectind = len(self.cursors) - 1
 
     def select_next(self):
         self.selectind += 1
@@ -37,7 +47,7 @@ class BufferCursors:
 class Cursors:
     default = None
     def __init__(self):
-        self.buffers = {}
+        self.buffers  = {}
 
     def get_buffer_cursor(self, buffer):
         if buffer not in self.buffers:
@@ -49,12 +59,25 @@ class Cursors:
         return self.buffers[buffer].selected
 
     @property
+    def current_buffer_cursors(self):
+        b = core.windows.get_selected().buffer
+
+        if b not in self.buffers:
+            new = BufferCursors(b)
+            self.buffers[b] = new
+
+            new.spawn()
+
+        return self.buffers[b]
+
+    @property
     def current(self):
         buffer = core.windows.get_selected().buffer
 
         return self.get_buffer_cursor(buffer)
 
 cursors = Cursors()
+cursor_face = Face(Face.white, Face.black)
 
 @core.deferline.hooks.draw(300)
 def handle_line_draw(w, b, ln, li):
@@ -67,9 +90,7 @@ def handle_line_draw(w, b, ln, li):
     if ln.value != cursors.current.ln:
         return
 
-    face = Face(Face.white, Face.black)
-
-    li.insert(cursors.current.cn, face.serialize(1))
+    li.insert(cursors.current.cn, cursor_face.serialize(1))
 
 @core.windows.hooks.select(800)
 def handle_win_select(w1, w2):

@@ -100,6 +100,13 @@ def draw_buffer_after(b, ln):
         if w.buffer == b:
             symbols.ui.win.content.draw_lines_after(w.struct, ln)
 
+def set_sbar(s):
+    if isinstance(s, str):
+        s = s.encode("ascii")
+
+    symbols.ui.sbar.set(s)
+    symbols.ui.sbar.draw()
+
 def draw_window(w):
     symbols.ui.win.draw(w.struct)
 

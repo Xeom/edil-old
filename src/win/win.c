@@ -203,10 +203,10 @@ int win_delete(win *w)
 
     par = w->parent;
 
-    if (win_issub1(w))
+    if      (win_issub1(w))
         sister = par->cont.split.sub2;
 
-    if (win_issub2(w))
+    else if (win_issub2(w))
         sister = par->cont.split.sub1;
 
     else

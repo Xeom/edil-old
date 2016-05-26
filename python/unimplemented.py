@@ -53,6 +53,7 @@ for file, fnames in symbolsbyfile.items():
 
         pyfname = "_".join(pyfname)
         subobj = obj
+
         for sub in cls:
             if hasattr(subobj, sub):
                 subobj = getattr(subobj, sub)

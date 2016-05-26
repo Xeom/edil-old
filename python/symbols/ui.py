@@ -8,12 +8,13 @@ from symbols.callback import callback_p
 from symbols.buffer   import buffer_p
 from symbols.win      import win_p
 
-#from symbols.face     import face_p
 class face_s(ctypes.Structure):
     _fields_ = [("bg", ctypes.c_int),
                 ("fg", ctypes.c_int),
                 ("bright", ctypes.c_char),
                 ("under",  ctypes.c_char)]
+
+face_p = ctypes.POINTER(face_s)
 
 initsys = so.ui_initsys
 initsys.argtypes = []
@@ -47,8 +48,6 @@ class updates:
     release = so.ui_updates_release
     release.argtypes = []
     release.restype  = ctypes.c_int
-
-    
 
 class face:
     colour_black   = cutil.functptr2type(so.face_colour_black,   ctypes.c_int)
@@ -129,10 +128,20 @@ class win:
     draw_subs.argtypes = [win_p]
     draw_subs.restype  = ctypes.c_int
 
+    corner_char = ctypes.cast(so.ui_win_corner_char,
+                              ctypes.POINTER(ctypes.c_char))
+    horizontal_char = ctypes.cast(so.ui_win_horizontal_char,
+                                  ctypes.POINTER(ctypes.c_char))
+    vertical_char = ctypes.cast(so.ui_win_vertical_char,
+                                ctypes.POINTER(ctypes.c_char))
+
+    frame_face = ctypes.cast(so.ui_win_corner_char, face_p)
+    frame_sel_face = ctypes.cast(so.ui_win_frame_sel_face, face_p)
+
+
     class content:
         on_draw_pre  = ctypes.cast(so.ui_win_content_on_draw_pre,  hook_p)
         on_draw_post = ctypes.cast(so.ui_win_content_on_draw_post, hook_p)
-
         on_draw_line_pre  = ctypes.cast(so.ui_win_content_on_draw_line_pre,
                                         hook_p)
         on_draw_line_post = ctypes.cast(so.ui_win_content_on_draw_line_post,

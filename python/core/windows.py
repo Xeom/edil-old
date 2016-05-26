@@ -39,8 +39,11 @@ class WindowContainer:
 class direction(symbols.win.dir):
     pass
 
+Window = WindowContainer()
+
 def initsys():
     symbols.win.initsys()
+    Window.mount()
 
 def killsys():
     symbols.win.killsys()
@@ -122,6 +125,7 @@ class WindowObj:
 
     def delete(self):
         symbols.win.delete(self.struct)
+
         self.valid = False
 
     def split(self, direction):
@@ -161,9 +165,6 @@ class WindowObj:
 
     def issplitter(self):
         return bool(symbols.win.type_issplitter(self.struct))
-
-
-Window = WindowContainer()
 
 class hooks:
     class size:
@@ -230,5 +231,3 @@ class hooks:
             symbols.win.label.on_caption_set_post,
             Window,
             ctypes.c_char_p)
-
-Window.mount()

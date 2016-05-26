@@ -139,6 +139,9 @@ class BufferObj:
         self[0] = s
 
 Buffer = BufferContainer()
+        
+def initsys():
+    Buffer.mount()
 
 class hooks:
     batch_region = core.hook.Hook(
@@ -193,4 +196,3 @@ class hooks:
             Buffer,
             symbols.buffer.lineno)
 
-Buffer.mount()

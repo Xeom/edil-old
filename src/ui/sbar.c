@@ -33,7 +33,7 @@ int ui_sbar_draw(void)
     ASSERT_NCR(move(sizey - 1, 0), critical, return -1);
 
     if (ui_sbar_content == NULL)
-        ASSERT_NCR(clrtoeol(), critical, return -1)
+        ASSERT_NCR(clrtoeol(), critical, return -1);
     else
         TRACE_INT(ui_util_draw_str_limited_h((uint)sizex - 1,
                                              ' ', ui_sbar_content),

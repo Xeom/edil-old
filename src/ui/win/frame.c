@@ -36,18 +36,16 @@ int ui_win_frame_faceify(win *w, face f)
 
 int ui_win_frame_draw_subs(win *w)
 {
-    win *sub, *last;
+    win *sub, *first;
 
-    sub  = win_iter_first(w);
-    last = win_iter_last(w);
+    first = win_iter_first(w);
+    sub   = first;
 
-    while (sub != last)
+    do
     {
         ui_win_frame_draw(sub);
         sub = win_iter_next(sub);
-    }
-
-    ui_win_frame_draw(sub);
+    } while (sub != first);
 
     ui_win_frame_faceify(win_select_get(),
                          ui_win_frame_sel_face);

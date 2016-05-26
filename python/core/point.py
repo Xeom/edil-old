@@ -66,7 +66,7 @@ class Point:
             other.buffer == self.buffer and \
             symbols.buffer.point.cmp(self.struct, other.struct) == 1
 
-    def __gt__(self, other):
+    def __ge__(self, other):
         return isinstance(other, Point) and \
             other.buffer == self.buffer and \
             symbols.buffer.point.cmp(self.struct, other.struct) in (1, 0)

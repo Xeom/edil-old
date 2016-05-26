@@ -18,7 +18,6 @@ class dir:
 
 root = ctypes.cast(so.win_root, ctypes.POINTER(win_p)).contents
 
-
 on_split  = ctypes.cast(so.win_on_split,  hook_p)
 on_delete_pre  = ctypes.cast(so.win_on_delete_pre,  hook_p)
 on_delete_post = ctypes.cast(so.win_on_delete_post, hook_p)
@@ -61,6 +60,14 @@ type_isleaf.restype  = ctypes.c_int
 type_issplitter = so.win_type_issplitter
 type_issplitter.argtypes = [win_p]
 type_issplitter.restype  = ctypes.c_int
+
+get_offsetx = so.win_get_offsetx
+get_offsetx.argtypes = [win_p]
+get_offsetx.restype  = ctypes.c_size_t
+
+get_offsety = so.win_get_offsety
+get_offsety.argtypes = [win_p]
+get_offsety.restype  = ctypes.c_size_t
 
 class size:
     set_root = so.win_size_set_root

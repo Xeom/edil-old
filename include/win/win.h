@@ -24,7 +24,6 @@ extern hook win_on_buffer_set;
 
 extern win *win_root;
 
-
 int win_initsys(void);
 
 int win_killsys(void);

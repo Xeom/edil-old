@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "buffer/buffer.h"
+#include "buffer/point.h"
+#include "buffer/log.h"
+
 #include "err.h"
 
 char *err_lvl_prefixes[] =
@@ -15,8 +19,11 @@ char *err_lvl_prefixes[] =
     ""
 };
 
-FILE *err_stream       = NULL;
-uint max_err_per_second = 5;
+FILE   *err_stream     = NULL;
+buffer *err_log_buffer = NULL;
+point  *err_log_point  = NULL;
+
+uint max_err_per_second = 10;
 
 err_lvl err_min_quit_lvl   = terminal;
 err_lvl err_min_care_lvl   = low;
@@ -47,6 +54,15 @@ static int err_are_we_dying(void)
 
     if (errs_this_sec > max_err_per_second)
         return 1;
+
+    return 0;
+}
+
+int err_create_log_buffer(void)
+{
+    err_log_buffer = buffer_init();
+    err_log_point  = buffer_point_init(err_log_buffer, 0, 0);
+    err_stream     = buffer_log_point_stream(err_log_point);
 
     return 0;
 }

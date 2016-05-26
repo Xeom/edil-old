@@ -26,4 +26,4 @@ def handle_select(oldwin, newwin):
 
     core.keymap.frames.switch(fname)
 
-handle_select(None,core.windows.get_selected()) 
+handle_select(None, core.windows.get_selected())

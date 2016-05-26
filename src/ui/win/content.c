@@ -12,20 +12,16 @@
 
 int ui_win_content_draw_subs(win *w)
 {
-    win *sub, *last;
+    win *sub, *first;
 
-    sub  = win_iter_first(w);
-    last = win_iter_last(w);
+    first = win_iter_first(w);
+    sub   = first;
 
-    while (sub != last)
+    do
     {
         ui_win_content_draw(sub);
         sub = win_iter_next(sub);
-    }
-
-    ui_win_content_draw(sub);
-
-    refresh();
+    } while (sub != first);
 
     return 0;
 }
@@ -62,6 +58,7 @@ int ui_win_content_draw_line(win *w, lineno ln)
     vec    *l;
     char   *iter;
     size_t  numlines;
+    uint    strlim;
     uint    sizex, sizey;
     uint    offx,  offy;
     int     currx, curry;
@@ -88,7 +85,12 @@ int ui_win_content_draw_line(win *w, lineno ln)
         l = buffer_get_line(b, ln);
 
     if (l)
+    {
         hook_call(ui_win_content_on_draw_line_pre, w, b, &ln, l);
+        strlim = (uint)vec_len(l) - offx;
+    }
+    else
+        strlim = 0;
 
     if (l == NULL || vec_len(l) < offx)
         iter = "";
@@ -97,7 +99,7 @@ int ui_win_content_draw_line(win *w, lineno ln)
 
     move(curry++, currx);
 
-    ui_util_draw_text_limited_h(sizex - 1, (uint)vec_len(l) - offx, ' ', iter);
+    ui_util_draw_text_limited_h(sizex - 1, strlim, ' ', iter);
 
     hook_call(ui_win_content_on_draw_line_post, &w, &b, &ln, &l);
 

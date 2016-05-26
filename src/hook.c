@@ -14,7 +14,7 @@ struct hook_fcont_s
     priority pri;
 };
 
-static vec *hook_vecs_to_free;
+static vec *hook_vecs_to_free = NULL;
 
 static void hook_call_funct(hook h, hook_fcont f, vec *args);
 
@@ -51,13 +51,14 @@ int hook_mount(hook *h, hook_f f, priority pri)
     cont.pri   = pri;
 
     functs = h->functs;
-    index  = vec_len(functs);
 
     if (functs == NULL)
     {
         functs = h->functs = vec_init(sizeof(hook_fcont));
         vec_insert_end(hook_vecs_to_free, 1, &functs);
     }
+
+    index  = vec_len(functs);
 
     /* In today's episode of "I really can't be fucked to bi-search..." */
     while (index--)

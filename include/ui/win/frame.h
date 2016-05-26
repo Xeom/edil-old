@@ -5,6 +5,9 @@
 # include "ui/face.h"
 # include "win/win.h"
 
+extern hook ui_win_frame_on_draw_pre;
+extern hook ui_win_frame_on_draw_post;
+
 extern face ui_win_frame_face;
 extern face ui_win_frame_sel_face;
 

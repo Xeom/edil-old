@@ -75,7 +75,15 @@ class KeyFrame:
     def push(self, mapname, priority=0):
         m = maps[mapname]
 
-        self.maps.append(m)
+        if m in self.maps:
+            self.maps.remove(m)
+
+        self.maps.insert(0, m)
+
+    def remove(self, mapname):
+        m = maps[mapname]
+
+        self.maps.remove(m)
 
     def press(self, key):
         # If there is a semicomplete key sequence
@@ -133,7 +141,6 @@ class KeyFrameCont(KeyCont):
         KeyCont.__init__(self)
         self.active = None
 
-
     def add(self, name):
         if name not in self.items:
             self.items[name] = KeyFrame()
@@ -154,9 +161,11 @@ class KeyMapCont(KeyCont):
         if name not in self.items:
             self.items[name] = Keymap(symbols.io.keymap.init())
 
-frames = KeyFrameCont()
-maps   = KeyMapCont()
+def initsys():
+    global frames, maps, handle_press
+    frames = KeyFrameCont()
+    maps   = KeyMapCont()
 
-@core.key.hooks.key(500)
-def handle_press(key):
-    frames.press(key)
+    @core.key.hooks.key(500)
+    def handle_press(key):
+        frames.press(key)

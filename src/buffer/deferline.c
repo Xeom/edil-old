@@ -2,7 +2,7 @@
 #include <string.h>
 
 #include "container/table.h"
-#include "ui/win/win.h"
+#include "ui/win/content.h"
 
 #include "buffer/deferline.h"
 

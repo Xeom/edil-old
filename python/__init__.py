@@ -18,24 +18,30 @@ import symbols
 import signal
 
 symbols.hook.initsys()
+symbols.io.listener.initsys()
 core.windows.initsys()
+core.buffer.initsys()
 core.deferline.initsys()
 core.ui.initsys()
 core.key.initsys()
+core.keymap.initsys()
 core.point.initsys()
 core.ui.refresh()
 symbols.buffer.log.initsys()
-symbols.io.listener.initsys()
-#import editor.uiupdates
 
+import editor.query
 import editor.cursor.regioncursor
 import editor.cursor.cursor
-import editor.keymap.keymap
 import editor.clipboard
 import editor.files
 import editor.buffers.ring
+import editor.keymap.keymap
+import editor.command
 
-ctypes.cast(shared.lib.err_stream, ctypes.POINTER(ctypes.c_void_p)).contents.value = symbols.buffer.log.stream()
+from editor.cursor.cursor import cursors
+
+#shared.lib.err_create_log_buffer()
+#ctypes.cast(shared.lib.err_stream, ctypes.POINTER(ctypes.c_void_p)).contents.value = symbols.buffer.log.stream()
 
 from editor.subcaption   import SubCaption
 from core.key import Key
@@ -85,7 +91,7 @@ def addeol(w, b, ln, li):
 mastermap = core.keymap.maps["master"]
 @mastermap.add(Key("V", con=True))
 def paste(keys):
-    editor.clipboard.do_paste(editor.cursor.cursor.cursors.current)
+    editor.clipboard.do_paste(cursors.current)
 
 @mastermap.add(Key("X", con=True))
 def masterexit(keys):
@@ -95,7 +101,7 @@ def masterexit(keys):
 @mastermap.add(Key("F", con=True), Key("a"))
 def masterload(keys):
     b = core.windows.get_selected().buffer
-    c = editor.cursor.cursor.cursors.current
+    c = cursors.current
 
     fn = bytes(b[c.ln])
 
@@ -105,6 +111,18 @@ def masterload(keys):
 def mastersave(keys):
     editor.files.dump(
         core.windows.get_selected().buffer)
+
+
+cmd=editor.command.Command("n ", int, "string ", str)
+
+@cmd.hook(500)
+def queryish_cb(n, string):
+    cursors.current.insert(string * n)
+
+@mastermap.add(Key("R", con=True), Key("e"), Key("p"))
+def queryish(keys):
+    cmd.run()
+
 
 while alive:
     symbols.io.listener.listen()
@@ -127,6 +145,6 @@ import sys
 ps = pstats.Stats(pr, stream=sys.stderr)
 ps.strip_dirs()
 ps.sort_stats(sortby)
-#ps.print_stats(15)
-#ps.print_callers('cast')
+ps.print_stats(15)
+ps.print_callers('cast')
 
