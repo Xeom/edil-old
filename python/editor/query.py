@@ -7,14 +7,48 @@ import editor.cursor
 
 query_prefix_face = Face(Face.black, Face.cyan)
 
+class AutoCompleter:
+    def __init__(self, callback):
+        self.options = []
+        self.index   = 0
+        self.last    = None
+        self.cb      = callback
+
+    def nextoption(self):
+        if not self.options:
+            return None
+
+        rtn = self.options[self.index]
+
+        self.index += 1
+        self.index %= len(self.options)
+
+        return rtn
+
+    def complete(self, semi):
+        if self.cb == None:
+            return None
+
+        if self.last != semi:
+            self.options = self.cb(semi)
+            self.index   = 0
+
+        rtn = self.nextoption()
+
+        self.last = rtn
+
+        return rtn
+
+
 class QueryPoint:
     def __init__(self, buffer):
-        self.ln       = 0
-        self.cn       = 0
-        self.string   = []
-        self.buffer   = buffer
-        self.callback = None
-        self.prefix   = b""
+        self.ln = 0
+        self.cn = 0
+
+        self.string    = []
+
+        self.buffer    = buffer
+        self.prefix    = b""
 
         self.draw()
 
@@ -69,6 +103,15 @@ class QueryPoint:
     def enter(self):
         pass
 
+    def set(self, string):
+        if isinstance(string, bytes):
+            string = string.decode("ascii")
+
+        self.string = list(string)
+        self.cn     = len(string)
+
+        self.draw()
+
     def __lt__(self, other):
         return self.cn < other.cn
 
@@ -94,11 +137,18 @@ querymap = core.keymap.maps[mapname]
 
 querying_buffers = set()
 
-@querymap.add(Key("J", con=True))
-def query_enter(keys):
-    leave_query()
+def autocomplete_query():
+    cur = cursor.cursors.current
 
-def make_query(callback, prefix=b""):
+    if not isinstance(cur, QueryPoint):
+        raise Exception("Not in a query")
+
+    auto = cur.autocompleter.complete("".join(cur.string))
+
+    if auto != None:
+        cur.set(auto)
+
+def make_query(callback, prefix=b"", completecallback=None):
     core.keymap.frames.active.push("query-default")
 
     curs = cursor.cursors.current_buffer_cursors
@@ -110,21 +160,32 @@ def make_query(callback, prefix=b""):
     querying_buffers.add(buf)
 
     curs.spawn(cls=QueryPoint, select=True)
+    curs.selected.autocompleter = AutoCompleter(completecallback)
     curs.selected.callback = callback
-    curs.selected.prefix   = prefix
+    curs.selected.prefix  = prefix
 
 def leave_query():
     cur = cursor.cursors.current
-    buf = core.windows.get_selected().buffer
-
-    core.keymap.frames.active.remove("query-default")
-
-    querying_buffers.remove(buf)
 
     if not isinstance(cur, QueryPoint):
         raise Exception("Not in a query")
 
+    buf = cur.buffer
+
+    core.keymap.frames.active.remove("query-default")
+
+    if buf in querying_buffers:
+        querying_buffers.remove(buf)
+
     cursor.cursors.current_buffer_cursors.remove_selected()
     core.ui.set_sbar(b"")
     cur.callback("".join(cur.string))
-    
+
+@querymap.add(Key("J", con=True))
+def query_enter(keys):
+    leave_query()
+
+@querymap.add(Key("I", con=True))
+def query_tab(keys):
+    autocomplete_query()
+
