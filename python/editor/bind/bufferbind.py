@@ -14,7 +14,6 @@ curmap = core.keymap.maps[mapname]
 def cur_next(keys):
     editor.buffers.ring.nextify_window(core.windows.get_selected())
 
-
 @curmap.add(Key("B", con=True), Key("LEFT"))
 def cur_prev(keys):
     editor.buffers.ring.prevify_window(core.windows.get_selected())
