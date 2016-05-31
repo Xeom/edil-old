@@ -13,10 +13,15 @@ class Key:
         if isinstance(name, str):
             name = name.encode("ascii")
 
-        self.struct = symbols.io.key_s(0, name)
-        self.ignored = ign
-        self.control = con
-        self.escaped = esc
+        if name in aliases:
+            self.struct = aliases[name].struct
+
+        else:
+            self.struct = symbols.io.key_s(0, name)
+            self.ignored = ign
+            self.control = con
+            self.escaped = esc
+
 
     def __bytes__(self):
         charp = symbols.io.key.str(self.struct)
@@ -28,6 +33,9 @@ class Key:
 
     def __str__(self):
         return self.__bytes__().decode("ascii")
+
+    def __hash__(self):
+        return int.from_bytes(bytes(self.struct), "little")
 
     def get_modifier(self, mod):
         mods = ord(self.struct.modifiers)
@@ -72,6 +80,12 @@ class Key:
     @ignored.setter
     def escaped(self, value):
         return self.set_modifier(symbols.io.key.esc_mod, value)
+
+aliases = {}
+aliases = {
+    b"RETURN": Key("J", con=True),
+    b"TAB":    Key("I", con=True)
+}
 
 class KeyFromPtr(Key):
     def __init__(self, ptr):
