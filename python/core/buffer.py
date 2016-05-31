@@ -69,6 +69,11 @@ class BufferContainer:
 
         return b
 
+    def new(self):
+        ptr = symbols.buffer.init()
+
+        return self(ptr)
+
 class BufferObj:
     def __init__(self, ptr):
         self.struct = ctypes.cast(ptr, symbols.buffer.buffer_p)
@@ -139,7 +144,7 @@ class BufferObj:
         self[0] = s
 
 Buffer = BufferContainer()
-        
+
 def initsys():
     Buffer.mount()
 

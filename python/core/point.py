@@ -1,4 +1,5 @@
 import ctypes
+import cutil
 
 import core.hook
 
@@ -12,6 +13,11 @@ def initsys():
 class Point:
     def __init__(self, buffer, ln=0, cn=0):
         self.struct = symbols.buffer.point.init(buffer.struct, ln, cn)
+
+    def open_stream(self):
+        fptr = symbols.buffer.log.point_stream(self.struct)
+
+        return cutil.fptr2file(fptr, "w", 1)
 
     def move_cols(self, n):
         symbols.buffer.point.move_cols(self.struct, n)

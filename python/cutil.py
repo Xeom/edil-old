@@ -41,6 +41,21 @@ def fptr_open(path, mode):
 
     return fptr
 
+so.fileno.argtypes = [ctypes.c_void_p]
+so.fileno.restype  = ctypes.c_int
+
+so.fclose.argtypes = [ctypes.c_void_p]
+
+def fptr2file(fptr, mode, buf=None):
+    fd = so.fileno(fptr)
+
+    if buf != None:
+        return os.fdopen(fd, mode, buf)
+    else:
+        return os.fdopen(fd, mode)
+    
+
+
 def fptr_close(fptr):
     so.fclose(fptr)
 
