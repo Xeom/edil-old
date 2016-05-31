@@ -45,7 +45,7 @@ static int buffer_point_move_ln(point *p, lineno ln);
  *
  * @param p The point to fix the position of.
  *
- * @return 0 on success, -1 on error.
+ * @return  0 on success, -1 on error.
  *
  */
 static int buffer_point_fix_cn(point *p);
@@ -59,6 +59,8 @@ static int buffer_point_fix_ln(point *p);
  * @param p The point to move.
  * @param n The number of places to move.
  *
+ * @return  0 on success, -1 on error.
+ *
  */
 static int buffer_point_move_cols_backward(point *p, uint n);
 static int buffer_point_move_cols_forward(point *p, uint n);
@@ -71,6 +73,8 @@ static int buffer_point_move_cols_forward(point *p, uint n);
  * @param p The point to move.
  * @param n The number of places to move.
  *
+ * @return  0 on success, -1 on error.
+ *
  */
 static int buffer_point_move_lines_backward(point *p, uint n);
 static int buffer_point_move_lines_forward(point *p, uint n);
@@ -82,6 +86,8 @@ static int buffer_point_move_lines_forward(point *p, uint n);
  *
  * @param larger  The larger of the two points to subtract.
  * @param smaller The smaller of the two points to subtract.
+ *
+ * @return        The difference between the points.
  *
  */
 static long buffer_point_sub_abs(point *larger, point *smaller);
@@ -444,57 +450,77 @@ int buffer_point_move_lines(point *p, int n)
     return rtn;
 }
 
+#define DELETE_BATCH_THRESHOLD 40
+
 int buffer_point_delete(point *p, uint n)
 {
     vec   *origline, *newline;
     colno  origcn;
     lineno origln;
 
-    origline = buffer_get_line(p->b, p->ln);
-    origcn   = p->cn;
-    origln   = p->ln;
+    TRACE_PTR(origline = buffer_get_line(p->b, p->ln),
+              return -1);
+
+    origcn = p->cn;
+    origln = p->ln;
 
     hook_call(buffer_point_on_move_pre, p);
 
-    if (origline == NULL)
-        return -1;
-
-    if (n > 10)
+    if (n >= DELETE_BATCH_THRESHOLD)
         buffer_batch_start(p->b);
 
     while (n > p->cn && p->ln)
     {
-        buffer_point_move_ln(p, p->ln - 1);
+        TRACE_INT(buffer_point_move_ln(p, p->ln - 1),
+                  vec_free(origline);
+                  buffer_batch_end(p->b);
+                  return -1);
+
         n -= (uint)p->cn + 1;
-        buffer_delete(p->b, p->ln + 1);
+
+        TRACE_INT(buffer_delete(p->b, p->ln + 1),
+                  vec_free(origline);
+                  buffer_batch_end(p->b);
+                  return -1);
+
         p->cn = buffer_len_line(p->b, p->ln);
     }
 
-    newline = buffer_get_line(p->b, p->ln);
+    TRACE_PTR(newline = buffer_get_line(p->b, p->ln),
+              vec_free(origline);
+              buffer_batch_end(p->b);
+              return -1);
+
     n = MIN(n, (uint)p->cn);
 
-    if (newline == NULL)
-    {
-        vec_free(origline);
-        buffer_batch_end(p->b);
+    TRACE_INT(vec_delete(newline, p->cn - n, vec_len(newline) - p->cn + n),
+              vec_free(origline);
+              buffer_batch_end(p->b);
+              return -1);
 
-        return -1;
-    }
+    if (origcn < vec_len(origline))
+        TRACE_INT(vec_insert_end(newline, vec_len(origline) - origcn,
+                                 vec_item(origline, origcn)),
+                  vec_free(origline);
+                  vec_free(newline);
+                  buffer_batch_end(p->b);
+                  return -1);
 
-    vec_delete(newline, p->cn - n, vec_len(newline) - p->cn + n);
-    vec_insert_end(newline, vec_len(origline) - origcn,
-                   vec_item(origline, origcn));
 
     p->cn -= n;
 
-    buffer_set_line(p->b, p->ln, newline);
+    TRACE_INT(buffer_set_line(p->b, p->ln, newline),
+              vec_free(origline);
+              vec_free(newline);
+              buffer_batch_end(p->b);
+              return -1);
 
     buffer_batch_end(p->b);
+
     hook_call(buffer_point_on_move_post, p, &origln, &origcn);
 
     vec_free(origline);
     vec_free(newline);
-
 
     return 0;
 }
@@ -510,17 +536,23 @@ int buffer_point_insert(point *p, char *str)
     origcn = p->cn;
 
     if (buffer_len(p->b) == 0)
-        buffer_insert(p->b, p->ln);
+        TRACE_INT(buffer_insert(p->b, p->ln),
+                  return -1);
 
     inslen = strlen(str);
-    l      = buffer_get_line(p->b, p->ln);
+
+    TRACE_PTR(l = buffer_get_line(p->b, p->ln),
+              return -1);
 
     hook_call(buffer_point_on_move_pre, p);
 
-    vec_insert(l, p->cn, inslen, str);
+    TRACE_INT(vec_insert(l, p->cn, inslen, str),
+              return -1);
 
     p->cn += inslen;
-    buffer_set_line(p->b, p->ln, l);
+
+    TRACE_INT(buffer_set_line(p->b, p->ln, l),
+              return -1);
 
     vec_free(l);
 
@@ -588,36 +620,49 @@ int buffer_point_enter(point *p)
 
 lineno buffer_point_get_ln(point *p)
 {
+    ASSERT_PTR(p, high, return INVALID_INDEX);
+
     return p->ln;
 }
 
-void buffer_point_set_ln(point *p, lineno ln)
+int buffer_point_set_ln(point *p, lineno ln)
 {
     lineno origln;
     colno  origcn;
+
+    ASSERT_PTR(p, high, return -1);
 
     origln = p->ln;
     origcn = p->cn;
 
     hook_call(buffer_point_on_move_pre, p);
 
-    buffer_point_move_ln(p, ln);
+    TRACE_INT(buffer_point_move_ln(p, ln),
+              return -1);
 
-    buffer_point_fix_ln(p);
-    buffer_point_fix_cn(p);
+    TRACE_INT(buffer_point_fix_ln(p),
+              return -1);
+    TRACE_INT(buffer_point_fix_cn(p),
+              return -1);
 
     hook_call(buffer_point_on_move_post, p, &origln, &origcn);
+
+    return 0;
 }
 
 colno buffer_point_get_cn(point *p)
 {
+    ASSERT_PTR(p, high, return INVALID_INDEX);
+
     return p->cn;
 }
 
-void buffer_point_set_cn(point *p, lineno cn)
+int buffer_point_set_cn(point *p, lineno cn)
 {
     lineno origln;
     colno  origcn;
+
+    ASSERT_PTR(p, high, return -1);
 
     origln = p->ln;
     origcn = p->cn;
@@ -625,18 +670,28 @@ void buffer_point_set_cn(point *p, lineno cn)
     hook_call(buffer_point_on_move_pre, p);
 
     p->cn = cn;
-    buffer_point_fix_cn(p);
+
+    TRACE_INT(buffer_point_fix_cn(p),
+              return -1);
 
     hook_call(buffer_point_on_move_post, p, &origln, &origcn);
+
+    return 0;
 }
 
 buffer *buffer_point_get_buffer(point *p)
 {
+    ASSERT_PTR(p, high, return NULL);
+
     return p->b;
 }
 
 int buffer_point_cmp(point *a, point *b)
 {
+    ASSERT_PTR(a || b, high, return 0);
+    ASSERT_PTR(a,      high, return -1);
+    ASSERT_PTR(b,      high, return  1);
+
     if (a->ln == b->ln)
     {
         if (a->cn == b->cn)
@@ -654,13 +709,21 @@ static long buffer_point_sub_abs(point *larger, point *smaller)
     long    sum;
     buffer *b;
 
-    b = larger->b;
+    b   = larger->b;
     sum = 0;
 
+    /* Sum up the line lengths of all lines including the line the *
+     * smaller point is on, till the one just before the line the  *
+     * larger point is on.                                         */
     for (ln = smaller->ln; ln < larger->ln; ln++)
         sum += (long)buffer_len_line(b, ln) + 1;
 
+    /* Subtract the column number of the smaller point. Since we *
+     * already added the length of the line it's on, subtracting *
+     * its column number will include the portion of the line    *
+     * after the point in the sum.                               */
     sum -= (long)smaller->cn;
+    /* Add the column number of the larger point. */
     sum += (long)larger->cn;
 
     return sum;
@@ -670,15 +733,20 @@ long buffer_point_sub(point *a, point *b)
 {
     int cmp;
 
-    if (a->b != b->b)
-        return 0;
+    ASSERT_PTR(a, high, return 0);
+    ASSERT_PTR(b, high, return 0);
+
+    ASSERT(a->b == b->b, high, return 0);
 
     cmp = buffer_point_cmp(a, b);
 
+    /* a > b */
     if (cmp == 1)
         return buffer_point_sub_abs(a, b);
+    /* a < b */
     else if (cmp == -1)
         return -buffer_point_sub_abs(b, a);
+    /* a = b */
     else
         return 0;
 }
@@ -781,7 +849,6 @@ static void buffer_point_handle_line_insert(vec *args, hook h)
     tomove = vec_init(sizeof(point *));
 
     table_foreach_ptr(subtable, vec *, v,
-                      fprintf(stderr, "ln %lu\n", vec_len(v));
                       vec_foreach(v, point *, p,
                                   if (p->ln < ln)
                                       continue;
