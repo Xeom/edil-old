@@ -415,6 +415,9 @@ size_t buffer_len_line(buffer *b, lineno ln)
     TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
               return 0);
 
+    if (buffer_len(b) == 0 && ln == 0)
+        return 0;
+
     ASSERT_PTR(l = vec_lines_get((vec_lines *)c, offset), high, return 0);
 
     return buffer_line_len(l);

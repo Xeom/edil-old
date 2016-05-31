@@ -35,10 +35,10 @@ struct listener_s
         listenf_none nonef;
     } funct;
 
-    int    ended;
     size_t limit;
 };
 
+#define LISTENER_EOF(li) (feof((li).stream))
 #define LISTENER_FD(li) (fileno((li).stream))
 
 static vec listeners;
@@ -95,7 +95,6 @@ listener *io_listener_init(FILE *stream, listen_type type, size_t limit,
     new.stream = stream;
     new.type   = type;
     new.limit  = limit;
-    new.ended  = 0;
 
     if (type == read_char)
     {
@@ -130,8 +129,6 @@ static int io_listener_fill_set(fd_set *set)
 
     vec_foreach(&listeners, listener, li,
                 int fd;
-                if (li.ended)
-                    continue;
 
                 fd = LISTENER_FD(li);
                 maxfd = MAX(maxfd, fd);
@@ -149,7 +146,6 @@ static int io_listener_read(listener *li)
 
         chr = fgetc(li->stream);
         ASSERT(chr != EOF, high,
-               li->ended = 1;
                return -1);
 
         li->funct.charf(li, (char)chr);
@@ -168,10 +164,7 @@ static int io_listener_read(listener *li)
             chr = fgetc(li->stream);
 
             if (chr == EOF)
-            {
-                li->ended = 1;
                 break;
-            }
 
             chr_cast = (char)chr;
             vec_insert_end(chars, 1, &chr_cast);

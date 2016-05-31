@@ -5,6 +5,8 @@ import core.ui
 import editor.cursor.cursor as cursor
 import editor.cursor
 
+import os
+
 query_prefix_face = Face(Face.black, Face.cyan)
 
 class AutoCompleter:
@@ -38,7 +40,6 @@ class AutoCompleter:
         self.last = rtn
 
         return rtn
-
 
 class QueryPoint:
     def __init__(self, buffer):
@@ -181,11 +182,11 @@ def leave_query():
     core.ui.set_sbar(b"")
     cur.callback("".join(cur.string))
 
-@querymap.add(Key("J", con=True))
+@querymap.add(Key("RETURN"))
 def query_enter(keys):
     leave_query()
 
-@querymap.add(Key("I", con=True))
+@querymap.add(Key("TAB"))
 def query_tab(keys):
     autocomplete_query()
 

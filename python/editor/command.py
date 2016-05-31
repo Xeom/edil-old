@@ -3,8 +3,6 @@ import editor.query
 
 import weakref
 
-
-
 class CommandArg:
     def __init__(self, type, prefix="", completecallback=None):
         if prefix:
@@ -47,3 +45,6 @@ class Command:
 
     def run(self, keys=None):
         self.get_arg([], 0)
+
+    def run_withargs(self, *args):
+        self.hook.call(args)

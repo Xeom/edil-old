@@ -35,14 +35,16 @@ import editor.cursor.cursor
 import editor.clipboard
 import editor.files
 import editor.buffers.ring
-import editor.keymap.keymap
-import editor.command
+import editor.bind.keymap
+import editor.autocomplete
+
 
 from editor.cursor.cursor import cursors
 
 #shared.lib.err_create_log_buffer()
 #ctypes.cast(shared.lib.err_stream, ctypes.POINTER(ctypes.c_void_p)).contents.value = symbols.buffer.log.stream()
 
+from editor.command      import Command, CommandArg
 from editor.subcaption   import SubCaption
 from core.key import Key
 from core.keymap import Keymap
@@ -98,22 +100,8 @@ def masterexit(keys):
     global alive
     alive = False
 
-@mastermap.add(Key("F", con=True), Key("a"))
-def masterload(keys):
-    b = core.windows.get_selected().buffer
-    c = cursors.current
-
-    fn = bytes(b[c.ln])
-
-    editor.files.associate(b, fn)
-
-@mastermap.add(Key("F", con=True), Key("s"))
-def mastersave(keys):
-    editor.files.dump(
-        core.windows.get_selected().buffer)
-
-
-cmd=editor.command.Command("n ", int, "string ", str)
+cmd = Command(CommandArg(int, "n ", editor.autocomplete.number()),
+              CommandArg(str, "string "))
 
 @cmd.hook(500)
 def queryish_cb(n, string):
@@ -123,6 +111,11 @@ def queryish_cb(n, string):
 def queryish(keys):
     cmd.run()
 
+@core.key.hooks.key(500)
+def hi(key):
+    print(key, file=sys.stderr)
+
+import editor.userlog
 
 while alive:
     symbols.io.listener.listen()

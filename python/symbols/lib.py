@@ -22,3 +22,12 @@ free.argtypes = [ctypes.c_void_p]
 
 move = so.move
 move.argtypes = [ctypes.c_int, ctypes.c_int]
+
+fwrite = so.fwrite
+fwrite.argtypes = [ctypes.c_char_p, ctypes.c_size_t,
+                   ctypes.c_size_t, ctypes.c_void_p]
+fwrite.restype  = ctypes.c_size_t
+
+fflush = so.fflush
+fflush.argtypes = [ctypes.c_void_p]
+fflush.restype  = ctypes.c_int

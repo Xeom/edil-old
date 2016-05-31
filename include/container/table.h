@@ -119,7 +119,7 @@ table *table_create(
 /*
  * Get the number of items in a table.
  *
- * Tested in unit_table.test_del
+ * Tested by unit_table.test_del
  *
  * @param t A pointer to the table to get the length of.
  *
@@ -136,12 +136,24 @@ void ctable_free(table *t);
  * free'd by the caller of table_create/table_init. This function will free the
  * memory passed to table_create if the table was initialized this way.
  *
- * Testable by valgrind in unit_table.test_del, test_init, test_set
+ * Testable by valgrind in unit_table
  *
  * @param t A pointer to the table to free.
  *
  */
 void table_free(table *t);
+
+/*
+ * Free the data associated with a table, but not the table itself. This does not
+ * free the nullval passed to the table during its creation. This should be
+ * free'd by the caller of table_create/table_init.
+ *
+ * Testable by valgrind in unit_table.test_init
+ *
+ * @param t A pointer to the table to kill.
+ *
+ */
+void table_kill(table *t);
 
 int ctable_set(table *t, const char *k, const char *value);
 

@@ -15,6 +15,7 @@
 # error "I still hate you"
 #endif
 
+
 #include "io/listener.h"
 #include "container/table.h"
 #include "buffer/buffer.h"
@@ -63,6 +64,9 @@ FILE *buffer_log_point_stream(point *p)
     pipe(pipefd);
     anus  = fdopen(pipefd[0], "r");
     mouth = fdopen(pipefd[1], "w");
+
+    setvbuf(mouth, NULL, _IONBF, 0);
+    setvbuf(anus, NULL, _IONBF, 0);
 
     li = io_listener_init(anus, read_line, 0, NULL,
                           buffer_log_point_handle_line, NULL);

@@ -745,7 +745,7 @@ long buffer_point_sub(point *a, point *b)
         return buffer_point_sub_abs(a, b);
     /* a < b */
     else if (cmp == -1)
-        return -buffer_point_sub_abs(b, a);
+        return buffer_point_sub_abs(b, a);
     /* a = b */
     else
         return 0;

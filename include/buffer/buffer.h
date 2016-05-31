@@ -51,6 +51,8 @@ typedef struct buffer_s buffer;
 /*
  * Initialize and return a new buffer.
  *
+ * Testable in unit_buffer.test_init
+ *
  * @return A pointer to the new buffer
  *
  */
@@ -58,6 +60,8 @@ buffer *buffer_init(void);
 
 /*
  * Free a buffer, it's chunks and lines.
+ *
+ * Testable by valgrind in unit_buffer.test_init
  *
  * @param b A pointer to the buffer to free.
  *
@@ -115,6 +119,8 @@ table *buffer_get_properties(buffer *b);
  * Create and insert a new line into a buffer at a particular line number.
  * Subsequent lines are shifted accordingly.
  *
+ * Tested by unit_buffer.insert_start, insert_middle, insert_end
+ *
  * @param b  A pointer to buffer to insert into.
  * @param ln The linenumber of the new line.
  *
@@ -140,6 +146,8 @@ int buffer_delete(buffer *b, lineno ln);
  * not be linked to the line in any way, and must be freed by the caller of this
  * function. The vector will be initialized with width sizeof(char), and should
  * be read as chars.
+ *
+ * Tested by unit_buffer.insert_start, insert_end
  *
  * @param b  A pointer to the buffer to return the contents of a line from.
  * @param ln The linenumber of the line to get.
@@ -182,13 +190,13 @@ lineno buffer_len(buffer *b);
 /*
  * Get the length of a specific line in a buffer, without having to call
  * buffer_get_line and create a vector for the contents of the line. This
- * is significantly faster, as the contents of the line do not have to be 
+ * is significantly faster, as the contents of the line do not have to be
  * copied.
  *
  * @param b  The buffer to find the length of a line in.
  * @param ln The line number of the line to find the length of.
  *
- * @return   The number of characters in the line.
+ * @return   The number of characters in the line. If there is an error, 0.
  *
  */
 size_t buffer_len_line(buffer *b, lineno ln);

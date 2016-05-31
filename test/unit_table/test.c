@@ -124,7 +124,8 @@ void test_init(void)
     tbl = table_create(tbl, sizeof(char), sizeof(char), NULL, NULL, NULL);
     TEST(tbl == NULL, d);
 
-    table_free(tbl);
+    table_kill(tbl);
+    free(tbl);
 }
 
 int main(void)

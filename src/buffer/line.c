@@ -94,7 +94,8 @@ int buffer_line_set_vec(line *l, vec *v)
 
     /* Note that we do not memcpy or alloc space for  *
      * a terminating \0. This is because we are evil. */
-    memcpy(l->text, vec_char_item(v, 0), len);
+    if (len)
+        memcpy(l->text, vec_char_item(v, 0), len);
 
     return 0;
 }

@@ -99,6 +99,13 @@ void table_free(table *t)
     free(t);
 }
 
+void table_kill(table *t)
+{
+    if (!t) return;
+
+    free(t->data);
+}
+
 size_t table_len(table *t)
 {
     ASSERT_PTR(t, high, return 0);

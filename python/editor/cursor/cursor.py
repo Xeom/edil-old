@@ -18,10 +18,13 @@ class BufferCursors:
         if cls == None:
             cls = self.default
 
-        self.cursors.append(cls(self.buffer))
+        new = cls(self.buffer)
+        self.cursors.append(new)
 
         if select:
             self.selectind = len(self.cursors) - 1
+
+        return new
 
     def remove_selected(self):
         del self.cursors[self.selectind]
@@ -58,17 +61,20 @@ class Cursors:
 
         return self.buffers[buffer].selected
 
+    def get_buffer_cursors(self, buffer):
+        if buffer not in self.buffers:
+            new = BufferCursors(buffer)
+            self.buffers[buffer] = new
+
+            new.spawn()
+
+        return self.buffers[buffer]
+
     @property
     def current_buffer_cursors(self):
         b = core.windows.get_selected().buffer
 
-        if b not in self.buffers:
-            new = BufferCursors(b)
-            self.buffers[b] = new
-
-            new.spawn()
-
-        return self.buffers[b]
+        return self.get_buffer_cursors(b)
 
     @property
     def current(self):

@@ -14,7 +14,6 @@ static int vec_realloc(vec *v)
     v->data = realloc(v->data, v->capacity);
 
     /* Check allocs :D */
-
     ASSERT_PTR(v->data, terminal,
                /* Set the capacity and length to 0 to try and *
                 * prevent anything segfaulting off of this    */
