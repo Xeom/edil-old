@@ -51,6 +51,9 @@ static chunk *buffer_chunk_resize_smaller(chunk *c);
 /* Free a chunk without freeing the rest of the chunks in its chain */
 static void buffer_chunk_free_norecurse(chunk *c);
 
+static chunk *buffer_chunk_next(chunk *c);
+
+
 chunk *buffer_chunk_init(void)
 {
     chunk *rtn;
@@ -83,7 +86,7 @@ void buffer_chunk_free(chunk *c)
     curr = c->next;
     while (curr)
     {
-        next = curr->next;
+        next = buffer_chunk_next(curr);
         buffer_chunk_free_norecurse(curr);
         curr = next;
     }
@@ -134,7 +137,7 @@ static chunk *buffer_chunk_insert(chunk *c)
 
     /* Insert the new chunk after the one we already have, by *
      * sewing it in.                                          */
-    rtn->next = c->next;
+    rtn->next = buffer_chunk_next(c);
     rtn->prev = c;
 
     /* Tell the next chunks about the new chunk behind them. */
@@ -226,15 +229,13 @@ static chunk *buffer_chunk_resize_smaller(chunk *c)
 
     len = vec_lines_len((vec_lines *)c);
 
-    next = buffer_chunk_next(c);
-
     /* If chunk size is sane, return */
     if (len >= BUFFER_CHUNK_MIN_SIZE)
         return c;
 
     /* Also return if there's no next chunk.  *
      * The last chunk is allowed to be small. */
-    if (next == NULL)
+    if (c->next == NULL)
         return c;
 
     iter = vec_lines_item((vec_lines *)c, 0);
@@ -242,9 +243,15 @@ static chunk *buffer_chunk_resize_smaller(chunk *c)
     ASSERT_PTR(iter, critical,
                return NULL);
 
+    next = buffer_chunk_next(c);
+
     /* Insert all of the lines from our current chunk *
      * into the next chunk.                           */
     buffer_chunk_insert_lines(next, 0, len, iter);
+
+    vec_lines_delete((vec_lines *)c, 0, vec_lines_len((vec_lines *)c));
+
+    next->startline = c->startline;
 
     /* Delete the current chunk */
     buffer_chunk_delete(c);
@@ -280,11 +287,11 @@ chunk *buffer_chunk_delete_line(chunk *c, lineno offset)
 
     l = vec_lines_get((vec_lines *)c, offset);
 
-    ASSERT_PTR(l, high, return NULL);
+    TRACE_PTR(l, return NULL);
 
     /* Delete the line from the chunk */
-    ASSERT_INT(vec_lines_delete((vec_lines *)c, offset, 1),
-               critical, return NULL);
+    TRACE_INT(vec_lines_delete((vec_lines *)c, offset, 1),
+              return NULL);
 
     /* Free the actual line */
     buffer_line_free(l);
@@ -337,6 +344,7 @@ lineno buffer_chunk_lineno_to_offset(chunk *c, lineno ln)
 {
     ASSERT_PTR(c, high, return 0);
 
+
     return ln - c->startline;
 }
 
@@ -353,7 +361,7 @@ lineno buffer_chunk_get_total_len(chunk *c)
 
     /* Get the final chunk */
     while (c->next)
-        c = c->next;
+        c = buffer_chunk_next(c);
 
     /* Return its last line */
     return c->startline + vec_lines_len((vec_lines *)c);
