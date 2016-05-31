@@ -15,20 +15,82 @@ struct point_s
     buffer *b;
 };
 
+/*
+ * A table to keep track of the locations of all points currently in existance.
+ *
+ * table{ buffer -> table{ lineno -> vec { point * } } }
+ *
+ */
 static table buffer_point_all;
 
+/*
+ * Updates things that map lineno->point to tell them that a point has moved to
+ * a new linenumber. Should be used to change struct point_s -> ln always.
+ *
+ * @param p  The point to move.
+ * @param ln To linenumber to move the point to.
+ *
+ * @return   0 on success, -1 on error.
+ *
+ */
 static int buffer_point_move_ln(point *p, lineno ln);
+
+/*
+ * Fix either the line or column number of a point. These should be used when it
+ * is uncertain whether a point is in a valid position to move it into a valid
+ * position. When there is no valid position, they set either cn or ln to 0.
+ * Note that fixing ln may move a point to a new line, and so fix_cn should be
+ * called after calls to fix_ln in case this new line is too short for the
+ * point.
+ *
+ * @param p The point to fix the position of.
+ *
+ * @return 0 on success, -1 on error.
+ *
+ */
 static int buffer_point_fix_cn(point *p);
 static int buffer_point_fix_ln(point *p);
 
+/*
+ * Move a point a number of characters either forward or backward.
+ * buffer_point_move_cols wraps these, calling the appropriate function with the
+ * absolute value of n it is called with.
+ *
+ * @param p The point to move.
+ * @param n The number of places to move.
+ *
+ */
 static int buffer_point_move_cols_backward(point *p, uint n);
 static int buffer_point_move_cols_forward(point *p, uint n);
 
+/*
+ * Move a point a number of lines either forward or backward.
+ * buffer_point_move_lines wraps these, calling the appropriate function with
+ * the absolute value of n it is called with.
+ *
+ * @param p The point to move.
+ * @param n The number of places to move.
+ *
+ */
 static int buffer_point_move_lines_backward(point *p, uint n);
 static int buffer_point_move_lines_forward(point *p, uint n);
 
+/*
+ * Wrapped by buffer_point_sub. Returns the result of subtracting a smaller
+ * point from a larger one. Unlike buffer_point_sub, the larger point must be
+ * the first argument.
+ *
+ * @param larger  The larger of the two points to subtract.
+ * @param smaller The smaller of the two points to subtract.
+ *
+ */
 static long buffer_point_sub_abs(point *larger, point *smaller);
 
+/*
+ * Handers to move lineno->point references when lines are deleted, inserted
+ * or changed in a buffer. All are called only by hooks.
+ *
+ */
 static void buffer_point_handle_line_delete(vec *args, hook h);
 static void buffer_point_handle_line_insert(vec *args, hook h);
 static void buffer_point_handle_line_change(vec *args, hook h);
@@ -38,11 +100,15 @@ hook_add(buffer_point_on_move_post, 3);
 
 int buffer_point_initsys(void)
 {
+    /* Initialize the table of all points. Keys are pointers, so *
+     * we do not need null values.                               */
     TRACE_PTR(table_create(&buffer_point_all,
                             sizeof(table), sizeof(buffer *),
                             NULL, NULL, NULL),
               return -1);
 
+    /* Mount the various functions required to keep track of changes *
+     * to this table. (Insertions are made in buffer_point_init)     */
     TRACE_INT(hook_mount(&buffer_line_on_delete_post,
                           buffer_point_handle_line_delete, 600),
               return -1);
@@ -67,19 +133,27 @@ point *buffer_point_init(buffer *b, lineno ln, colno cn)
     point *rtn;
 
     ASSERT_PTR(b, high, return NULL);
-    ASSERT_PTR(rtn = malloc(sizeof(point)), terminal, return NULL);
+    ASSERT_PTR(rtn = malloc(sizeof(point)),
+               terminal, return NULL);
 
     rtn->ln = ln;
     rtn->cn = cn;
     rtn->b  = b;
 
+    /* Make sure that we were given valid values. */
     buffer_point_fix_ln(rtn);
     buffer_point_fix_cn(rtn);
 
+    /* Look for a table in buffer_point_all pertaining to this buffer */
     subtable = table_get(&buffer_point_all, &b);
 
+    /* If there is no such subtable, we gotta make our own. */
     if (subtable == NULL)
     {
+        /* This is how we init things in-place in tables.               *
+         * - Insert value *NULL at key (This sets no memory)            *
+         * - Get a pointer to this undefined memory                     *
+         * - Use table_create to init a table at this location in-place */
         TRACE_INT(table_set(&buffer_point_all, &b, NULL),
                   free(rtn);
                   return NULL);
@@ -92,10 +166,14 @@ point *buffer_point_init(buffer *b, lineno ln, colno cn)
                   return NULL);
     }
 
+    /* See if there is a vector pertaining to the linenumber of this point */
     subvec = table_get(subtable, &(rtn->ln));
 
+    /* If there is one. We gotta make one (yay) */
     if (subvec == NULL)
     {
+        /* Init a vec in-place in the table. *
+         * See above for details.            */
         TRACE_INT(table_set(subtable, &(rtn->ln), NULL),
                   free(rtn);
                   return NULL);
@@ -106,6 +184,9 @@ point *buffer_point_init(buffer *b, lineno ln, colno cn)
                   free(rtn);
                   return NULL);
     }
+
+    /* Insert into the vector of points in this buffer and at this lineno, *
+     * the new point.                                                      */
 
     TRACE_INT(vec_insert_end(subvec, 1, &rtn),
               free(rtn);
@@ -119,17 +200,21 @@ static int buffer_point_move_ln(point *p, lineno ln)
     table *subtable;
     vec   *subvec;
 
+    /* May as well save time on the 1% */
     if (ln == p->ln)
         return 0;
 
+    /* Find this point's vector */
     ASSERT_PTR(subtable = table_get(&buffer_point_all, &(p->b)),
                critical, return -1);
     ASSERT_PTR(subvec   = table_get(subtable, &(p->ln)),
                critical, return -1);
 
+    /* Delete this point from its current vector. */
     ASSERT_INT(vec_delete(subvec, vec_find(subvec, &p), 1),
                critical, return -1);
 
+    /* If necessary, remove the vector that contained this point */
     if (vec_len(subvec) == 0)
     {
         vec_kill(subvec);
@@ -137,6 +222,7 @@ static int buffer_point_move_ln(point *p, lineno ln)
                    critical, return -1);
     }
 
+    /* Find or create a new vector for this point */
     subvec = table_get(subtable, &ln);
 
     if (subvec == NULL)
@@ -149,13 +235,50 @@ static int buffer_point_move_ln(point *p, lineno ln)
                    critical, return -1);
     }
 
+    /* Insert it into its new home */
     ASSERT_INT(vec_insert_end(subvec, 1, &p),
                critical, return -1);
 
+    /* Tell it where it lives now */
     p->ln = ln;
 
+    /* Ensure that it hasn't gone off the end of a line */
     TRACE_INT(buffer_point_fix_cn(p),
               return -1);
+
+    return 0;
+}
+
+int buffer_point_free(point *p)
+{
+    table *subtable;
+    vec   *subvec;
+
+    ASSERT_PTR(subtable = table_get(&buffer_point_all, &(p->b)),
+               critical, return -1);
+    ASSERT_PTR(subvec   = table_get(subtable, &(p->ln)),
+               critical, return -1);
+
+    /* Delete this point from its current vector. */
+    ASSERT_INT(vec_delete(subvec, vec_find(subvec, &p), 1),
+               critical, return -1);
+
+    /* If necessary, remove the vector that contained this point */
+    if (vec_len(subvec) == 0)
+    {
+        vec_kill(subvec);
+        ASSERT_INT(table_delete(subtable, &(p->ln)),
+                   critical, return -1);
+
+        /* And if that was necessary, maybe we need to remove the table *
+         * containing that vector as well...                            */
+        if (table_len(subtable) == 0)
+        {
+            table_kill(subtable);
+            ASSERT_INT(table_delete(&buffer_point_all, &(p->b)),
+                       critical, return -1);
+        }
+    }
 
     return 0;
 }
