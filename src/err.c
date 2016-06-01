@@ -73,8 +73,8 @@ void err_new(err_lvl lvl, const char *title, const char *content)
     size_t plen, tlen, clen;
     static char *errstr = NULL;
 
-    char *a = NULL;
-    puts(a);
+//    char *a = NULL;
+//    puts(a);
 
     err_last_lvl = lvl;
 
