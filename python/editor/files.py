@@ -1,5 +1,5 @@
 import os
-import editor.userlog
+import editor.buffers.userlog
 
 def revert(b):
     #TODO: "Are you sure?"
@@ -16,7 +16,7 @@ def revert(b):
         del b[index]
 
     b.read(filename)
-    editor.userlog.log(b"Read file " + filename + b" to buffer")
+    editor.buffers.userlog.log(b"Read file " + filename + b" to buffer")
 
 def associate(b, filename):
     curr = b.properties["filename"]

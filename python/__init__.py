@@ -35,9 +35,9 @@ import editor.cursor.cursor
 import editor.clipboard
 import editor.files
 import editor.buffers.ring
+import editor.buffers.userlog
 import editor.bind.keymap
 import editor.autocomplete
-
 
 from editor.cursor.cursor import cursors
 
@@ -100,8 +100,8 @@ def masterexit(keys):
     global alive
     alive = False
 
-cmd = Command(CommandArg(int, "n ", editor.autocomplete.number()),
-              CommandArg(str, "string "))
+cmd = Command("repeat-string", CommandArg(int, "n" , editor.autocomplete.number()),
+              CommandArg(str, "string"))
 
 @cmd.hook(500)
 def queryish_cb(n, string):
@@ -114,8 +114,6 @@ def queryish(keys):
 @core.key.hooks.key(500)
 def hi(key):
     print(key, file=sys.stderr)
-
-import editor.userlog
 
 while alive:
     symbols.io.listener.listen()

@@ -9,10 +9,9 @@ buffer = Buffer.new()
 point  = cursors.get_buffer_cursors(buffer).spawn(cls=Point)
 stream = point.open_stream()
 
-
 face = Face(Face.black, Face.green)
 
-print("""
+stream.write(b"""
 --------------------------------------------------
 
 This is the userlog buffer.
@@ -23,11 +22,13 @@ statusbar changes that happen too quickly to be
 seen normally.
 
 --------------------------------------------------
-""", file=stream)
+""")
+stream.flush()
 
 def log(string):
     if isinstance(string, str):
         string = string.encode("ascii")
 
     core.ui.set_sbar(face.serialize(len(string)) + string)
-    stream.buffer.write(string)
+    stream.write(string + b"\n")
+    stream.flush()

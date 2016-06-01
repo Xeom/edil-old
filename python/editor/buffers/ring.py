@@ -1,3 +1,4 @@
+import editor.buffers.userlog
 import core.buffer
 import core.windows
 
@@ -31,3 +32,5 @@ def prevify_window(w):
 
 for window in core.windows.get_root():
     buffers.append(window.buffer)
+
+buffers.append(editor.buffers.userlog.buffer)

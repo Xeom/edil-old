@@ -17,7 +17,7 @@ class Point:
     def open_stream(self):
         fptr = symbols.buffer.log.point_stream(self.struct)
 
-        return cutil.fptr2file(fptr, "w", 1)
+        return cutil.fptr2file(fptr, "wb", 1)
 
     def move_cols(self, n):
         symbols.buffer.point.move_cols(self.struct, n)

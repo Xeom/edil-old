@@ -688,7 +688,7 @@ buffer *buffer_point_get_buffer(point *p)
 
 int buffer_point_cmp(point *a, point *b)
 {
-    ASSERT_PTR(a || b, high, return 0);
+    ASSERT    (a || b, high, return 0);
     ASSERT_PTR(a,      high, return -1);
     ASSERT_PTR(b,      high, return  1);
 

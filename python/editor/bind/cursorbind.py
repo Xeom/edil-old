@@ -1,7 +1,7 @@
 import string
 
 import core.keymap
-import editor.userlog
+import editor.buffers.userlog
 
 from core.key import Key
 from editor.cursor.cursor import cursors
@@ -102,11 +102,11 @@ def delback_mapped(keys):
 activate_cmd = Command("cursor-activate")
 @activate_cmd.hook(500)
 def activate_cb():
-    editor.userlog.log("Activated cursor")
     cursors.current.activate()
 
 @curmap.add(Key("A", con=True))
 def activate_mapped(keys):
+    editor.buffers.userlog.log("Activated cursor")
     activate_cmd.run()
 
 # cursor-activate
@@ -118,11 +118,11 @@ def activate_mapped(keys):
 deactivate_cmd = Command("cursor-deactivate")
 @deactivate_cmd.hook(500)
 def deactivate_cb():
-    editor.userlog.log("Deactivated cursor")
     cursors.current.deactivate()
 
-@curmap.add(Key("A", esc=True))
+@curmap.add(Key("D", con=True))
 def deactivate_mapped(keys):
+    editor.buffers.userlog.log("Deactivated cursor")
     deactivate_cmd.run()
 
 # cursor-enter
