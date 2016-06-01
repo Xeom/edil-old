@@ -63,11 +63,19 @@ type_issplitter.restype  = ctypes.c_int
 
 get_offsetx = so.win_get_offsetx
 get_offsetx.argtypes = [win_p]
-get_offsetx.restype  = ctypes.c_size_t
+get_offsetx.restype  = ctypes.c_ulong
 
 get_offsety = so.win_get_offsety
 get_offsety.argtypes = [win_p]
-get_offsety.restype  = ctypes.c_size_t
+get_offsety.restype  = ctypes.c_ulong
+
+set_offsetx = so.win_set_offsetx
+set_offsetx.argtypes = [win_p, ctypes.c_ulong]
+set_offsetx.restype  = ctypes.c_int
+
+set_offsety = so.win_set_offsety
+set_offsety.argtypes = [win_p, ctypes.c_ulong]
+set_offsety.restype  = ctypes.c_int
 
 class size:
     set_root = so.win_size_set_root

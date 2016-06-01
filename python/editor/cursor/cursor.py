@@ -102,3 +102,19 @@ def handle_line_draw(w, b, ln, li):
 def handle_win_select(w1, w2):
     core.ui.draw_window_line(w1, cursors.get_buffer_cursor(w1.buffer).ln)
     core.ui.draw_window_line(w2, cursors.get_buffer_cursor(w2.buffer).ln)
+
+@core.point.hooks.move_post(800)
+def handle_point_move(point, oldln, oldcn):
+    import sys
+
+    win = core.windows.get_selected()
+
+    if point.buffer != win.buffer:
+        return
+
+    print(win.offsety, "OFF", file=sys.stderr)
+
+    cur = cursors.current
+    if cur.ln > win.textsize[1] + win.offsety or \
+       cur.ln < win.offsety:
+        win.offsety = max(0, cur.ln - win.textsize[1] // 2)

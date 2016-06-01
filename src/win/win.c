@@ -5,6 +5,7 @@
 #include "win/util.h"
 #include "win/label.h"
 #include "hook.h"
+#include "err.h"
 
 #include "win/win.h"
 
@@ -18,6 +19,9 @@ hook_add(win_on_delete_post, 1);
 hook_add(win_on_create, 1);
 
 hook_add(win_on_buffer_set, 2);
+
+hook_add(win_on_offsetx_set, 2);
+hook_add(win_on_offsety_set, 2);
 
 static win *win_init_leaf(void);
 static win *win_init(void);
@@ -260,7 +264,7 @@ int win_set_buffer(win *w, buffer *b)
 }
 
 
-uint win_get_offsetx(win *w)
+ulong win_get_offsetx(win *w)
 {
     if (!win_isleaf(w))
         return 0;
@@ -268,12 +272,40 @@ uint win_get_offsetx(win *w)
     return w->cont.leaf.offsetx;
 }
 
-uint win_get_offsety(win *w)
+ulong win_get_offsety(win *w)
 {
     if (!win_isleaf(w))
         return 0;
 
     return w->cont.leaf.offsety;
+}
+
+int win_set_offsetx(win *w, ulong new)
+{
+    ulong old;
+
+    ASSERT(win_isleaf(w), high, return -1);
+
+    old = w->cont.leaf.offsetx;
+    w->cont.leaf.offsetx = new;
+
+    hook_call(win_on_offsetx_set, w, &old);
+
+    return 0;
+}
+
+int win_set_offsety(win *w, ulong new)
+{
+    ulong old;
+
+    ASSERT(win_isleaf(w), high, return -1);
+
+    old = w->cont.leaf.offsety;
+    w->cont.leaf.offsety = new;
+
+    hook_call(win_on_offsety_set, w, &old);
+
+    return 0;
 }
 
 int win_type_isleaf(win *w)

@@ -43,6 +43,8 @@ int ui_updates_initsys(void)
 
     hook_mount(&win_on_select, ui_updates_win_select, 800);
 
+    hook_mount(&win_on_offsetx_set,   ui_updates_win_full_redraw, 800);
+    hook_mount(&win_on_offsety_set,   ui_updates_win_full_redraw, 800);
     hook_mount(&win_size_on_adj_post, ui_updates_win_full_redraw, 800);
     hook_mount(&win_on_create,        ui_updates_win_full_redraw, 800);
     hook_mount(&win_on_delete_post,   ui_updates_win_full_redraw, 800);

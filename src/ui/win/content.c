@@ -28,20 +28,20 @@ int ui_win_content_draw_subs(win *w)
 
 int ui_win_content_draw(win *w)
 {
-    uint currln, maxln;
+    ulong curr, max;
 
-    currln = win_get_offsety(w);
-    maxln  = win_size_get_y(w) + currln;
+    curr = win_get_offsety(w);
+    max  = (ulong)win_size_get_y(w) + curr;
 
-    for (; currln < maxln; ++currln)
-        ui_win_content_draw_line(w, (lineno)currln);
+    for (; curr < max; ++curr)
+        ui_win_content_draw_line(w, curr);
 
     return 0;
 }
 
 int ui_win_content_draw_lines_after(win *w, lineno ln)
 {
-    lineno curr, max;
+    ulong curr, max;
 
     curr = MAX(ln, win_get_offsety(w));
     max  = win_size_get_y(w) + ln;
@@ -60,9 +60,9 @@ int ui_win_content_draw_line(win *w, lineno ln)
     size_t  numlines;
     uint    strlim;
     uint    sizex, sizey;
-    uint    offx,  offy;
+    ulong   offx,  offy;
     int     currx, curry;
-    
+
     b    = win_get_buffer(w);
 
     numlines = buffer_len(b);
@@ -87,7 +87,7 @@ int ui_win_content_draw_line(win *w, lineno ln)
     if (l)
     {
         hook_call(ui_win_content_on_draw_line_pre, w, b, &ln, l);
-        strlim = (uint)vec_len(l) - offx;
+        strlim = (uint)(vec_len(l) - offx);
     }
     else
         strlim = 0;

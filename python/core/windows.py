@@ -72,9 +72,29 @@ class WindowObj:
         self._struct = value
 
     @property
+    def offsetx(self):
+        return symbols.win.get_offsetx(self.struct)
+
+    @offsetx.setter
+    def offsetx(self, v):
+        symbols.win.set_offsetx(self.struct, v)
+
+    @property
+    def offsety(self):
+        return symbols.win.get_offsety(self.struct)
+
+    @offsety.setter
+    def offsety(self, v):
+        symbols.win.set_offsety(self.struct, v)
+
+    @property
     def size(self):
         return (symbols.win.size.get_x(self.struct),
                 symbols.win.size.get_y(self.struct))
+
+    @property
+    def textsize(self):
+        return tuple(a - 2 for a in self.size)
 
     @property
     def pos(self):

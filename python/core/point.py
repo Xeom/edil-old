@@ -85,13 +85,17 @@ class Point:
     def __sub__(self, other):
         return symbols.buffer.point.sub(self.struct, other.struct)
 
+class PointFromPtr(Point):
+    def __init__(self, ptr):
+        self.struct = ctypes.cast(ptr, symbols.buffer.point_p)
+
 class hooks:
     move_pre = core.hook.Hook(
         symbols.buffer.point.on_move_pre,
-        Point)
+        PointFromPtr)
 
     move_post = core.hook.Hook(
         symbols.buffer.point.on_move_post,
-        Point,
+        PointFromPtr,
         ctypes.c_ulong,
         ctypes.c_ulong)

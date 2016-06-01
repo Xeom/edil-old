@@ -22,8 +22,9 @@
 # define ADDPTR(ptr, n) (void *)((intptr_t)(ptr) + (ptrdiff_t)(n))
 # define SUBPTR(ptr, n) (void *)((intptr_t)(ptr) - (ptrdiff_t)(n))
 
-typedef unsigned int uint;
-typedef unsigned char uchar;
+typedef unsigned int   uint;
+typedef unsigned char  uchar;
 typedef unsigned short ushort;
+typedef unsigned long  ulong;
 
 #endif /* HEAD_H */

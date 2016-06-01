@@ -28,7 +28,7 @@ struct win_s
             buffer *b;
             char   *sidebar;
             char   *caption;
-            uint    offsetx, offsety;
+            ulong   offsetx, offsety;
         } leaf;
 
         struct
