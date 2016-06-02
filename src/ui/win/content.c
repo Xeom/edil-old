@@ -56,9 +56,7 @@ int ui_win_content_draw_line(win *w, lineno ln)
 {
     buffer *b;
     vec    *l;
-    char   *iter;
     size_t  numlines;
-    uint    strlim;
     uint    sizex, sizey;
     ulong   offx,  offy;
     int     currx, curry;
@@ -82,24 +80,18 @@ int ui_win_content_draw_line(win *w, lineno ln)
     if (ln >= numlines)
         l = NULL;
     else
-        l = buffer_get_line(b, ln);
-
-    if (l)
     {
+        l = buffer_get_line(b, ln);
+        vec_delete(l, 0, MIN(offx, vec_len(l)));
         hook_call(ui_win_content_on_draw_line_pre, w, b, &ln, l);
-        strlim = (uint)(vec_len(l) - offx);
     }
-    else
-        strlim = 0;
-
-    if (l == NULL || vec_len(l) < offx)
-        iter = "";
-    else
-        iter = vec_item(l, offx);
 
     move(curry++, currx);
 
-    ui_util_draw_text_limited_h(sizex - 1, strlim, ' ', iter);
+    if (l)
+        ui_util_draw_text_limited_h(sizex - 1, (uint)vec_len(l), ' ', vec_item(l, 0));
+    else
+        ui_util_draw_text_limited_h(sizex - 1, 0, ' ', "");
 
     hook_call(ui_win_content_on_draw_line_post, &w, &b, &ln, &l);
 

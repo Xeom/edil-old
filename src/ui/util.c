@@ -84,10 +84,11 @@ int ui_util_draw_text_limited_h(
             }
             else
                 addch(chr);
-        }
 
+            spacelim--;
+        }
         str++;
-        spacelim--;
+
     }
 
     while (spacelim--)
