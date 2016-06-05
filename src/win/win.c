@@ -287,6 +287,10 @@ int win_set_offsetx(win *w, ulong new)
     ASSERT(win_isleaf(w), high, return -1);
 
     old = w->cont.leaf.offsetx;
+
+    if (old == new)
+        return 0;
+
     w->cont.leaf.offsetx = new;
 
     hook_call(win_on_offsetx_set, w, &old);
@@ -301,6 +305,10 @@ int win_set_offsety(win *w, ulong new)
     ASSERT(win_isleaf(w), high, return -1);
 
     old = w->cont.leaf.offsety;
+
+    if (old == new)
+        return 0;
+
     w->cont.leaf.offsety = new;
 
     hook_call(win_on_offsety_set, w, &old);
