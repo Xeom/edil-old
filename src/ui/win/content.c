@@ -1,4 +1,5 @@
 #include <curses.h>
+#include <string.h>
 
 #include "buffer/buffer.h"
 #include "win/win.h"
@@ -9,6 +10,57 @@
 #include "ui/util.h"
 
 #include "ui/win/content.h"
+#include "ui/face.h"
+
+#include "err.h"
+
+size_t ui_win_content_get_cursor_offset(win *w, lineno ln)
+{
+    buffer *b;
+    vec    *l;
+    size_t  numlines;
+    char *curiter, *limit, *iter;
+    size_t index;
+
+    b        = win_get_buffer(w);
+    numlines = buffer_len(b);
+
+    ASSERT(ln < numlines, high, return INVALID_INDEX);
+    ASSERT_PTR(l = buffer_get_line(b, ln), high, return INVALID_INDEX);
+
+    hook_call(ui_win_content_on_draw_line_pre, w, b, &ln, l);
+
+    if (vec_len(l) == 0)
+        return INVALID_INDEX;
+
+    limit   = (char *)vec_item(l, vec_len(l) - 1) + 1;
+    curiter = ui_util_text_next_face(vec_item(l, 0), limit);
+
+    for (;;)
+    {
+        ASSERT_PTR(curiter, high,
+                   vec_free(l);
+                   return INVALID_INDEX);
+
+        if (memcmp(curiter, face_cursor, face_serialized_len) == 0)
+            break;
+
+        curiter = ui_util_text_next_face(curiter + 1, limit);
+    }
+
+    iter = ui_util_text_next_char(vec_item(l, 0), curiter);
+    index = 0;
+
+    while (iter)
+    {
+        iter = ui_util_text_next_char(iter + 1, curiter);
+        index++;
+    }
+
+    vec_free(l);
+
+    return index;
+}
 
 int ui_win_content_draw_subs(win *w)
 {
@@ -61,8 +113,7 @@ int ui_win_content_draw_line(win *w, lineno ln)
     ulong   offx,  offy;
     int     currx, curry;
 
-    b    = win_get_buffer(w);
-
+    b        = win_get_buffer(w);
     numlines = buffer_len(b);
 
     offx = win_get_offsetx(w);
@@ -74,27 +125,51 @@ int ui_win_content_draw_line(win *w, lineno ln)
     sizex = win_size_get_x(w);
     sizey = win_size_get_y(w);
 
-    if (ln >= offy + sizey - 1)
+    if (ln >= offy + sizey - 1 || ln < offy)
         return 0;
 
     if (ln >= numlines)
         l = NULL;
     else
-    {
         l = buffer_get_line(b, ln);
-        vec_delete(l, 0, MIN(offx, vec_len(l)));
-        hook_call(ui_win_content_on_draw_line_pre, w, b, &ln, l);
-    }
-
-    move(curry++, currx);
 
     if (l)
-        ui_util_draw_text_limited_h(sizex - 1, (uint)vec_len(l), ' ', vec_item(l, 0));
+    {
+        hook_call(ui_win_content_on_draw_line_pre, w, b, &ln, l);
+
+        if (vec_len(l) == 0)
+            l = NULL;
+    }
+
+    if (l)
+    {
+        char *iter, *last;
+        size_t index;
+
+        iter = vec_item(l, 0);
+        last = (char *)vec_item(l, vec_len(l) - 1) + 1;
+
+        iter = ui_util_text_next_char(iter, last);
+
+        for (index = 0; index < offx; index++)
+        {
+            iter = ui_util_text_next_char(iter + 1, last);
+
+            if (!iter)
+                return 0;
+        }
+
+        move(curry++, currx);
+        ui_util_draw_text_limited_h(sizex - 1, (uint)(last - iter), ' ', iter);
+    }
     else
+    {
+        move(curry++, currx);
         ui_util_draw_text_limited_h(sizex - 1, 0, ' ', "");
+    }
 
     hook_call(ui_win_content_on_draw_line_post, &w, &b, &ln, &l);
-
+// TODO Faces on offsetx
     vec_free(l);
 
     return 0;

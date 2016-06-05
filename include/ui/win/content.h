@@ -10,6 +10,8 @@ extern hook ui_win_content_on_draw_post;
 extern hook ui_win_content_on_draw_line_pre;
 extern hook ui_win_content_on_draw_line_post;
 
+size_t ui_win_content_get_cursor_offset(win *w, lineno ln);
+
 int ui_win_content_draw_subs(win *w);
 
 int ui_win_content_draw(win *w);
