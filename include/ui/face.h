@@ -18,6 +18,19 @@ typedef enum
     white    = COLOR_WHITE
 } colour;
 
+
+extern const colour face_colour_black;
+extern const colour face_colour_blue;
+extern const colour face_colour_green;
+extern const colour face_colour_cyan;
+extern const colour face_colour_red;
+extern const colour face_colour_magenta;
+extern const colour face_colour_yellow;
+extern const colour face_colour_white;
+
+extern const size_t face_serialized_len;
+extern const char   face_cursor[];
+
 typedef struct face_s face;
 
 struct face_s

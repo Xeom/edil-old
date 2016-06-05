@@ -31,6 +31,8 @@ const colour face_colour_white   = white;
 
 const size_t face_serialized_len = 6;
 
+const char face_cursor[] = "\nCURSA";
+
 int ui_face_initsys(void)
 {
     short id;
@@ -123,6 +125,7 @@ int ui_face_draw_at(face f, int x, int y, uint sizex, uint sizey)
  * h = bright colour (used for 16 colours)
  * n = length of format
  */
+
 char *ui_face_serialize(face f, short n)
 {
     char *rtn;
@@ -156,9 +159,25 @@ face ui_face_deserialize_face(const char *str)
 
     ASSERT_PTR(str,        high, return rtn);
     ASSERT(str[0] == '\n', high, return rtn);
-    ASSERT(str[1] &&
-           str[2],         high, return rtn);
+    ASSERT(str[1] && str[2] && str[3] && str[4] && str[5],
+           high, return rtn);
 
+    if (memcmp(str, face_cursor, face_serialized_len) == 0)
+    {
+        rtn.bg = white;
+        rtn.fg = black;
+        rtn.bright = 0;
+        rtn.under  = 0;
+
+        return rtn;
+    }
+
+    ASSERT((str[1] & 0x88) == 0x80 &&
+           (str[2] & 0xfc) == 0x80 &&
+           (str[3] & 0xc0) == 0x80 &&
+           (str[4] & 0xc0) == 0x80 &&
+           (str[5] & 0xf0) == 0x80,
+           high, return rtn);
 
     rtn.bg =  str[1] & 0x07;
     rtn.fg = (str[1] & 0x70) >> 4;
@@ -179,11 +198,18 @@ short ui_face_deserialize_length(const char *str)
     rtn  = 0;
     ASSERT_PTR(str,        high, return rtn);
     ASSERT(str[0] == '\n', high, return rtn);
-    ASSERT(str[1] &&
-           str[2] &&
-           str[3] &&
-           str[4] &&
-           str[5],         high, return rtn);
+    ASSERT(str[1] && str[2] && str[3] && str[4] && str[5],
+           high, return rtn);
+
+    if (memcmp(str, face_cursor, face_serialized_len) == 0)
+        return 1;
+
+    ASSERT((str[1] & 0x88) == 0x80 &&
+           (str[2] & 0xfc) == 0x80 &&
+           (str[3] & 0xc0) == 0x80 &&
+           (str[4] & 0xc0) == 0x80 &&
+           (str[5] & 0xf0) == 0x80,
+           high, return rtn);
 
     rtn |=  (short) (bits12 & str[3]);
     rtn |=  (short)((bits12 & str[4]) << 6);
