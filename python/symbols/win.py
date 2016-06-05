@@ -77,6 +77,9 @@ set_offsety = so.win_set_offsety
 set_offsety.argtypes = [win_p, ctypes.c_ulong]
 set_offsety.restype  = ctypes.c_int
 
+on_offsetx_set = ctypes.cast(so.win_on_offsetx_set, hook_p)
+on_offsety_set = ctypes.cast(so.win_on_offsety_set, hook_p)
+
 class size:
     set_root = so.win_size_set_root
     set_root.argtypes = [ctypes.c_uint, ctypes.c_uint]

@@ -94,7 +94,8 @@ class WindowObj:
 
     @property
     def textsize(self):
-        return tuple(a - 2 for a in self.size)
+        x, y = self.size
+        return (x - 1, y - 1)
 
     @property
     def pos(self):
@@ -229,6 +230,16 @@ class hooks:
         symbols.win.on_buffer_set,
         Window,
         Buffer)
+
+    offsetx_set = core.hook.Hook(
+        symbols.win.on_offsetx_set,
+        Window,
+        ctypes.c_ulong)
+
+    offsety_set = core.hook.Hook(
+        symbols.win.on_offsety_set,
+        Window,
+        ctypes.c_ulong)
 
     class sidebar:
         set_pre = core.hook.Hook(

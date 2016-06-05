@@ -71,7 +71,6 @@ class BufferContainer:
 
     def new(self):
         ptr = symbols.buffer.init()
-
         return self(ptr)
 
 class BufferObj:

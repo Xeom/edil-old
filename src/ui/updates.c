@@ -88,6 +88,8 @@ int ui_updates_release(void)
 
     ui_updates_holding_buffer = NULL;
 
+    refresh();
+
     return 0;
 }
 

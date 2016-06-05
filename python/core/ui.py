@@ -113,3 +113,5 @@ def draw_window(w):
 def draw_window_frame(w):
     symbols.ui.win.frame.draw_subs(w.struct)
 
+def get_window_cursor_posx(w, cur):
+    return symbols.ui.win.content.get_cursor_offset(w.struct, cur.ln)

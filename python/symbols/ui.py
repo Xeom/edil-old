@@ -59,6 +59,8 @@ class face:
     colour_yellow  = cutil.functptr2type(so.face_colour_yellow,  ctypes.c_int)
     colour_white   = cutil.functptr2type(so.face_colour_white,   ctypes.c_int)
 
+    cursor = ctypes.cast(so.face_cursor, ctypes.c_char_p)
+
     initsys = so.ui_face_initsys
     initsys.argtypes = []
     initsys.restype  = ctypes.c_int
@@ -162,6 +164,10 @@ class win:
         draw_line = so.ui_win_content_draw_line
         draw_line.argtypes = [win_p, ctypes.c_size_t]
         draw_line.restype  = ctypes.c_int
+
+        get_cursor_offset = so.ui_win_content_get_cursor_offset
+        get_cursor_offset.argtypes = [win_p, ctypes.c_ulong]
+        get_cursor_offset.restype  = ctypes.c_size_t
 
     class frame:
         on_draw_pre  = ctypes.cast(so.ui_win_frame_on_draw_pre,  hook_p)

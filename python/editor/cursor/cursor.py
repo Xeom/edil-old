@@ -82,8 +82,86 @@ class Cursors:
 
         return self.get_buffer_cursor(buffer)
 
-cursors = Cursors()
-cursor_face = Face(Face.white, Face.black)
+class Snapper:
+    modes = ["centre",
+             "top",
+             "bottom",
+             "minimal"]
+    blacklist = []
+
+    def __init__(self):
+        self.mode = "minimal"
+
+    def next_mode(self):
+        currind = self.modes.index(self.mode)
+        self.set_mode(self.modes[(currind + 1) % len(self.modes)])
+
+    def set_mode(self, mode):
+        if mode not in self.modes:
+            raise Exception("Invalid snap mode")
+
+        self.mode = mode
+        self.snap()
+
+    def snap(self):
+        cur = cursors.current
+        win = core.windows.get_selected()
+
+        if any(isinstance(cur, i) for i in self.blacklist):
+            return
+
+        if cur.buffer != win.buffer:
+            return
+
+        {
+            "centre" : self.snap_centre,
+            "top"    : self.snap_top,
+            "bottom" : self.snap_bottom,
+            "minimal": self.snap_minimal
+        }[self.mode](win, cur)
+
+
+class YSnapper(Snapper):
+    def snap_centre(self, win, cur):
+        win.offsety = max(0, cur.ln - win.textsize[1] // 2)
+
+    def snap_top(self, win, cur):
+        win.offsety = cur.ln
+
+    def snap_bottom(self, win, cur):
+        win.offsety = max(0, cur.ln - win.textsize[1] + 1)
+
+    def snap_minimal(self, win, cur):
+        if cur.ln >= win.textsize[1] + win.offsety:
+            self.snap_bottom(win, cur)
+
+        elif cur.ln < win.offsety:
+            self.snap_top(win, cur)
+
+class XSnapper(Snapper):
+    def snap_centre(self, win, cur):
+        xpos = core.ui.get_window_cursor_posx(win, cur)
+        win.offsetx = max(0, xpos - win.textsize[0] // 2)
+
+    def snap_top(self, win, cur):
+        xpos = core.ui.get_window_cursor_posx(win, cur)
+        win.offsetx = xpos
+
+    def snap_bottom(self, win, cur):
+        xpos = core.ui.get_window_cursor_posx(win, cur)
+        win.offsetx = max(0, xpos - win.textsize[0] + 1)
+
+    def snap_minimal(self, win, cur):
+        xpos = core.ui.get_window_cursor_posx(win, cur)
+        if xpos >= win.textsize[0] + win.offsetx:
+            self.snap_bottom(win, cur)
+
+        elif xpos < win.offsetx:
+            self.snap_top(win, cur)
+
+cursors  = Cursors()
+xsnapper = XSnapper()
+ysnapper = YSnapper()
 
 @core.deferline.hooks.draw(300)
 def handle_line_draw(w, b, ln, li):
@@ -96,7 +174,7 @@ def handle_line_draw(w, b, ln, li):
     if ln.value != cursors.current.ln:
         return
 
-    li.insert(cursors.current.cn, cursor_face.serialize(1))
+    li.insert(cursors.current.cn, core.face.cursor_serial)
 
 @core.windows.hooks.select(800)
 def handle_win_select(w1, w2):
@@ -105,16 +183,21 @@ def handle_win_select(w1, w2):
 
 @core.point.hooks.move_post(800)
 def handle_point_move(point, oldln, oldcn):
-    import sys
-
     win = core.windows.get_selected()
+    cur = cursors.current
 
-    if point.buffer != win.buffer:
+    if len(win.buffer) == 0:
         return
 
-    print(win.offsety, "OFF", file=sys.stderr)
-
-    cur = cursors.current
-    if cur.ln > win.textsize[1] + win.offsety or \
+    if cur.ln >= win.textsize[1] + win.offsety or \
        cur.ln < win.offsety:
-        win.offsety = max(0, cur.ln - win.textsize[1] // 2)
+        ysnapper.snap()
+
+    xpos = core.ui.get_window_cursor_posx(win, cur)
+
+    if win.offsetx and xpos < win.textsize[0]:
+        win.offsetx = 0
+    elif xpos >= win.textsize[0] + win.offsetx or \
+       xpos < win.offsetx:
+        xsnapper.snap()
+    

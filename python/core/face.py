@@ -2,6 +2,8 @@ import ctypes
 
 import symbols.ui
 
+cursor_serial = symbols.ui.face.cursor.value
+
 class Face:
     black   = symbols.ui.face.colour_black.value
     blue    = symbols.ui.face.colour_blue.value
