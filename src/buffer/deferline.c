@@ -50,7 +50,7 @@ deferline *buffer_deferline_init(vec *v)
 #include <stdio.h>
 int buffer_deferline_insert(deferline *dl, size_t index, char *str)
 {
-   char *new, **oldptr;
+    char *new, **oldptr;
     size_t inslen, oldlen;
 
     if (index > vec_len(dl->v))
@@ -131,8 +131,8 @@ static void buffer_deferline_handle_draw_line(vec *args, hook h)
     w  = *(void **)vec_item(args, 0);
     b  = *(void **)vec_item(args, 1);
     ln = *(void **)vec_item(args, 2);
-
     v  = *(vec **)vec_item(args, 3);
+
     dl = buffer_deferline_init(v);
 
     hook_call(buffer_deferline_on_draw, w, b, ln, dl);

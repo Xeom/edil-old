@@ -38,20 +38,7 @@ hash hashes_key_str(const void *k)
  * that causes warnings where the const value is larger than an  *
  * actual long.                                                  */
 
-#if   ULONG_MAX == 0xffffffffl
-# define hashes_random_seed 0xfc64c9bd;
-#else
-# if ULONG_MAX == 0xffffffffffffffffl
-#   define hashes_random_seed 0xfc64c9bd39ea2141;
-# else
-#  if ULONG_MAX == 0xffffffffffffffffffffffffffffffffl
-#   define hashes_random_seed 0xfc64c9bd39ea214178c6a000618e9c51;
-#  else
-    /* This will cause a warning, but meh */
-#   define hashes_random_seed (hash)0xfc64c9bd39ea214178c6a000618e9c51;
-#  endif
-# endif
-#endif
+#define hashes_random_seed 0xfc64c9bd39ea2141;
 
 static const unsigned char hashes_random_bytes[256] =
 {

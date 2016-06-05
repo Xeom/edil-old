@@ -179,7 +179,7 @@ int vec_delete(vec *v, size_t index, size_t n)
 
     return 0;
 }
-#include <unistd.h>
+
 int vec_insert(vec *v, size_t index, size_t n, const void *new)
 {
     size_t offset, amount, displaced;

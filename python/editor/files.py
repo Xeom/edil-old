@@ -33,4 +33,5 @@ def dump(b):
         return
 
     b.dump(filename)
-    editor.userlog.log(b"Dumped buffer to file " + filename)
+    editor.buffers.userlog.log(b"Dumped buffer to file " + filename)
+

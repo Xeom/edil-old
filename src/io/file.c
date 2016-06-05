@@ -27,13 +27,17 @@ int file_dump_buffer(buffer *b, FILE *stream)
     numln  = buffer_len(b);
     currln = 0;
 
-    while (currln < numln)
+    for (;;)
     {
         vec *l;
 
         l = buffer_get_line(b, currln++);
 
         file_dump_vec(l, stream);
+
+        if (currln >= numln)
+            break;
+
         fwrite("\n", 1, 1, stream);
     }
 

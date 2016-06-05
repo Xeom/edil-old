@@ -131,6 +131,8 @@ class QueryPoint:
     def __sub__(self, other):
         return self.cn - other.cn
 
+cursor.Snapper.blacklist.append(QueryPoint)
+
 mapname = "query-default"
 
 core.keymap.maps.add(mapname)
