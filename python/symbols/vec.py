@@ -104,7 +104,8 @@ class Vec:
 
     def __iter__(self):
         for i in range(self.__len__()):
-            yield self[i]
+            ptr = item(self.struct, i)
+            yield self.type.from_address(ptr)
 
     def __len__(self):
         return len(self.struct)
@@ -129,8 +130,7 @@ class Vec:
             return self.getslice(start, stop)
 
         ptr = item(self.struct, index)
-        ptr = ctypes.cast(ptr, self.type_p)
-        return ptr.contents
+        return self.type.from_address(ptr)
 
     def getslice(self, start, end):
         rtn    = VecFreeOnDel(init(ctypes.sizeof(self.type)), self.type)
