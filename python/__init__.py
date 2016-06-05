@@ -111,6 +111,20 @@ def queryish_cb(n, string):
 def queryish(keys):
     cmd.run()
 
+scroll_selected_face = Face(Face.white, Face.black)
+@core.windows.hooks.offsety_set(700)
+def handle_offsety_set(win, old):
+    total  = len(win.buffer)
+    before = win.offsety
+    seen   = min(total - before, win.textsize[1])
+    after  = max(0, total - seen - before)
+
+    before = round(before * win.textsize[1] / total)
+    after  = round(after  * win.textsize[1] / total)
+    seen   = win.textsize[1] - before - after
+
+    win.sidebar = (b" " * before) + (b"|" * seen) + (b" " * after)
+
 @core.key.hooks.key(500)
 def hi(key):
     print(key, file=sys.stderr)
@@ -136,6 +150,6 @@ import sys
 ps = pstats.Stats(pr, stream=sys.stderr)
 ps.strip_dirs()
 ps.sort_stats(sortby)
-ps.print_stats(15)
-ps.print_callers('cast')
+ps.print_stats(30)
+ps.print_callers('__iter__')
 
