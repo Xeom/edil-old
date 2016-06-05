@@ -10,10 +10,10 @@ mapname = "buffer-default"
 core.keymap.maps.add(mapname)
 curmap = core.keymap.maps[mapname]
 
-@curmap.add(Key("B", con=True), Key("RIGHT"))
+@curmap.add(Key("B", con=True), Key("."))
 def cur_next(keys):
     editor.buffers.ring.nextify_window(core.windows.get_selected())
 
-@curmap.add(Key("B", con=True), Key("LEFT"))
+@curmap.add(Key("B", con=True), Key(","))
 def cur_prev(keys):
     editor.buffers.ring.prevify_window(core.windows.get_selected())

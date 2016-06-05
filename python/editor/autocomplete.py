@@ -34,3 +34,15 @@ def path(root):
         return subs
 
     return rtn
+
+def options(*opts):
+    def rtn(string):
+        return list(filter(lambda s:s.startswith(string), opts))
+
+    return rtn
+
+def options_list(opts):
+    def rtn(string):
+        return list(filter(lambda s:s.startswith(string), opts))
+
+    return rtn
