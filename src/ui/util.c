@@ -12,6 +12,31 @@
 
 #include "ui/util.h"
 
+char *ui_util_text_next_char(char *text, char *limit)
+{
+    while (text < limit)
+    {
+        if (*text == '\n')
+            text += face_serialized_len;
+        else
+            return text;
+    }
+
+    return NULL;
+}
+
+char *ui_util_text_next_face(char *text, char *limit)
+{
+    while (text + face_serialized_len - 1 < limit)
+    {
+        if (*text == '\n')
+            return text;
+        else
+            text++;
+    }
+
+    return NULL;
+}
 
 int ui_util_draw_vec_limited_h(uint spacelim, char filler, vec *v)
 {
@@ -27,8 +52,7 @@ int ui_util_draw_vec_limited_h(uint spacelim, char filler, vec *v)
 int ui_util_draw_vec_limited_v(uint spacelim, char filler, vec *v)
 {
     char *iter;
-
-iter = vec_char_item((vec_char *)v, 0);
+    iter = vec_char_item((vec_char *)v, 0);
 
     ui_util_draw_text_limited_v(spacelim, (uint)vec_char_len((vec_char *)v),
                                 filler, iter);

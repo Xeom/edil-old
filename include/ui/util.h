@@ -4,6 +4,10 @@
 
 # include "container/vec.h"
 
+char *ui_util_text_next_char(char *text, char *limit);
+
+char *ui_util_text_next_face(char *text, char *limit);
+
 int ui_util_draw_vec_limited_v(uint spacelim, char filler, vec *v);
 
 int ui_util_draw_vec_limited_h(uint spacelim, char filler, vec *v);
