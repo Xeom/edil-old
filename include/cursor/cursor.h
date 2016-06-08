@@ -22,12 +22,30 @@ struct cursor_type_s
     int (*move_cols)  (void *, int);
     int (*move_lines) (void *, int);
 
-    int (*insert) (void *, char *);
+    int (*insert) (void *, const char *);
     int (*delete) (void *, uint);
+    int (*enter)  (void *);
 
     int (*activate)   (void *);
     int (*deactivate) (void *);
 };
+
+extern hook cursor_on_spawn;
+extern hook cursor_on_set_ln_pre;
+extern hook cursor_on_set_ln_post;
+extern hook cursor_on_set_cn_pre;
+extern hook cursor_on_set_cn_post;
+extern hook cursor_on_move_lines_pre;
+extern hook cursor_on_move_lines_post;
+extern hook cursor_on_move_cols_pre;
+extern hook cursor_on_move_cols_post;
+extern hook cursor_on_insert_pre;
+extern hook cursor_on_insert_post;
+extern hook cursor_on_delete_pre;
+extern hook cursor_on_delete_post;
+extern hook cursor_on_enter_pre;
+extern hook cursor_on_enter_post;
+extern hook cursor_on_change_pos;
 
 int cursor_initsys(void);
 
@@ -40,13 +58,14 @@ int cursor_set_ln(cursor *cur, lineno ln);
 int cursor_set_cn(cursor *cur, colno cn);
 int cursor_move_cols(cursor *cur, int n);
 int cursor_move_lines(cursor *cur, int n);
-int cursor_insert(cursor *cur, char *str);
+int cursor_insert(cursor *cur, const char *str);
 int cursor_delete(cursor *cur, uint n);
+int cursor_enter(cursor *cur);
 
 cursor *cursor_buffer_selected(buffer *b);
 
 vec *cursor_buffer_all(buffer *b);
 
-cursor *cursor_current(void);
+cursor *cursor_selected(void);
 
 #endif /* CURSOR_CURSOR_H */
