@@ -21,14 +21,33 @@ struct buffercont_s
     size_t  selectind;
 };
 
+/* Called when we make a new cursor. *
+ * (cursor *cur)                     */
 hook_add(cursor_on_spawn, 1);
 
+/* Called before setting the ln of a cursor. The cursor is not affected       *
+ * before calling this. Changing *new will change the value the cursor's ln   *
+ * is set to. Not called if the relevant cursor_type has no set_ln function.  *
+ * (cursor *cur, lineno *new)                                                 */
 hook_add(cursor_on_set_ln_pre, 2);
+/* Called after setting the ln of a cursor. Not called if there was an error  *
+ * while setting the ln, even if cursor_on_set_ln_pre is called. Called even  *
+ * if ln was not actually changed.                                            *
+ * (cursor *cur, lineno *old)                                                 */
 hook_add(cursor_on_set_ln_post, 2);
 
+/* Called before setting the cn of a cursor. The cursor is not affected       *
+ * before calling this. Changing *new will change the value the cursor's cn   *
+ * is set to. Not called if the relevant cursor_type has no set_cn function.  *
+ * (cursor *cur, colno *new)                                                  */
 hook_add(cursor_on_set_cn_pre, 2);
+/* Called after setting the cn of a cursor with cursor_set_cn.  Not called if *
+ * there was an error while setting the cn, even if cursor_on_set_cn_pre is   *
+ * called. Called even if ln was not actually changed.                        *
+ * (cursor *cur, colno *old)                                                  */
 hook_add(cursor_on_set_cn_post, 2);
 
+/* Called before */
 hook_add(cursor_on_move_lines_pre, 2);
 hook_add(cursor_on_move_lines_post, 3);
 hook_add(cursor_on_move_cols_pre, 2);
@@ -86,6 +105,8 @@ cursor *cursor_spawn(buffer *b, cursor_type *type)
     new = vec_item(&(cont->cursors), vec_len(&(cont->cursors)) - 1);
 
     new->type = type;
+
+    fprintf(stderr, "NEW %p TYPE %p\n", new, type);
 
     ASSERT_PTR(type->init, critical, return NULL);
     new->ptr = type->init(b);
@@ -220,12 +241,14 @@ int cursor_move_lines(cursor *cur, int n)
 
     return 0;
 }
-
+#include <stdio.h>
 int cursor_insert(cursor *cur, const char *str)
 {
     lineno oldln;
     lineno oldcn;
-
+    fprintf(stderr, "CUR %p\n", cur);
+//    if (!(cur->type))
+    //      abort();
     if (!(cur->type->insert))
         return 0;
 

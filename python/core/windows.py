@@ -56,7 +56,6 @@ def get_root():
 
 class WindowObj:
     def __init__(self, ptr):
-        self.valid  = True
         self.struct = ctypes.cast(ptr, symbols.win.win_p)
 
     @property

@@ -32,13 +32,16 @@ on_batch_region = ctypes.cast(so.buffer_on_batch_region, hook_p)
 on_create = ctypes.cast(so.buffer_on_create, hook_p)
 on_delete = ctypes.cast(so.buffer_on_delete, hook_p)
 
+from symbols.cursor import cursor_p
+
+
 class log:
     initsys = so.buffer_log_initsys
     initsys.argtypes = []
     initsys.restype  = ctypes.c_int
 
     point_stream = so.buffer_log_point_stream
-    point_stream.argtypes = [point_p]
+    point_stream.argtypes = [cursor_p]
     point_stream.restype  = ctypes.c_void_p
 
 class line:

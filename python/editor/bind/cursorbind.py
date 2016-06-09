@@ -4,7 +4,6 @@ import core.keymap
 import editor.buffers.userlog
 
 from core.key import Key
-from editor.cursor.cursor import cursors
 from editor.command import Command, CommandArg
 
 mapname = "cursor-default"
@@ -22,7 +21,8 @@ up_cmd = Command("cursor-up",
                  CommandArg(int, "Lines to move up"))
 @up_cmd.hook(500)
 def up_cb(n):
-    cursors.current.move_lines(-n)
+    sel = core.cursor.get_selected()
+    sel.move_lines(-n)
 
 @curmap.add(Key("UP"))
 def up_mapped(keys):
@@ -38,7 +38,8 @@ down_cmd = Command("cursor-down",
                    CommandArg(int, "Lines to move down"))
 @down_cmd.hook(500)
 def down_cb(n):
-    cursors.current.move_lines(n)
+    sel = core.cursor.get_selected()
+    sel.move_lines(n)
 
 @curmap.add(Key("DOWN"))
 def down_mapped(keys):
@@ -55,7 +56,8 @@ back_cmd = Command("cursor-back",
                    CommandArg(int, "Characters to move back"))
 @back_cmd.hook(500)
 def back_cb(n):
-    cursors.current.move_cols(-n)
+    sel = core.cursor.get_selected()
+    sel.move_cols(-n)
 
 @curmap.add(Key("LEFT"))
 def back_mapped(keys):
@@ -72,7 +74,8 @@ forward_cmd = Command("cursor-back",
                       CommandArg(int, "Characters to move forward"))
 @forward_cmd.hook(500)
 def forward_cb(n):
-    cursors.current.move_cols(n)
+    sel = core.cursor.get_selected()
+    sel.move_cols(n)
 
 @curmap.add(Key("RIGHT"))
 def forward_mapped(keys):
@@ -87,7 +90,8 @@ delback_cmd = Command("cursor-delback",
                       CommandArg(int, "Characters to delete"))
 @delback_cmd.hook(500)
 def delback_cb(n):
-    cursors.current.delete(1)
+    sel = core.cursor.get_selected()
+    sel.delete(n)
 
 @curmap.add(Key("BACKSPACE"))
 def delback_mapped(keys):
@@ -102,7 +106,7 @@ def delback_mapped(keys):
 activate_cmd = Command("cursor-activate")
 @activate_cmd.hook(500)
 def activate_cb():
-    cursors.current.activate()
+    pass#cursors.current.activate()
 
 @curmap.add(Key("A", con=True))
 def activate_mapped(keys):
@@ -118,7 +122,7 @@ def activate_mapped(keys):
 deactivate_cmd = Command("cursor-deactivate")
 @deactivate_cmd.hook(500)
 def deactivate_cb():
-    cursors.current.deactivate()
+    pass#cursors.current.deactivate()
 
 @curmap.add(Key("D", con=True))
 def deactivate_mapped(keys):
@@ -133,7 +137,8 @@ def deactivate_mapped(keys):
 enter_cmd = Command("cursor-enter")
 @enter_cmd.hook(500)
 def enter_cb():
-    cursors.current.enter()
+    sel = core.cursor.get_selected()
+    sel.enter()
 
 @curmap.add(Key("RETURN"))
 def enter_mapped(keys):
@@ -153,7 +158,11 @@ insert_cmd = Command("cursor-insert",
                      CommandArg(str))
 @insert_cmd.hook(500)
 def insert_cb(string):
-    cursors.current.insert(string)
+    if isinstance(string, str):
+        string = string.encode("ascii")
+
+    sel = core.cursor.get_selected()
+    sel.insert(string)
 
 def insert_mapped(keys):
     keystring = str(keys[-1])

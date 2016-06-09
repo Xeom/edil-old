@@ -4,8 +4,9 @@
 #include <time.h>
 
 #include "buffer/buffer.h"
-#include "buffer/point.h"
 #include "buffer/log.h"
+#include "cursor/cursor.h"
+#include "cursor/point.h"
 
 #include "err.h"
 
@@ -21,7 +22,7 @@ char *err_lvl_prefixes[] =
 
 FILE   *err_stream     = NULL;
 buffer *err_log_buffer = NULL;
-point  *err_log_point  = NULL;
+cursor *err_log_cursor = NULL;
 
 uint max_err_per_second = 10;
 
@@ -61,8 +62,8 @@ static int err_are_we_dying(void)
 int err_create_log_buffer(void)
 {
     err_log_buffer = buffer_init();
-    err_log_point  = buffer_point_init(err_log_buffer, 0, 0);
-    err_stream     = buffer_log_point_stream(err_log_point);
+    err_log_cursor = cursor_spawn(err_log_buffer, &cursor_point_type);
+    err_stream     = buffer_log_point_stream(err_log_cursor);
 
     return 0;
 }

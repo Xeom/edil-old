@@ -12,6 +12,7 @@ import core.table
 import core.buffer
 import core.deferline
 import core.point
+import core.cursor
 import ctypes
 import shared
 import symbols
@@ -27,6 +28,7 @@ core.key.initsys()
 core.keymap.initsys()
 core.point.initsys()
 core.ui.refresh()
+core.cursor.initsys()
 symbols.buffer.log.initsys()
 
 import editor.query
@@ -74,7 +76,7 @@ def getselected(win):
 
     return ""
 
-@core.deferline.hooks.draw(200)
+@core.deferline.hooks.draw(50)
 def addlineno(w, b, ln, li):
     face = Face(Face.black, Face.black, bright=True)
     prefix =  hex(ln.value)[2:].zfill(4) + "> "
@@ -82,7 +84,7 @@ def addlineno(w, b, ln, li):
 
     li.insert(0, prefix)
 
-@core.deferline.hooks.draw(400)
+@core.deferline.hooks.draw(900)
 def addeol(w, b, ln, li):
     face = Face(Face.black, Face.black, bright=True)
     suffix = "<"
@@ -128,6 +130,12 @@ def handle_offsety_set(win, old):
 @core.key.hooks.key(500)
 def hi(key):
     print(key, file=sys.stderr)
+
+cur = core.cursor.spawn(core.windows.get_selected().buffer,
+                        core.cursor.types.point)
+cur.insert(b"SLUT")
+cur.enter()
+cur.insert(b"I love you really <3")
 
 while alive:
     symbols.io.listener.listen()

@@ -46,13 +46,16 @@ static int cursor_point_move_cols_t(void *ptr, int n)
 {   return cursor_point_move_cols(ptr, n); }
 
 static int cursor_point_move_lines_t(void *ptr, int n)
-{   return cursor_point_move_cols(ptr, n); }
+{   return cursor_point_move_lines(ptr, n); }
 
-static int cursor_point_insert_t(void *ptr, char *str)
+static int cursor_point_insert_t(void *ptr, const char *str)
 {   return cursor_point_insert(ptr, str); }
 
 static int cursor_point_delete_t(void *ptr, uint n)
 {   return cursor_point_delete(ptr, n); }
+
+static int cursor_point_enter_t(void *ptr)
+{   return cursor_point_enter(ptr); }
 
 /* A cursor_type representing a point */
 cursor_type cursor_point_type =
@@ -68,6 +71,7 @@ cursor_type cursor_point_type =
     &cursor_point_move_lines_t,
     &cursor_point_insert_t,
     &cursor_point_delete_t,
+    &cursor_point_enter_t,
     /* Points do not activate, so these methods are left null */
     NULL,
     NULL
@@ -579,7 +583,7 @@ int cursor_point_delete(point *p, uint n)
     return 0;
 }
 
-int cursor_point_insert(point *p, char *str)
+int cursor_point_insert(point *p, const char *str)
 {
     size_t inslen;
     vec   *l;

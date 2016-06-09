@@ -47,8 +47,8 @@ deferline *buffer_deferline_init(vec *v)
 
     return rtn;
 }
-#include <stdio.h>
-int buffer_deferline_insert(deferline *dl, size_t index, char *str)
+
+int buffer_deferline_insert(deferline *dl, size_t index, const char *str)
 {
     char *new, **oldptr;
     size_t inslen, oldlen;

@@ -1,13 +1,13 @@
 import core.ui
+import core.cursor
 
-from editor.cursor.cursor import cursors
 from core.buffer import Buffer
-from core.point  import Point
+from core.cursor import Cursor
 from core.face   import Face
 
 buffer = Buffer.new()
-point  = cursors.get_buffer_cursors(buffer).spawn(cls=Point)
-stream = point.open_stream()
+cursor = core.cursor.spawn(buffer, core.cursor.types.point)
+stream = cursor.open_stream()
 
 face = Face(Face.black, Face.green)
 

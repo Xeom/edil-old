@@ -15,6 +15,8 @@
 #include "ui/win/frame.h"
 #include "ui/win/content.h"
 
+#include "cursor/cursor.h"
+
 #include "container/vec.h"
 
 #include "ui/updates.h"
@@ -34,7 +36,7 @@ static void ui_updates_win_select     (vec *args, hook h);
 static void ui_updates_win_full_redraw(vec *args, hook h);
 static void ui_updates_line_change    (vec *args, hook h);
 static void ui_updates_line_draw_after(vec *args, hook h);
-static void ui_updates_point_move     (vec *args, hook h);
+static void ui_updates_cursor_move    (vec *args, hook h);
 
 int ui_updates_initsys(void)
 {
@@ -57,7 +59,7 @@ int ui_updates_initsys(void)
     hook_mount(&buffer_line_on_insert_post, ui_updates_line_draw_after, 800);
     hook_mount(&buffer_on_batch_region,     ui_updates_line_draw_after, 800);
 
-    hook_mount(&buffer_point_on_move_post,  ui_updates_point_move, 800);
+    hook_mount(&cursor_on_change_pos, ui_updates_cursor_move, 800);
 
     return 0;
 }
@@ -186,18 +188,18 @@ static void ui_updates_line_draw_after(vec *args, hook h)
     refresh();
 }
 
-static void ui_updates_point_move(vec *args, hook h)
+static void ui_updates_cursor_move(vec *args, hook h)
 {
-    point *p;
-    lineno *origln, ln;
-    win *iter, *first;
     buffer *b;
+    cursor *cur;
+    win    *iter, *first;
+    lineno *oldln, ln;
 
-    unpack_arg(0, point,  p);
-    unpack_arg(1, lineno, origln);
+    unpack_arg(0, cursor, cur);
+    unpack_arg(1, lineno, oldln);
 
-    ln = buffer_point_get_ln(p);
-    b  = buffer_point_get_buffer(p);
+    ln = cursor_get_ln(cur);
+    b  = cursor_get_buffer(cur);
 
     if (ui_updates_holding_buffer == b)
         return;
@@ -208,7 +210,8 @@ static void ui_updates_point_move(vec *args, hook h)
         if (b == win_get_buffer(iter))
         {
             ui_win_content_draw_line(iter, ln);
-            ui_win_content_draw_line(iter, *origln);
+            if (*oldln != ln)
+                ui_win_content_draw_line(iter, *oldln);
         }
 
         iter = win_iter_next(iter);

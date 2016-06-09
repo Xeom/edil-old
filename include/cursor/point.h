@@ -2,6 +2,7 @@
 # define CURSOR_POINT_H
 # include "head.h"
 
+# include "cursor/cursor.h"
 # include "buffer/line.h"
 
 
@@ -11,6 +12,8 @@ typedef struct point_s point;
  */
 extern hook cursor_point_on_move_pre;
 extern hook cursor_point_on_move_post;
+
+extern cursor_type cursor_point_type;
 
 /* A point is basically a cursor. We do not call it a cursor since cursor     *
  * refers to a variety of objects that can be moved around and edit text. A   *
@@ -99,7 +102,7 @@ int cursor_point_delete(point *p, uint n);
  * @return    0 on success, -1 on error.
  *
  */
-int cursor_point_insert(point *p, char *str);
+int cursor_point_insert(point *p, const char *str);
 
 /*
  * Insert a line-break at a point's location. If the point is midway through a

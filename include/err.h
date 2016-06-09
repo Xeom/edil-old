@@ -4,6 +4,8 @@
 
 # include <stddef.h>
 # include <stdio.h>
+# include <string.h>
+# include <errno.h>
 
 typedef enum
 {
@@ -71,6 +73,16 @@ typedef enum
             {fail;}                                     \
         }                                               \
     } while(0)
+
+#define ASSERT_ENO(code, level, fail)                   \
+    do {                                                \
+        if ( ! (code) )                                 \
+        {                                               \
+            err_new(level,  strerror(errno),            \
+                    "(" #code ") returned 0.");         \
+            {fail;}                                     \
+        }                                               \
+    } while (0)
 
 #define TRACE(code, fail)     ASSERT    (code, err_last_lvl, fail)
 #define TRACE_PTR(code, fail) ASSERT_PTR(code, err_last_lvl, fail)
