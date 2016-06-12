@@ -113,6 +113,8 @@ class sbar:
     set.argtypes = [ctypes.c_char_p]
     set.restype  = ctypes.c_int
 
+    content = cutil.functptr2type(so.ui_sbar_content, ctypes.c_char_p)
+
 class win:
     initsys = so.ui_win_initsys
     initsys.argtypes = []

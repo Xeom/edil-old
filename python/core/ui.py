@@ -58,6 +58,8 @@ class hooks:
                 symbols.vec.Vec.Type(ctypes.c_char))
 
 
+cursorface = symbols.ui.face.cursor.value
+
 def updates_hold(b):
     symbols.ui.updates.hold(b.struct)
 
@@ -106,6 +108,9 @@ def set_sbar(s):
 
     symbols.ui.sbar.set(s)
     symbols.ui.sbar.draw()
+
+def get_sbar():
+    return symbols.ui.sbar.content.value
 
 def draw_window(w):
     symbols.ui.win.draw(w.struct)

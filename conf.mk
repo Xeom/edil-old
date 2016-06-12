@@ -22,7 +22,7 @@ FOPTIONS=no-diagnostics-show-caret \
 WARNINGS=all no-unused-parameter extra pedantic \
          missing-prototypes fatal-errors format \
          conversion declaration-after-statement \
-         error
+#         error
 
 LINKS=ncurses
 

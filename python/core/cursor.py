@@ -5,6 +5,91 @@ import ctypes
 
 import symbols.cursor
 
+from core.buffer import Buffer
+
+class CursorType:
+    def __init__(self, instclass):
+        self.instclass = instclass
+
+        fields  =  symbols.cursor.cursor_type_s._fields_
+
+        fnames  = [name for (name, typ) in fields]
+        ftypes  = [typ  for (name, typ) in fields]
+
+        functs  = [getattr(self, "_" + name) if hasattr(instclass, name) else 0
+                   for name in fnames]
+
+        functs[0] = self._init
+        print(list(zip(ftypes, functs)))
+        cfuncts = [typ(f) for (f, typ) in zip(functs, ftypes)]
+
+        self.struct    = ctypes.pointer(symbols.cursor.cursor_type_s(*cfuncts))
+        self.instances = {}
+
+    def _free(self, ptr):
+        del self.instances[ptr]
+
+    def _init(self, bufptr):
+        new = self.instclass()
+
+        self.instances[id(new)] = new
+
+        if hasattr(new, "init"):
+            rtn = new.init(Buffer(bufptr))
+
+            if isinstance(rtn, int):
+                return rtn
+
+        return id(new)
+
+    def call(self, ptr, methname, *args):
+        inst = self.instances[ptr]
+
+        return getattr(inst, methname)(*args)
+
+    def _free(self, ptr):
+        del self.instances[ptr]
+
+    def _get_ln(self, ptr):
+        return self.call(ptr, "get_ln")
+
+    def _get_cn(self, ptr):
+        return self.call(ptr, "get_cn")
+
+    def _set_ln(self, ptr, ln):
+        self.call(ptr, "set_ln", ln)
+
+    def _set_cn(self, ptr, cn):
+        self.call(ptr, "set_cn", cn)
+
+    def _move_lines(self, ptr, n):
+        self.call(ptr, "move_lines", n)
+
+    def _move_cols(self, ptr):
+        self.call(ptr, "move_cols", n)
+
+    def _insert(self, ptr, string):
+        self.call(ptr, "insert", string)
+
+    def _delete(self, ptr, n):
+        self.call(ptr, "delete", n)
+
+    def _enter(self, ptr):
+        self.call(ptr, "enter")
+
+    def _activate(self, ptr):
+        self.call(ptr, "activate")
+
+    def _deactivate(self, ptr):
+        self.call(ptr, "deactivate")
+
+    def find_instance(self, cursor):
+        return self.instances[symbols.cursor.get_ptr(cursor.struct)]
+
+class CursorTypeFromPtr:
+    def __init__(self, ptr):
+        self.struct = ptr
+
 class CursorContainer:
     def __init__(self):
         self.by_ptr = weakref.WeakValueDictionary()
@@ -91,7 +176,6 @@ class CursorObj:
 
         return cutil.fptr2file(fptr, "wb", 1)
 
-
 Cursor = CursorContainer()
 
 def initsys():
@@ -105,7 +189,16 @@ def get_selected():
     return Cursor(symbols.cursor.selected())
 
 def spawn(buf, typ):
-    return Cursor(symbols.cursor.spawn(buf.struct, typ))
+    return Cursor(symbols.cursor.spawn(buf.struct, typ.struct))
+
+def select_next(buf):
+    symbols.cursor.select_next(buf.struct)
+
+def select_last(buf):
+    symbols.cursor.select_last(buf.struct)
+
+def delete_selected(buf):
+    symbols.cursor.free(symbols.cursor.buffer_selected(buf.struct))
 
 class types:
-    point = symbols.cursor.point.type
+    point = CursorTypeFromPtr(symbols.cursor.point.type)

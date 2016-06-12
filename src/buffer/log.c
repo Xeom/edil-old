@@ -76,8 +76,6 @@ FILE *buffer_log_point_stream(cursor *cur)
     FILE     *anus, *mouth;
     int       pipefd[2];
 
-    fprintf(stderr, "LOGCUR %p\n", cur);
-
     /* Open a new pipe */
     ASSERT_ENO(pipe(pipefd) == 0, critical,
                return NULL);

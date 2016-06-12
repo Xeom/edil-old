@@ -9,6 +9,7 @@
 
 struct cursor_s
 {
+    buffer      *b;
     void        *ptr;
     cursor_type *type;
 };
@@ -106,14 +107,48 @@ cursor *cursor_spawn(buffer *b, cursor_type *type)
 
     new->type = type;
 
-    fprintf(stderr, "NEW %p TYPE %p\n", new, type);
-
     ASSERT_PTR(type->init, critical, return NULL);
     new->ptr = type->init(b);
+    new->b   = b;
 
     hook_call(cursor_on_spawn, new);
 
     return new;
+}
+
+int cursor_free(cursor *cur)
+{
+    buffercont *cont;
+    buffer *b;
+    size_t  ind;
+
+    b    = cur->b;
+    cont = table_get(&cursors_by_buffer, &b);
+
+    if (!cont)
+        return -1;
+
+    if (cur->type->free)
+        cur->type->free(cur->ptr);
+
+    ind = (size_t)((char *)cur - (char *)vec_item(&(cont->cursors), 0))
+        / sizeof(cursor);
+    vec_delete(&(cont->cursors), ind, 1);
+
+    if (cont->selectind && cont->selectind >= ind)
+        cont->selectind--;
+
+    return 0;
+}
+
+buffer *cursor_get_buffer(cursor *cur)
+{
+    return cur->b;
+}
+
+void *cursor_get_ptr(cursor *cur)
+{
+    return cur->ptr;
 }
 
 lineno cursor_get_ln(cursor *cur)
@@ -132,14 +167,6 @@ colno cursor_get_cn(cursor *cur)
 
     else
         return cur->type->get_cn(cur->ptr);
-}
-
-buffer *cursor_get_buffer(cursor *cur)
-{
-    ASSERT_PTR(cur->type->get_buffer,
-               critical, return NULL);
-
-    return cur->type->get_buffer(cur->ptr);
 }
 
 int cursor_set_ln(cursor *cur, lineno ln)
@@ -241,14 +268,12 @@ int cursor_move_lines(cursor *cur, int n)
 
     return 0;
 }
-#include <stdio.h>
+
 int cursor_insert(cursor *cur, const char *str)
 {
     lineno oldln;
     lineno oldcn;
-    fprintf(stderr, "CUR %p\n", cur);
-//    if (!(cur->type))
-    //      abort();
+
     if (!(cur->type->insert))
         return 0;
 
@@ -353,6 +378,35 @@ cursor *cursor_selected(void)
     b = win_get_buffer(w);
 
     return cursor_buffer_selected(b);
+}
+
+int cursor_select_next(buffer *b)
+{
+    buffercont *cont;
+
+    cont = table_get(&cursors_by_buffer, &b);
+
+    if (!cont)
+        return -1;
+
+    cont->selectind += 1;
+    cont->selectind %= vec_len(&(cont->cursors));
+
+    return 0;
+}
+
+int cursor_select_last(buffer *b)
+{
+   buffercont *cont;
+
+    cont = table_get(&cursors_by_buffer, &b);
+
+    if (!cont)
+        return -1;
+
+    cont->selectind = vec_len(&(cont->cursors)) - 1;
+
+    return 0;
 }
 
 #define unpack_arg(num, type, name)             \

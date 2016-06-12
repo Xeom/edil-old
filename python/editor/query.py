@@ -2,8 +2,9 @@ from core.key import Key
 from core.face import Face
 import core.keymap
 import core.ui
-import editor.cursor.cursor as cursor
-import editor.cursor
+
+from core.cursor import CursorType
+import core.cursor
 
 import os
 
@@ -41,39 +42,30 @@ class AutoCompleter:
 
         return rtn
 
-class QueryPoint:
-    def __init__(self, buffer):
-        self.ln = 0
+class QueryCursor:
+    def __init__(self):
         self.cn = 0
-
-        self.string    = []
-
-        self.buffer    = buffer
-        self.prefix    = b""
-
+        self.string = []
+        self.prefix = core.ui.get_sbar()
         self.draw()
 
-    @property
-    def prefix(self):
-        raise AttributeError
+    def init(self, b):
+        self.buffer = b
 
-    @prefix.setter
-    def prefix(self, v):
-        if isinstance(v, str):
-            v = v.encode("ascii")
+    def get_buffer(self):
+        return self.buffer
 
-        if v:
-            self.pre = query_prefix_face.serialize(len(v)) + v
-        else:
-            self.pre = b""
+    def get_ln(self):
+        return 0
 
-        self.draw()
+    def get_cn(self):
+        return self.cn
 
     def draw(self):
         string = bytearray("".join(self.string), "ascii")
-        string[self.cn:self.cn] = cursor.cursor_face.serialize(1)
+        string[self.cn:self.cn] = core.ui.cursorface
 
-        core.ui.set_sbar(self.pre + bytes(string))
+        core.ui.set_sbar(self.prefix + bytes(string))
 
     def move_cols(self, n):
         self.cn += n
@@ -81,9 +73,6 @@ class QueryPoint:
         self.cn  = max(0,                self.cn)
 
         self.draw()
-
-    def move_lines(self, n):
-        pass
 
     def delete(self, n):
         del self.string[max(0, self.cn - n):self.cn]
@@ -101,9 +90,6 @@ class QueryPoint:
 
         self.draw()
 
-    def enter(self):
-        pass
-
     def set(self, string):
         if isinstance(string, bytes):
             string = string.decode("ascii")
@@ -113,25 +99,9 @@ class QueryPoint:
 
         self.draw()
 
-    def __lt__(self, other):
-        return self.cn < other.cn
+QueryCursorType = CursorType(QueryCursor)
 
-    def __le__(self, other):
-        return self.cn <= other.cn
-
-    def __gt__(self, other):
-        return self.cn > other.cn
-
-    def __ge__(self, other):
-        return self.cn >= other.cn
-
-    def __eq__(self, other):
-        return self.cn == other.cn
-
-    def __sub__(self, other):
-        return self.cn - other.cn
-
-cursor.Snapper.blacklist.append(QueryPoint)
+#cursor.Snapper.blacklist.append(QueryPoint)
 
 mapname = "query-default"
 
@@ -141,48 +111,52 @@ querymap = core.keymap.maps[mapname]
 querying_buffers = set()
 
 def autocomplete_query():
-    cur = cursor.cursors.current
+    curcursor = core.cursor.get_selected()
+    curinst   = QueryCursorType.find_instance(curcursor)
 
-    if not isinstance(cur, QueryPoint):
+    if not isinstance(curinst, QueryCursor):
         raise Exception("Not in a query")
 
-    auto = cur.autocompleter.complete("".join(cur.string))
+    auto = curinst.autocompleter.complete("".join(curinst.string))
 
     if auto != None:
-        cur.set(auto)
+        curinst.set(auto)
 
 def make_query(callback, prefix=b"", completecallback=None):
     core.keymap.frames.active.push("query-default")
 
-    curs = cursor.cursors.current_buffer_cursors
     buf  = core.windows.get_selected().buffer
 
     if buf in querying_buffers:
         raise Exception("Cannot double-query")
 
+    if isinstance(prefix, str):
+        prefix = prefix.encode("ascii")
+
+    core.ui.set_sbar(query_prefix_face.serialize(len(prefix)) + prefix)
+
     querying_buffers.add(buf)
 
-    curs.spawn(cls=QueryPoint, select=True)
-    curs.selected.autocompleter = AutoCompleter(completecallback)
-    curs.selected.callback = callback
-    curs.selected.prefix  = prefix
+    newcursor = core.cursor.spawn(buf, QueryCursorType)
+    core.cursor.select_last(buf)
+    newinst   = QueryCursorType.find_instance(newcursor)
+    newinst.autocompleter = AutoCompleter(completecallback)
+    newinst.callback      = callback
 
 def leave_query():
-    cur = cursor.cursors.current
+    curcursor = core.cursor.get_selected()
+    curinst   = QueryCursorType.find_instance(curcursor)
 
-    if not isinstance(cur, QueryPoint):
-        raise Exception("Not in a query")
-
-    buf = cur.buffer
+    buf = core.windows.get_selected().buffer
 
     core.keymap.frames.active.remove("query-default")
 
     if buf in querying_buffers:
         querying_buffers.remove(buf)
 
-    cursor.cursors.current_buffer_cursors.remove_selected()
     core.ui.set_sbar(b"")
-    cur.callback("".join(cur.string))
+    curinst.callback("".join(curinst.string))
+    core.cursor.delete_selected(buf)
 
 @querymap.add(Key("RETURN"))
 def query_enter(keys):

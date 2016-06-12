@@ -8,7 +8,7 @@
 #include "ui/sbar.h"
 
 /* Somewhere to store the current contents of the statusbar */
-static char *ui_sbar_content;
+char *ui_sbar_content;
 
 int ui_sbar_initsys(void)
 {

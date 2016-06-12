@@ -14,13 +14,12 @@ struct cursor_type_s
 
     lineno  (*get_ln)     (void *); //
     colno   (*get_cn)     (void *); //
-    buffer *(*get_buffer) (void *);
 
     int (*set_ln) (void *, lineno); //
     int (*set_cn) (void *, colno);  //
 
-    int (*move_cols)  (void *, int);
     int (*move_lines) (void *, int);
+    int (*move_cols)  (void *, int);
 
     int (*insert) (void *, const char *);
     int (*delete) (void *, uint);
@@ -51,9 +50,14 @@ int cursor_initsys(void);
 
 cursor *cursor_spawn(buffer *b, cursor_type *type);
 
+int cursor_free(cursor *cur);
+
+buffer *cursor_get_buffer(cursor *cur);
+
+void *cursor_get_ptr(cursor *cur);
+
 lineno cursor_get_ln(cursor *cur);
 colno cursor_get_cn(cursor *cur);
-buffer *cursor_get_buffer(cursor *cur);
 int cursor_set_ln(cursor *cur, lineno ln);
 int cursor_set_cn(cursor *cur, colno cn);
 int cursor_move_cols(cursor *cur, int n);
@@ -67,5 +71,9 @@ cursor *cursor_buffer_selected(buffer *b);
 vec *cursor_buffer_all(buffer *b);
 
 cursor *cursor_selected(void);
+
+int cursor_select_last(buffer *b);
+
+int cursor_select_next(buffer *b);
 
 #endif /* CURSOR_CURSOR_H */

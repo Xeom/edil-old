@@ -33,9 +33,6 @@ static lineno cursor_point_get_ln_t(void *ptr)
 static colno cursor_point_get_cn_t(void *ptr)
 {   return cursor_point_get_cn(ptr); }
 
-static buffer *cursor_point_get_buffer_t(void *ptr)
-{   return cursor_point_get_buffer(ptr); }
-
 static int cursor_point_set_ln_t(void *ptr, lineno ln)
 {   return cursor_point_set_ln(ptr, ln); }
 
@@ -64,11 +61,10 @@ cursor_type cursor_point_type =
     &cursor_point_free_t,
     &cursor_point_get_ln_t,
     &cursor_point_get_cn_t,
-    &cursor_point_get_buffer_t,
     &cursor_point_set_ln_t,
     &cursor_point_set_cn_t,
-    &cursor_point_move_cols_t,
     &cursor_point_move_lines_t,
+    &cursor_point_move_cols_t,
     &cursor_point_insert_t,
     &cursor_point_delete_t,
     &cursor_point_enter_t,
@@ -735,13 +731,6 @@ int cursor_point_set_cn(point *p, lineno cn)
     hook_call(cursor_point_on_move_post, p, &origln, &origcn);
 
     return 0;
-}
-
-buffer *cursor_point_get_buffer(point *p)
-{
-    ASSERT_PTR(p, high, return NULL);
-
-    return p->b;
 }
 
 int cursor_point_cmp(point *a, point *b)
