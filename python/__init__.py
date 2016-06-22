@@ -32,16 +32,12 @@ core.cursor.initsys()
 symbols.buffer.log.initsys()
 
 import editor.query
-import editor.cursor.regioncursor
-import editor.cursor.cursor
 import editor.clipboard
 import editor.files
 import editor.buffers.ring
 import editor.buffers.userlog
 import editor.bind.keymap
 import editor.autocomplete
-
-from editor.cursor.cursor import cursors
 
 #shared.lib.err_create_log_buffer()
 #ctypes.cast(shared.lib.err_stream, ctypes.POINTER(ctypes.c_void_p)).contents.value = symbols.buffer.log.stream()
@@ -132,21 +128,13 @@ def hi(key):
     print(key, file=sys.stderr)
 
 cur = core.cursor.spawn(core.windows.get_selected().buffer,
-                        core.cursor.types.point)
+                        core.cursor.types.region)
 cur.insert(b"SLUT")
 cur.enter()
 cur.insert(b"I love you really <3")
 
 while alive:
     symbols.io.listener.listen()
-    continue
-    char = symbols.lib.getch()
-
-    if char == symbols.io.key.resize:
-        core.ui.resize()
-
-    else:
-        symbols.io.key.handle_chr(char)
 
 core.ui.killsys()
 

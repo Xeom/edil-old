@@ -171,6 +171,12 @@ class CursorObj:
     def enter(self):
         symbols.cursor.enter(self.struct)
 
+    def activate(self):
+        symbols.cursor.activate(self.struct)
+
+    def deactivate(self):
+        symbols.cursor.deactivate(self.struct)
+
     def open_stream(self):
         fptr = symbols.buffer.log.point_stream(self.struct)
 
@@ -181,6 +187,7 @@ Cursor = CursorContainer()
 def initsys():
     symbols.cursor.initsys()
     symbols.cursor.point.initsys()
+    symbols.cursor.region.initsys()
 
 def get_buffer_selected(buf):
     return Cursor(symbols.cursor.buffer_selected(buf.struct))
@@ -201,4 +208,5 @@ def delete_selected(buf):
     symbols.cursor.free(symbols.cursor.buffer_selected(buf.struct))
 
 class types:
-    point = CursorTypeFromPtr(symbols.cursor.point.type)
+    point  = CursorTypeFromPtr(symbols.cursor.point.type)
+    region = CursorTypeFromPtr(symbols.cursor.region.type)

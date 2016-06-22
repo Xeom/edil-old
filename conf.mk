@@ -72,7 +72,8 @@ SRC_NAMES=\
         io/listener        \
                            \
         cursor/cursor      \
-        cursor/point
+        cursor/point       \
+        cursor/region
 
 
 DEPS_FILE=deps.mk

@@ -102,6 +102,14 @@ enter = so.cursor_enter
 enter.argtypes = [cursor_p]
 enter.restype  = ctypes.c_int
 
+activate = so.cursor_activate
+activate.argtypes = [cursor_p]
+activate.restype  = ctypes.c_int
+
+deactivate = so.cursor_deactivate
+deactivate.argtypes = [cursor_p]
+deactivate.restype  = ctypes.c_int
+
 buffer_selected = so.cursor_buffer_selected
 buffer_selected.argtypes = [buffer_p]
 buffer_selected.restype  = cursor_p
@@ -128,3 +136,10 @@ class point:
     initsys.restype  = ctypes.c_int
 
     type = ctypes.cast(so.cursor_point_type, cursor_type_p)
+
+class region:
+    initsys = so.cursor_region_initsys
+    initsys.argtypes = []
+    initsys.restype  = ctypes.c_int
+
+    type = ctypes.cast(so.cursor_region_type, cursor_type_p)

@@ -106,7 +106,8 @@ def delback_mapped(keys):
 activate_cmd = Command("cursor-activate")
 @activate_cmd.hook(500)
 def activate_cb():
-    pass#cursors.current.activate()
+    sel = core.cursor.get_selected()
+    sel.activate()
 
 @curmap.add(Key("A", con=True))
 def activate_mapped(keys):
@@ -122,7 +123,8 @@ def activate_mapped(keys):
 deactivate_cmd = Command("cursor-deactivate")
 @deactivate_cmd.hook(500)
 def deactivate_cb():
-    pass#cursors.current.deactivate()
+    sel = core.cursor.get_selected()
+    sel.deactivate()
 
 @curmap.add(Key("D", con=True))
 def deactivate_mapped(keys):

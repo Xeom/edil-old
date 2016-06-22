@@ -55,16 +55,18 @@ int cursor_free(cursor *cur);
 buffer *cursor_get_buffer(cursor *cur);
 
 void *cursor_get_ptr(cursor *cur);
-
-lineno cursor_get_ln(cursor *cur);
-colno cursor_get_cn(cursor *cur);
-int cursor_set_ln(cursor *cur, lineno ln);
-int cursor_set_cn(cursor *cur, colno cn);
-int cursor_move_cols(cursor *cur, int n);
+cursor_type *cursor_get_type(cursor *cur);
+lineno cursor_get_ln (cursor *cur);
+colno cursor_get_cn  (cursor *cur);
+int cursor_set_ln    (cursor *cur, lineno ln);
+int cursor_set_cn    (cursor *cur, colno cn);
+int cursor_move_cols (cursor *cur, int n);
 int cursor_move_lines(cursor *cur, int n);
-int cursor_insert(cursor *cur, const char *str);
-int cursor_delete(cursor *cur, uint n);
-int cursor_enter(cursor *cur);
+int cursor_insert    (cursor *cur, const char *str);
+int cursor_delete    (cursor *cur, uint n);
+int cursor_enter     (cursor *cur);
+int cursor_activate  (cursor *cur);
+int cursor_deactivate(cursor *cur);
 
 cursor *cursor_buffer_selected(buffer *b);
 

@@ -63,6 +63,12 @@ hook_add(cursor_on_delete_post, 2);
 hook_add(cursor_on_enter_pre, 1);
 hook_add(cursor_on_enter_post, 1);
 
+hook_add(cursor_on_activate_pre, 1);
+hook_add(cursor_on_activate_post, 1);
+
+hook_add(cursor_on_deactivate_pre, 1);
+hook_add(cursor_on_deactivate_post, 1);
+
 hook_add(cursor_on_change_pos, 2);
 
 table cursors_by_buffer;
@@ -149,6 +155,11 @@ buffer *cursor_get_buffer(cursor *cur)
 void *cursor_get_ptr(cursor *cur)
 {
     return cur->ptr;
+}
+
+cursor_type *cursor_get_type(cursor *cur)
+{
+    return cur->type;
 }
 
 lineno cursor_get_ln(cursor *cur)
@@ -344,6 +355,35 @@ int cursor_enter(cursor *cur)
     return 0;
 }
 
+int cursor_activate(cursor *cur)
+{
+    if (!(cur->type->activate))
+        return 0;
+
+    hook_call(cursor_on_activate_pre, cur);
+
+    ASSERT_INT(cur->type->activate(cur->ptr),
+               high, return -1);
+
+    hook_call(cursor_on_activate_post, cur);
+
+    return 0;
+}
+
+int cursor_deactivate(cursor *cur)
+{
+    if (!(cur->type->deactivate))
+        return 0;
+
+    hook_call(cursor_on_deactivate_pre, cur);
+
+    ASSERT_INT(cur->type->deactivate(cur->ptr),
+               high, return -1);
+
+    hook_call(cursor_on_deactivate_post, cur);
+
+    return 0;
+}
 
 cursor *cursor_buffer_selected(buffer *b)
 {

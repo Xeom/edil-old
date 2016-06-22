@@ -21,37 +21,37 @@ struct point_s
  * simply casting the function pointers due to its far higher resistance to   *
  * errors. Also casting function pointers to different types is less well     *
  * defined behaviour.                                                         */
-static void *cursor_point_init_t(buffer *b)
+static inline void *cursor_point_init_t(buffer *b)
 {   return cursor_point_init(b); }
 
-static int cursor_point_free_t(void *ptr)
+static inline int cursor_point_free_t(void *ptr)
 {   return cursor_point_free(ptr); }
 
-static lineno cursor_point_get_ln_t(void *ptr)
+static inline lineno cursor_point_get_ln_t(void *ptr)
 {   return cursor_point_get_ln(ptr); }
 
-static colno cursor_point_get_cn_t(void *ptr)
+static inline colno cursor_point_get_cn_t(void *ptr)
 {   return cursor_point_get_cn(ptr); }
 
-static int cursor_point_set_ln_t(void *ptr, lineno ln)
+static inline int cursor_point_set_ln_t(void *ptr, lineno ln)
 {   return cursor_point_set_ln(ptr, ln); }
 
-static int cursor_point_set_cn_t(void *ptr, colno cn)
+static inline int cursor_point_set_cn_t(void *ptr, colno cn)
 {   return cursor_point_set_cn(ptr, cn); }
 
-static int cursor_point_move_cols_t(void *ptr, int n)
+static inline int cursor_point_move_cols_t(void *ptr, int n)
 {   return cursor_point_move_cols(ptr, n); }
 
-static int cursor_point_move_lines_t(void *ptr, int n)
+static inline int cursor_point_move_lines_t(void *ptr, int n)
 {   return cursor_point_move_lines(ptr, n); }
 
-static int cursor_point_insert_t(void *ptr, const char *str)
+static inline int cursor_point_insert_t(void *ptr, const char *str)
 {   return cursor_point_insert(ptr, str); }
 
-static int cursor_point_delete_t(void *ptr, uint n)
+static inline int cursor_point_delete_t(void *ptr, uint n)
 {   return cursor_point_delete(ptr, n); }
 
-static int cursor_point_enter_t(void *ptr)
+static inline int cursor_point_enter_t(void *ptr)
 {   return cursor_point_enter(ptr); }
 
 /* A cursor_type representing a point */
