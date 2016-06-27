@@ -4,6 +4,8 @@ import symbols.ui
 
 cursor_serial = symbols.ui.face.cursor.value
 
+default_bg =  symbols.ui.face.colour_black.value
+
 class Face:
     black   = symbols.ui.face.colour_black.value
     blue    = symbols.ui.face.colour_blue.value
@@ -24,3 +26,6 @@ class Face:
         symbols.lib.free(charp)
 
         return rtn
+
+    def colour(self, string):
+        return self.serialize(len(string)) + string

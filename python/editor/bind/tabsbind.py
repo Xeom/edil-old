@@ -11,12 +11,8 @@ mapname = "tabs-default"
 core.keymap.maps.add(mapname)
 tabmap = core.keymap.maps[mapname]
 
-default_tab_face   = Face(Face.black, Face.cyan)
-default_tab_string = b"--->"
-default_indent_string = b"    "
-
-default_tab_string = default_tab_face.serialize(len(default_tab_string)) + \
-                     default_tab_string
+default_tab_string = b" " + Face(Face.black, Face.cyan).colour(b"...")
+default_indent_string = b"\t"
 
 @core.deferline.hooks.draw(500)
 def expandtabs(w, b, ln, li):
@@ -112,6 +108,10 @@ def indent_cb(n):
 
     set_indent_of_line(cur.buffer, cur.ln, lvl, cur)
 
+align_cmd = Command("tab-align",
+                    CommandArg(int, "Relative lineno to copy alignment from"))
+
+
 @tabmap.add(Key("TAB"), Key("RIGHT"))
 def indent_right_mapped(keys):
     indent_cmd.run_withargs(1)
@@ -119,3 +119,26 @@ def indent_right_mapped(keys):
 @tabmap.add(Key("TAB"), Key("LEFT"))
 def indent_left_mapped(keys):
     indent_cmd.run_withargs(-1)
+
+
+@align_cmd.hook(500)
+def align_cb(n):
+    cur = core.cursor.get_selected()
+    ln  = cur.ln + n
+
+    if ln < 0:
+        return
+
+    if ln > len(cur.buffer):
+        return
+
+    lvl = get_indent_of_line(cur.buffer, ln)
+    set_indent_of_line(cur.buffer, cur.ln, lvl, cur)
+
+@tabmap.add(Key("TAB"), Key("DOWN"))
+def align_up_mapped(keys):
+    align_cmd.run_withargs(1)
+
+@tabmap.add(Key("TAB"), Key("UP"))
+def align_down_mapped(keys):
+    align_cmd.run_withargs(-1)
