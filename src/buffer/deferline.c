@@ -9,6 +9,7 @@
 struct deferline_s
 {
     vec   *insertindices;
+    vec   *deleteindices;
     vec   *v;
     table *inserts; /* (int) -> char* */
 };
@@ -44,34 +45,28 @@ deferline *buffer_deferline_init(vec *v)
     rtn->inserts = table_init(sizeof(char *), sizeof(int), NULL, NULL,
                               (char *)&buffer_deferline_invalid_index);
     rtn->insertindices = vec_init(sizeof(size_t));
+    rtn->deleteindices = vec_init(sizeof(size_t));
 
     return rtn;
 }
 
-int buffer_deferline_insert(deferline *dl, size_t index, const char *str)
+static void buffer_deferline_sorted_vinsert(vec *v, size_t value)
 {
-    char *new, **oldptr;
-    size_t inslen, oldlen;
+    size_t len, ind;
 
-    if (index > vec_len(dl->v))
-        return -1;
+    len = vec_len(v);
+    ind = 0;
 
-    inslen = strlen(str);
-
-    oldptr = table_get(dl->inserts, &index);
-
-    if (!oldptr)
+    while (ind < len)
     {
-        size_t swidth, sind, slen;
-        new = malloc(inslen + 1);
+        if (*(size_t *)vec_item(v, ind) >= value)
+            break;
 
-        memcpy(new, str, inslen + 1);
-        table_set(dl->inserts, &index, &new);
+        ind++;
+    }
 
-        sind = 0;
-        slen = vec_len(dl->insertindices);
-
-        swidth  = slen;
+    vec_insert(v, ind, 1, &value);
+/* Bisearch is not very useful here, so meh
         swidth |= swidth >> 16;
         swidth |= swidth >> 8;
         swidth |= swidth >> 4;
@@ -88,8 +83,29 @@ int buffer_deferline_insert(deferline *dl, size_t index, const char *str)
                 <= index)
                 sind += swidth;
         }
+*/
+}
 
-        vec_insert(dl->insertindices, sind, 1, &index);
+int buffer_deferline_insert(deferline *dl, size_t index, const char *str)
+{
+    char *new, **oldptr;
+    size_t inslen, oldlen;
+
+    if (index > vec_len(dl->v))
+        return -1;
+
+    inslen = strlen(str);
+
+    oldptr = table_get(dl->inserts, &index);
+
+    if (!oldptr)
+    {
+        new = malloc(inslen + 1);
+
+        memcpy(new, str, inslen + 1);
+        table_set(dl->inserts, &index, &new);
+
+        buffer_deferline_sorted_vinsert(dl->insertindices, index);
     }
     else
     {
@@ -103,21 +119,62 @@ int buffer_deferline_insert(deferline *dl, size_t index, const char *str)
     return 0;
 }
 
+int buffer_deferline_delete(deferline *dl, size_t index)
+{
+    if (index > vec_len(dl->v))
+        return -1;
+
+    buffer_deferline_sorted_vinsert(dl->deleteindices, index);
+
+    return 0;
+}
+
 vec *buffer_deferline_get_vec(deferline *dl)
 {
     return dl->v;
 }
 
+#define vec_last(v) *(size_t *)vec_item(v, vec_len(v) - 1)
+static int buffer_deferline_insert_next(deferline *dl)
+{
+    char  *str;
+    size_t len, index;
+
+    index = vec_last(dl->insertindices);
+    str   = *(char **)table_get(dl->inserts, &index);
+    len   = strlen(str);
+
+    vec_insert(dl->v, index, len, str);
+
+    vec_delete(dl->insertindices, vec_len(dl->insertindices) - 1, 1);
+
+    return 0;
+}
+
+static int buffer_deferline_delete_next(deferline *dl)
+{
+    size_t index;
+
+    index = vec_last(dl->deleteindices);
+    vec_delete(dl->v, index, 1);
+
+    vec_delete(dl->deleteindices, vec_len(dl->deleteindices) - 1, 1);
+
+    return 0;
+}
+
+#define vec_gt(a, b) vec_len(a) && (vec_len(b) == 0 || vec_last(a) > vec_last(b))
 int buffer_deferline_dump(deferline *dl)
 {
-    vec_rforeach(dl->insertindices, size_t, ind,
-                 char  *str;
-                 size_t len;
+    while (vec_len(dl->insertindices) ||
+           vec_len(dl->deleteindices))
+    {
+        if (vec_gt(dl->insertindices, dl->deleteindices))
+            buffer_deferline_insert_next(dl);
 
-                 str = *(char **)table_get(dl->inserts, &ind);
-                 len = strlen(str);
-                 vec_insert(dl->v, ind, len, str);
-        );
+        else
+            buffer_deferline_delete_next(dl);
+    }
 
     return 0;
 }

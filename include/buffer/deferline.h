@@ -20,6 +20,8 @@ void buffer_deferline_free(deferline *dl);
 
 int buffer_deferline_insert(deferline *dl, size_t index, const char *str);
 
+int buffer_deferline_delete(deferline *dl, size_t index);
+
 int buffer_deferline_dump(deferline *dl);
 
 #endif /* BUFFER_DEFERLINE_H */
