@@ -121,6 +121,10 @@ class deferline:
     insert.argtypes = [deferline_p, ctypes.c_size_t, ctypes.c_char_p]
     insert.restype  = ctypes.c_int
 
+    delete = so.buffer_deferline_delete
+    delete.argtypes = [deferline_p, ctypes.c_size_t]
+    delete.restype  = ctypes.c_int
+
     get_vec = so.buffer_deferline_get_vec
     get_vec.argtypes = [deferline_p]
     get_vec.restype  = vec_p

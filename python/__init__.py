@@ -88,6 +88,7 @@ def addeol(w, b, ln, li):
 
     li.insert(len(li.vec), suffix)
 
+
 mastermap = core.keymap.maps["master"]
 @mastermap.add(Key("V", con=True))
 def paste(keys):
@@ -131,7 +132,7 @@ cur = core.cursor.spawn(core.windows.get_selected().buffer,
                         core.cursor.types.region)
 cur.insert(b"SLUT")
 cur.enter()
-cur.insert(b"I love you really <3")
+cur.insert(b"\tI love you really <3")
 
 while alive:
     symbols.io.listener.listen()

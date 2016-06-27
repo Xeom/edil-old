@@ -20,6 +20,9 @@ class DeferLine:
 
         symbols.buffer.deferline.insert(self.struct, index, string)
 
+    def delete(self, index):
+        symbols.buffer.deferline.delete(self.struct, index)
+
     @property
     def vec(self):
         return Vec(symbols.buffer.deferline.get_vec(self.struct), ctypes.c_char)

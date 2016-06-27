@@ -2,6 +2,7 @@ import editor.bind.cursorbind
 import editor.bind.windowbind
 import editor.bind.bufferbind
 import editor.bind.filesbind
+import editor.bind.tabsbind
 
 import core.keymap
 import core.windows
@@ -10,7 +11,8 @@ default_buffer_maps = ["master",
                        "cursor-default",
                        "window-default",
                        "buffer-default",
-                       "files-default"]
+                       "files-default",
+                       "tabs-default"]
 
 core.keymap.maps.add("master")
 

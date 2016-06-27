@@ -175,10 +175,14 @@ class Vec:
         width = ctypes.sizeof(self.type)
         num = self.__len__() * width
 
-        type = ctypes.POINTER(num * ctypes.c_char)
-        rtn  = ctypes.cast(item(self.struct, 0), type)
+        if num:
+            type = ctypes.POINTER(num * ctypes.c_char)
+            rtn  = ctypes.cast(item(self.struct, 0), type)
 
-        return rtn.contents.value
+            return rtn.contents.value
+
+        else:
+            return b''
 
     def __iadd__(self, other):
         if not other.__len__():

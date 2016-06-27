@@ -154,7 +154,7 @@ class CursorObj:
 
     @property
     def buffer(self):
-        return symbols.cursor.get_buffer(self.struct)
+        return Buffer(symbols.cursor.get_buffer(self.struct))
 
     def move_cols(self, n):
         symbols.cursor.move_cols(self.struct, n)
