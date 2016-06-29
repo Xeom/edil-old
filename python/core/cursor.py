@@ -57,31 +57,67 @@ class CursorType:
         return self.call(ptr, "get_cn")
 
     def _set_ln(self, ptr, ln):
-        self.call(ptr, "set_ln", ln)
+        try:
+            self.call(ptr, "set_ln", ln)
+        except:
+            return -1
+        return 0
 
     def _set_cn(self, ptr, cn):
-        self.call(ptr, "set_cn", cn)
+        try:
+            self.call(ptr, "set_cn", cn)
+        except:
+            return -1
+        return 0
 
     def _move_lines(self, ptr, n):
-        self.call(ptr, "move_lines", n)
+        try:
+            self.call(ptr, "move_lines", n)
+        except:
+            return -1
+        return 0
 
     def _move_cols(self, ptr):
-        self.call(ptr, "move_cols", n)
+        try:
+            self.call(ptr, "move_cols", n)
+        except:
+            return -1
+        return 0
 
     def _insert(self, ptr, string):
-        self.call(ptr, "insert", string)
+        try:
+            self.call(ptr, "insert", string)
+        except:
+            return -1
+        return 0
 
     def _delete(self, ptr, n):
-        self.call(ptr, "delete", n)
+        try:
+            self.call(ptr, "delete", n)
+        except:
+            return -1
+        return 0
 
     def _enter(self, ptr):
-        self.call(ptr, "enter")
+        try:
+            self.call(ptr, "enter")
+        except:
+            return -1
+        return 0
 
     def _activate(self, ptr):
-        self.call(ptr, "activate")
+        try:
+            self.call(ptr, "activate")
+        except:
+            return -1
+        return 0
 
     def _deactivate(self, ptr):
-        self.call(ptr, "deactivate")
+        try:
+            self.call(ptr, "deactivate")
+        except:
+            return -1
+        return 0
 
     def find_instance(self, cursor):
         return self.instances[symbols.cursor.get_ptr(cursor.struct)]
