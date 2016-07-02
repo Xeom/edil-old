@@ -13,7 +13,7 @@ filesmap = core.keymap.maps[mapname]
 
 modifier_key = Key("F", con=True)
 
-revert_cmd = Command("revert-buffer")
+revert_cmd = Command("file-revert")
 @revert_cmd.hook(500)
 def revert_cb():
     editor.files.revert(
@@ -24,7 +24,7 @@ def revert_mapped(keys):
     revert_cmd.run()
 
 
-associate_cmd = Command("associate-buffer",
+associate_cmd = Command("file-associate",
                         CommandArg(str, "File to associate",
                                    editor.autocomplete.path(".")))
 @associate_cmd.hook(500)
@@ -36,7 +36,7 @@ def associate_cb(path):
 def associate_mapped(keys):
     associate_cmd.run()
 
-dump = Command("dump-buffer")
+dump = Command("file-dump")
 @filesmap.add(modifier_key, Key("d"))
 def filesdump(keys):
     dump.run()

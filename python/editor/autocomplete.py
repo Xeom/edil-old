@@ -43,6 +43,6 @@ def options(*opts):
 
 def options_list(opts):
     def rtn(string):
-        return list(filter(lambda s:s.startswith(string), opts))
+        return sorted(filter(lambda s:s.startswith(string), opts))
 
     return rtn

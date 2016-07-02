@@ -3,11 +3,13 @@ import editor.bind.windowbind
 import editor.bind.bufferbind
 import editor.bind.filesbind
 import editor.bind.tabsbind
+import editor.bind.commandbind
 
 import core.keymap
 import core.windows
 
 default_buffer_maps = ["master",
+                       "cmd-default",
                        "cursor-default",
                        "window-default",
                        "buffer-default",

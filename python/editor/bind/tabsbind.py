@@ -108,10 +108,6 @@ def indent_cb(n):
 
     set_indent_of_line(cur.buffer, cur.ln, lvl, cur)
 
-align_cmd = Command("tab-align",
-                    CommandArg(int, "Relative lineno to copy alignment from"))
-
-
 @tabmap.add(Key("TAB"), Key("RIGHT"))
 def indent_right_mapped(keys):
     indent_cmd.run_withargs(1)
@@ -120,6 +116,8 @@ def indent_right_mapped(keys):
 def indent_left_mapped(keys):
     indent_cmd.run_withargs(-1)
 
+align_cmd = Command("tab-align",
+                    CommandArg(int, "Relative lineno to copy alignment from"))
 
 @align_cmd.hook(500)
 def align_cb(n):

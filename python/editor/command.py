@@ -18,16 +18,26 @@ class CommandArg:
 
     def type_convert(self, string):
         return self.type(string)
-
+import sys
 class Command:
     by_name = weakref.WeakValueDictionary()
+    names   = set()
 
     def __init__(self, name, *args):
+        if name in self.names:
+            self.name = None
+            raise Exception("This command already exists")
+
         self.name = name
         self.args = args
         self.hook = NativeHook()
 
+        self.names.add(name)
         self.by_name[name] = self
+
+    def __del__(self):
+        if self.name != None:
+            self.names.remove(self.name)
 
     def get_arg(self, args, n):
         if n >= len(self.args):
@@ -48,3 +58,7 @@ class Command:
 
     def run_withargs(self, *args):
         self.hook.call(args)
+
+def get_command(name):
+    return Command.by_name[name]
+

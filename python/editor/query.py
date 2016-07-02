@@ -155,8 +155,8 @@ def leave_query():
         querying_buffers.remove(buf)
 
     core.ui.set_sbar(b"")
-    curinst.callback("".join(curinst.string))
     core.cursor.delete_selected(buf)
+    curinst.callback("".join(curinst.string))
 
 @querymap.add(Key("RETURN"))
 def query_enter(keys):

@@ -70,7 +70,7 @@ def back_mapped(keys):
 # end of a line, it goes to the end line. Called
 # with argument 1 by the RIGHT key.
 
-forward_cmd = Command("cursor-back",
+forward_cmd = Command("cursor-forward",
                       CommandArg(int, "Characters to move forward"))
 @forward_cmd.hook(500)
 def forward_cb(n):
