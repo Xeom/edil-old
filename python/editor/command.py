@@ -18,7 +18,7 @@ class CommandArg:
 
     def type_convert(self, string):
         return self.type(string)
-import sys
+
 class Command:
     by_name = weakref.WeakValueDictionary()
     names   = set()
@@ -51,7 +51,6 @@ class Command:
                 self.get_arg(args, n + 1)
 
             arg.make_query(cb)
-
 
     def run(self, keys=None):
         self.get_arg([], 0)
