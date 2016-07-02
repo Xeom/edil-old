@@ -4,6 +4,7 @@
 #include "win/select.h"
 #include "ui/face.h"
 #include "err.h"
+#include "cursor/snap.h"
 
 #include "cursor/cursor.h"
 
@@ -80,7 +81,10 @@ int cursor_initsys(void)
     table_create(&cursors_by_buffer, sizeof(buffercont), sizeof(buffer *),
                  NULL, NULL, NULL);
 
-    hook_mount(&buffer_deferline_on_draw, &cursor_handle_deferline_draw, 500);
+    hook_mount(&buffer_deferline_on_draw,
+               &cursor_handle_deferline_draw, 500);
+
+    cursor_snap_initsys();
 
     return 0;
 }
@@ -165,7 +169,7 @@ cursor_type *cursor_get_type(cursor *cur)
 lineno cursor_get_ln(cursor *cur)
 {
     if (!(cur->type->get_ln))
-        return 0;
+        return INVALID_INDEX;
 
     else
         return cur->type->get_ln(cur->ptr);

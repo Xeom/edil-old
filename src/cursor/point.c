@@ -525,12 +525,12 @@ int cursor_point_delete(point *p, uint n)
 
     while (n > p->cn && p->ln)
     {
+        n -= (uint)p->cn + 1;
+
         TRACE_INT(cursor_point_move_ln(p, p->ln - 1),
                   vec_free(origline);
                   buffer_batch_end(p->b);
                   return -1);
-
-        n -= (uint)p->cn + 1;
 
         TRACE_INT(buffer_delete(p->b, p->ln + 1),
                   vec_free(origline);

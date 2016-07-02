@@ -8,26 +8,67 @@ import symbols.cursor
 from core.buffer import Buffer
 
 class CursorType:
+    """A class representing a type of cursor.
+
+    This class provides a way to turn a python class into a cursor_type that can
+    be used by the C cursor system.
+
+    A CursorType is provided an instance class on initialization, an instance of
+    which will be used to represent each instance of the cursor. This instance
+    class may have methods optionally defined for any of the methods in the
+    cursor_type struct. These should be called the same name as they are in the
+    struct. e.g.
+        def move_cols(self, n):
+            self.pos += n
+
+        def get_cn(self):
+            return self.pos
+    """
+
     def __init__(self, instclass):
+        """Initialize self.
+
+        Arguments:
+            instclass (class): A class, an instance of which will be used to
+                               represent each instance of this type of cursor.
+        """
+
         self.instclass = instclass
 
+        # Get a list of the types and names of items in the cursor_type struct.
         fields  =  symbols.cursor.cursor_type_s._fields_
 
+        # Split these into two lists of names and types
         fnames  = [name for (name, typ) in fields]
         ftypes  = [typ  for (name, typ) in fields]
 
+        # Create a list of _* functions of this class instance if they exist in
+        # the instclass. Otherwise simply have 0, since this will make a NULL
+        # ptr.
         functs  = [getattr(self, "_" + name) if hasattr(instclass, name) else 0
                    for name in fnames]
 
+        # Always add self._init regardless of whether it's part of the instclass
         functs[0] = self._init
-        print(list(zip(ftypes, functs)))
+        functs[1] = self._free
+
+        # Map all these functions to the appropriate types
         cfuncts = [typ(f) for (f, typ) in zip(functs, ftypes)]
 
+        # Make a cursor_type struct from the callback functions
         self.struct    = ctypes.pointer(symbols.cursor.cursor_type_s(*cfuncts))
+
+        # A list for keeping track of instances of this cursor.
         self.instances = {}
 
+    # A load of methods prefixed with _ are used to wrap instance functions
+
     def _free(self, ptr):
+        inst = self.instances[ptr]
         del self.instances[ptr]
+
+        if hasattr(inst, "free"):
+            new.free()
 
     def _init(self, bufptr):
         new = self.instclass()

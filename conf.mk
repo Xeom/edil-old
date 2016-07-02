@@ -1,6 +1,5 @@
 
 # Variables for configuring makefile
-
 #  Seperated into seperate file not only for modularity, 
 #  but so bash scripts etc. can read it,
 
@@ -73,7 +72,8 @@ SRC_NAMES=\
                            \
         cursor/cursor      \
         cursor/point       \
-        cursor/region
+        cursor/region      \
+        cursor/snap
 
 
 DEPS_FILE=deps.mk
