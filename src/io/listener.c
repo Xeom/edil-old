@@ -62,9 +62,8 @@ static void io_listener_handle_chr_wrap(listener *li)
 
 int io_listener_initsys(void)
 {
-    vec_create(&listeners, sizeof(listener));
-
-
+    vec_create(&listeners, sizeof(listener *));
+    fputs("LISTENERINITSYS\n\n", stderr);
     io_listener_init(stdin, read_none, 0,
                      NULL, NULL, io_listener_handle_chr_wrap);
 
@@ -73,51 +72,49 @@ int io_listener_initsys(void)
 
 void io_listener_free(listener *li)
 {
-    void *first;
-    ptrdiff_t offset;
-    size_t    index;
+    size_t index;
 
-    first = vec_item(&listeners, 0);
-    ASSERT((void *)li >= first, high, return);
+    ASSERT(vec_contains(&listeners, &li), high, return);
 
-    offset = (char *)li - (char *)first;
-    index  = (size_t)offset / sizeof(listener);
-    ASSERT(((size_t)offset) % sizeof(listener) == 0, high, return);
-
+    index = vec_find(&listeners, &li);
     vec_delete(&listeners, index, 1);
+
+    free(li);
 }
 
 listener *io_listener_init(FILE *stream, listen_type type, size_t limit,
                        listenf_char charf, listenf_str strf, listenf_none nonef)
 {
-    listener new;
+    listener *new;
 
-    new.stream = stream;
-    new.type   = type;
-    new.limit  = limit;
+    new = malloc(sizeof(listener));
+
+    new->stream = stream;
+    new->type   = type;
+    new->limit  = limit;
 
     if (type == read_char)
     {
         ASSERT(charf && !strf && !nonef, high, return NULL);
-        new.funct.charf = charf;
+        new->funct.charf = charf;
     }
 
     if (type == read_line || type == read_full)
     {
         ASSERT(strf && !charf && !nonef, high, return NULL);
-        new.funct.strf = strf;
+        new->funct.strf = strf;
     }
 
     if (type == read_none)
     {
         ASSERT(nonef && !strf && !charf, high, return NULL);
-        new.funct.nonef = nonef;
+        new->funct.nonef = nonef;
     }
 
     TRACE_INT(vec_insert_end(&listeners, 1, &new),
               return NULL);
 
-    return vec_item(&listeners, vec_len(&listeners) - 1);
+    return new;
 }
 
 static int io_listener_fill_set(fd_set *set)
@@ -127,10 +124,10 @@ static int io_listener_fill_set(fd_set *set)
     FD_ZERO(set);
     maxfd = 0;
 
-    vec_foreach(&listeners, listener, li,
+    vec_foreach(&listeners, listener *, li,
                 int fd;
 
-                fd = LISTENER_FD(li);
+                fd = LISTENER_FD(*li);
                 maxfd = MAX(maxfd, fd);
                 FD_SET(fd, set);
         );
@@ -227,7 +224,7 @@ static int io_listener_update_set(fd_set *set, int numbits)
     {
         listener *li;
 
-        li = vec_item(&listeners, i % len);
+        li = *(listener **)vec_item(&listeners, i % len);
         if (FD_ISSET(LISTENER_FD(*li), set))
         {
             io_listener_read(li);
