@@ -1,0 +1,25 @@
+TAB TAB   - Align line to last nonzero alignment
+TAB UP    - Align line to alignment of last line
+TAB DOWN  - Align line to alignment of next line
+TAB LEFT  - Reduce current line indentation by 1
+TAB RIGHT - Increase current line indentation by 1
+
+^W LEFT   - Split into new window to the left
+^W RIGHT  - Split into new window to the right
+^W UP     - Split into new window upwards
+^W DOWN   - Split into new window downwards
+^W k      - Kill selected window
+^W ,      - Previous window
+^W .      - Next window
+^W l      - Select splitter window containing current window
+^W +      - Adjust selected splitter down/right
+^W -      - Adjust selected splitter up/left
+
+^E        - Execute command by name
+
+^B ,      - Previous buffer
+^B .      - Next buffer
+
+^F r      - Revert file
+^F a      - Associate buffer with file
+^F d      - Dump buffer to file
