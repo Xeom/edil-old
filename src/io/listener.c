@@ -1,20 +1,18 @@
-#if defined(__unix__)
 /* Check fileno requirements */
-# if _POSIX_C_SOURCE >= 1 || defined(_XOPEN_SOURCE) || defined(_POSIX_SOURCE)
-#  include <stdio.h>
-# else
+#if _POSIX_C_SOURCE >= 1 || defined(_XOPEN_SOURCE) || defined(_POSIX_SOURCE)
+# include <stdio.h>
+#else
 /* This is required to make stdio provide fileno when compiled without
  * posix extentions (--std=c* not --std=gnu*) or with pedantic or strict
  * modes. */
-#  define _POSIX_SOURCE
-#  include <stdio.h>
-#  undef  _POSIX_SOURCE
-# endif
-# include <sys/select.h>
-# include <unistd.h>
-#else
-# error "I still hate you"
+# define _POSIX_SOURCE
+# include <stdio.h>
+# undef  _POSIX_SOURCE
 #endif
+
+#include <sys/select.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include <stdlib.h>
 
@@ -22,6 +20,7 @@
 #include "err.h"
 
 #include "io/listener.h"
+#include "io/key.h"
 
 struct listener_s
 {
@@ -38,80 +37,112 @@ struct listener_s
     size_t limit;
 };
 
+/* Call feof/fileno on listeners */
 #define LISTENER_EOF(li) (feof((li).stream))
 #define LISTENER_FD(li) (fileno((li).stream))
 
 static vec listeners;
 
+listener *stdin_listener;
+
 static int io_listener_fill_set(fd_set *set);
 static int io_listener_read(listener *li);
 static int io_listener_update_set(fd_set *set, int numbits);
 
-/* Should be moved from here someday */
-#include <ncurses.h>
-#include "io/key.h"
-#include "ui/ui.h"
 static void io_listener_handle_chr_wrap(listener *li)
 {
-    int ch;
-    ch = getch();
-
-    if (ch != KEY_RESIZE)
-        io_key_handle_chr(ch);
+    io_key_poll();
 }
 
 int io_listener_initsys(void)
 {
-    vec_create(&listeners, sizeof(listener *));
-    fputs("LISTENERINITSYS\n\n", stderr);
-    io_listener_init(stdin, read_none, 0,
-                     NULL, NULL, io_listener_handle_chr_wrap);
+    TRACE_PTR(vec_create(&listeners, sizeof(listener *)),
+              return -1);
+
+    TRACE_PTR(stdin_listener = io_listener_init(stdin, read_none, 0,
+                                                NULL, NULL,
+                                                io_listener_handle_chr_wrap),
+              return -1);
 
     return 0;
 }
 
-void io_listener_free(listener *li)
+int io_listener_free(listener *li)
 {
     size_t index;
 
-    ASSERT(vec_contains(&listeners, &li), high, return);
+    ASSERT(vec_contains(&listeners, &li) == 1, high, return -1);
 
-    index = vec_find(&listeners, &li);
-    vec_delete(&listeners, index, 1);
+    TRACE_IND(index = vec_find(&listeners, &li), return -1);
+    TRACE_INT(vec_delete(&listeners, index, 1),  return -1);
 
     free(li);
+
+    return 0;
 }
 
 listener *io_listener_init(FILE *stream, listen_type type, size_t limit,
                        listenf_char charf, listenf_str strf, listenf_none nonef)
 {
     listener *new;
+    int       fd;
 
-    new = malloc(sizeof(listener));
+    /* Allocate space for listener, and set it up with params */
+    ASSERT_PTR(new = malloc(sizeof(listener)),
+               terminal, return NULL);
 
     new->stream = stream;
     new->type   = type;
     new->limit  = limit;
 
+    /* Get the fileno of the listener */
+    ASSERT_INT(fd = LISTENER_FD(*new), high,
+               free(new);
+               return NULL);
+
+    /* For read_char listeners, ensure we only have a char function */
     if (type == read_char)
     {
-        ASSERT(charf && !strf && !nonef, high, return NULL);
+        ASSERT(charf && !strf && !nonef, high,
+               free(new);
+               return NULL);
+
         new->funct.charf = charf;
     }
 
-    if (type == read_line || type == read_full)
+    /* Both read_line and read_full listeners use the same str functions.     *
+     * Check we only have those. Also force the stream into nonblocking mode. */
+    else if (type == read_line || type == read_full)
     {
-        ASSERT(strf && !charf && !nonef, high, return NULL);
+        ASSERT(strf && !charf && !nonef, high,
+               free(new);
+               return NULL);
+
         new->funct.strf = strf;
+
+        /* Instead of setting all new flags, or O_NONBLOCK to existing ones */
+        fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
     }
 
-    if (type == read_none)
+    else if (type == read_none)
     {
-        ASSERT(nonef && !strf && !charf, high, return NULL);
+        ASSERT(nonef && !strf && !charf, high,
+               free(new);
+               return NULL);
         new->funct.nonef = nonef;
     }
 
+    else
+    {
+        ERR_NEW(high, "Invalid listen_type",
+                "type is not a valid listen_type");
+        free(new);
+        return NULL;
+    }
+
+    /* Try to add the new listener to the vec of all listeners */
     TRACE_INT(vec_insert_end(&listeners, 1, &new),
+              free(new);
               return NULL);
 
     return new;
@@ -127,7 +158,9 @@ static int io_listener_fill_set(fd_set *set)
     vec_foreach(&listeners, listener *, li,
                 int fd;
 
-                fd = LISTENER_FD(*li);
+                ASSERT_INT(fd = LISTENER_FD(*li),
+                           critical, continue);
+
                 maxfd = MAX(maxfd, fd);
                 FD_SET(fd, set);
         );
@@ -142,6 +175,7 @@ static int io_listener_read(listener *li)
         int chr;
 
         chr = fgetc(li->stream);
+
         ASSERT(chr != EOF, high,
                return -1);
 
@@ -151,6 +185,9 @@ static int io_listener_read(listener *li)
     else if (li->type == read_line)
     {
         vec *chars;
+        char nullterm;
+
+        nullterm = '\0';
 
         chars = vec_init(1);
         for (;;)
@@ -162,7 +199,10 @@ static int io_listener_read(listener *li)
 
             if (chr == EOF)
                 break;
-
+            #if EOF != -1
+             if (chr == -1)
+                 break;
+            #endif
             chr_cast = (char)chr;
             vec_insert_end(chars, 1, &chr_cast);
 
@@ -173,43 +213,50 @@ static int io_listener_read(listener *li)
                 break;
         }
 
-        li->funct.strf(li, vec_item(chars, 0), vec_len(chars));
+        vec_insert_end(chars, 1, &nullterm);
+        li->funct.strf(li, vec_item(chars, 0), vec_len(chars) - 1);
         vec_free(chars);
     }
 
     else if (li->type == read_full)
     {
-        size_t size;
+        size_t totalread, bufsize;
         char  *buf;
-        size = 1;
-        buf  = NULL;
+
+        totalread = 0;
+        bufsize   = 8;
+        buf       = NULL;
 
         for (;;)
         {
             size_t numread;
-            buf     = realloc(buf, size);
-            numread = fread(buf, 1, size, li->stream);
+            size_t numreq;
+            buf     = realloc(buf, bufsize + 1);
+            numreq  = bufsize - totalread;
+            numread = fread(buf, 1, numreq, li->stream);
 
-            if (numread < size)
-            {
-                size += numread;
-                break;
-            }
+            totalread += numread;
 
-            if (size == li->limit)
+            if (numread < numreq)
                 break;
 
-            size = MIN(size << 1, li->limit);
+            if (bufsize == li->limit)
+                break;
+
+            bufsize = MIN(bufsize << 1, li->limit);
         }
 
-        li->funct.strf(li, buf, size);
-/* TODO: ERRAHS */
+        buf[totalread] = '\0';
+        li->funct.strf(li, buf, totalread);
+
         free(buf);
     }
+
     else if (li->type == read_none)
     {
         li->funct.nonef(li);
     }
+    
     return 0;
 }
 

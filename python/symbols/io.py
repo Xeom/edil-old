@@ -46,6 +46,10 @@ class key:
     handle_chr.argtypes = [ctypes.c_int]
     handle_chr.restype  = ctypes.c_int
 
+    poll = so.io_key_poll
+    poll.argtypes = []
+    poll.restype  = ctypes.c_int
+
     resize   = ctypes.cast(so.io_key_resize,   ctypes.POINTER(ctypes.c_int)).contents.value
     name_len = ctypes.cast(so.io_key_name_len, ctypes.POINTER(ctypes.c_int)).contents.value
 
@@ -109,3 +113,7 @@ class listener:
     init.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_size_t,
                      listenf_char_f, listenf_str_f, listenf_none_f]
     init.restype  = listener_p
+
+    free = so.io_listener_free
+    free.argtypes = [listener_p]
+    free.restype  = ctypes.c_int
