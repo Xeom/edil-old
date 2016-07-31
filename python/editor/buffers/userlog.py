@@ -1,3 +1,5 @@
+import time
+
 import core.ui
 import core.cursor
 
@@ -30,5 +32,5 @@ def log(string):
         string = string.encode("ascii")
 
     core.ui.set_sbar(face.serialize(len(string)) + string)
-    stream.write(string + b"\n")
+    stream.write(time.strftime("[%H:%M:%S] ").encode("ascii") + string + b"\n")
     stream.flush()
