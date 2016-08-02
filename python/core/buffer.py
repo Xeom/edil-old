@@ -7,17 +7,17 @@ import weakref
 
 from symbols.vec import VecFreeOnDel
 
-# An instance of this class acts a little like a class.
-# When called with a structure pointer to a buffer, this class
-# returns an object already representing that buffer if it exists,
-# or creates a new one if it does not. This means that setting or
-# modifying BufferObj objects can break things heavily, so isn't
-# the best idea.
-#
-# Note that if someone somewhere starts tracking every instance of
-# buffer creation and deletion, and stores them in a list. This will
-# be a cache of all buffers.
-class BufferContainer:
+ # An instance of this class acts a little like a class.
+ # When called with a structure pointer to a buffer, this class
+ # returns an object already representing that buffer if it exists,
+ # or creates a new one if it does not. This means that setting or
+ # modifying BufferObj objects can break things heavily, so isn't
+ # the best idea.
+ #
+ # Note that if someone somewhere starts tracking every instance of
+ # buffer creation and deletion, and stores them in a list. This will
+ # be a cache of all buffers.
+ class BufferContainer:
     def __init__(self):
         # This contains reference by pointer (to the struct. Integers
         # for speed) Objects are automatically removed from it when they
