@@ -44,6 +44,8 @@ def down_cb(n):
 @curmap.add(Key("DOWN"))
 def down_mapped(keys):
     down_cmd.run_withargs(1)
+    import core.ui
+    core.ui.resize()
 
 # cursor-back
 #
@@ -173,3 +175,20 @@ def insert_mapped(keys):
 
 for char in insertable_chars:
     curmap.add(Key(char))(insert_mapped)
+
+# cursor-insert-hex
+#
+# Insert a character, takes argument in hex, bin, oct etc.
+
+insert_hex_cmd = Command("cursor-insert-hex",
+                         CommandArg(str,
+                                    "Character (0x.., 0b.., 0o.., 1..)"))
+@insert_hex_cmd.hook(500)
+def insert_hex_cb(number):
+    char = chr(int(number, base=0))
+
+    if char == "\n":
+        enter_cmd.run()
+
+    else:
+        insert_cmd.run_withargs(char)

@@ -11,7 +11,7 @@ mapname = "tabs-default"
 core.keymap.maps.add(mapname)
 tabmap = core.keymap.maps[mapname]
 
-default_tab_string = b" " + Face(Face.black, Face.cyan).colour(b"...")
+default_tab_string = b"   " + Face(Face.black, Face.cyan).colour(b">")
 default_indent_string = b"\t"
 
 @core.deferline.hooks.draw(500)
@@ -65,6 +65,17 @@ def get_indent_of_line(buf, ln):
 
     return n
 
+def get_last_nonzero_indent(buf, ln):
+    minbound = max(0, ln - 100)
+    while ln > minbound:
+
+        ln -= 1
+        indent = get_indent_of_line(buf, ln)
+
+        if indent != 0:
+            return indent
+
+    return 0
 def set_indent_of_line(buf, ln, n, cur):
     indent = get_indent_string(buf)
     text   = bytes(buf[ln])
@@ -92,8 +103,6 @@ def set_indent_of_line(buf, ln, n, cur):
     buf[ln] = (indent * n) + text[chars:]
     if tomove >= 0:
         cur.move_cols(tomove)
-
-insert_cmd = Command("tab-insert")
 
 indent_cmd = Command("tab-indent",
                      CommandArg(int, "Levels to change"))
@@ -140,3 +149,17 @@ def align_up_mapped(keys):
 @tabmap.add(Key("TAB"), Key("UP"))
 def align_down_mapped(keys):
     align_cmd.run_withargs(-1)
+
+
+align_last_nonzero_cmd = Command("tab-align-last-nonzero")
+
+@align_last_nonzero_cmd.hook(500)
+def align_last_nonzero_cb():
+    cur = core.cursor.get_selected()
+
+    lvl = get_last_nonzero_indent(cur.buffer, cur.ln)
+    set_indent_of_line(cur.buffer, cur.ln, lvl, cur)
+
+@tabmap.add(Key("TAB"), Key("TAB"))
+def align_last_nonzero_mapped(keys):
+    align_last_nonzero_cmd.run()

@@ -4,7 +4,7 @@ import core.deferline
 
 from core.key import Key
 
-from editor.autocomplete import options_list
+from editor.autocomplete import options_list, number
 from editor.command import Command, CommandArg, get_command
 
 mapname = "cmd-default"
@@ -24,4 +24,30 @@ def run_cb(name):
 def run_mapped(keys):
     run_cmd.run()
 
+repeat_cmd = Command("command-repeat",
+                     CommandArg(str, "Name", options_list(Command.names)),
+                     CommandArg(int, "Repeats", number()))
 
+proxycmd = Command(None)
+
+repeat_cmds = []
+repeat_cbs  = []
+
+@repeat_cmd.hook(500)
+def repeat_cb(name, n):
+    cmd = get_command(name)
+
+    proxycmd = Command(None, *cmd.args)
+
+    @proxycmd.hook(500)
+    def proxycb(*args):
+        for i in range(n):
+            cmd.run_withargs(*args)
+
+#        repeat_cmds.remove(proxycmd)
+ #       repeat_cbs.remove(proxycb)
+
+  #  repeat_cmds.append(proxycmd)
+   # repeat_cbs.append(proxycb)
+
+    proxycmd.run()
