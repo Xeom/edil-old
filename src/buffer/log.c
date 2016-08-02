@@ -1,19 +1,17 @@
-#if defined(__unix__)
+
 /* Check fdopen requirements */
-# if _POSIX_C_SOURCE >= 1 || defined(_XOPEN_SOURCE) || defined(_POSIX_SOURCE)
-#  include <stdio.h>
-# else
+#if _POSIX_C_SOURCE >= 1 || defined(_XOPEN_SOURCE) || defined(_POSIX_SOURCE)
+# include <stdio.h>
+#else
 /* This is required to make stdio provide fdopen when compiled without
  * posix extentions (--std=c* not --std=gnu*) or with pedantic or strict
  * modes. */
-#  define _POSIX_SOURCE
-#  include <stdio.h>
-#  undef  _POSIX_SOURCE
-# endif
-# include <unistd.h>
-#else
-# error "I still hate you"
+# define _POSIX_SOURCE
+# include <stdio.h>
+# undef  _POSIX_SOURCE
 #endif
+
+#include <unistd.h>
 
 #include "io/listener.h"
 #include "container/table.h"
@@ -79,10 +77,12 @@ FILE *buffer_log_point_stream(cursor *cur)
     /* Open a new pipe */
     ASSERT_ENO(pipe(pipefd) == 0, critical,
                return NULL);
+
     ASSERT_ENO(anus  = fdopen(pipefd[0], "r"), critical,
                close(pipefd[0]);
                close(pipefd[1]);
                return NULL);
+
     ASSERT_ENO(mouth = fdopen(pipefd[1], "w"), critical,
                fclose(anus);
                close(pipefd[1]);
