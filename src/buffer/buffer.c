@@ -37,14 +37,14 @@ hook_add(buffer_on_create, 1);
 hook_add(buffer_on_delete, 1);
 
 /* buffer_prop_set sets properties to these values */
-const char *buffer_property_true  = "TRUE";
-const char *buffer_property_false = "FALSE";
+const char *buffer_property_true  = "True";
+const char *buffer_property_false = "False";
 
 /* The properties managed by the buffer system, and set/get'd by *
  * buffer_prop[get/set]                                          */
-const char *buffer_readonly_property = "__READONLY";
-const char *buffer_modified_property = "__MODIFIED";
-const char *buffer_locked_property   = "__LOCKED";
+const char *buffer_readonly_property = "readonly";
+const char *buffer_modified_property = "modified";
+const char *buffer_locked_property   = "locked";
 
 /*
  * Set a one of the properties defined by const chars above to either true
@@ -60,7 +60,7 @@ const char *buffer_locked_property   = "__LOCKED";
  *
  */
 #define buffer_prop_set(b, name, value)         \
-    ctable_set(b->properties,                    \
+    ctable_set(b->properties,                   \
                buffer_ ## name ## _property,    \
                buffer_property_ ## value);
 
@@ -220,20 +220,7 @@ static inline chunk *buffer_get_containing_chunk(buffer *b, lineno ln)
 
     return c;
 }
-/*
-line *buffer_get_line_struct(buffer *b, lineno ln)
-{
-    lineno offset;
-    chunk *c;
 
-    TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
-              return NULL);
-    TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
-              return NULL);
-
-    return vec_lines_get((vec_lines *)c, offset);
-}
-*/
 int buffer_insert(buffer *b, lineno ln)
 {
     lineno offset;
@@ -420,5 +407,7 @@ size_t buffer_len_line(buffer *b, lineno ln)
 
     ASSERT_PTR(l = vec_lines_get((vec_lines *)c, offset), high, return 0);
 
+    /* These two damn methods have the most confusing names. *
+     * I miss you proper namespaces ;-;                      */
     return buffer_line_len(l);
 }
