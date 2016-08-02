@@ -2,6 +2,7 @@ from core.key import Key
 from core.face import Face
 import core.keymap
 import core.ui
+import editor.autocomplete
 
 from core.cursor import CursorType
 import core.cursor
@@ -9,7 +10,6 @@ import core.cursor
 import os
 
 query_prefix_face = Face(Face.black, Face.cyan)
-
 
 class AutoCompleter:
     """Class to represent the state of autocompletion of a query.
@@ -163,6 +163,7 @@ class QueryCursor:
 
 QueryCursorType = CursorType(QueryCursor)
 
+core.cursor.snap_blacklist.insert(0, QueryCursorType.struct)
 #cursor.Snapper.blacklist.append(QueryPoint)
 
 mapname = "query-default"
@@ -204,6 +205,24 @@ def make_query(callback, prefix=b"", completecallback=None):
     newinst   = QueryCursorType.find_instance(newcursor)
     newinst.autocompleter = AutoCompleter(completecallback)
     newinst.callback      = callback
+
+def confirm(callback, message=None):
+    if message == None:
+        message = b"Are you sure?"
+
+    def cb(string):
+        string = string.lower()
+
+        if string == "yes":
+            callback()
+
+        if string == "no":
+            return
+
+        else:
+            confirm(callback, b"Please type yes or no")
+
+    make_query(cb, message + " ", editor.autocomplete.options("yes", "no"))
 
 def leave_query():
     curcursor = core.cursor.get_selected()
