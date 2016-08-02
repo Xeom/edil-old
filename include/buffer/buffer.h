@@ -6,8 +6,14 @@
 # include "container/vec.h"
 
 # include "hook.h"
-
 # include "buffer/line.h"
+
+/* A buffer is a structure for containing text. The text is split     *
+ * into lines. So in effect a buffer is a glorified vector of         *
+ * strings. A buffer uses chunks to improve its insertion and         *
+ * performance. They also have a variety of hooks, and a ctable of    *
+ * properties associated with them.                                   */
+typedef struct buffer_s buffer;
 
 /* Note that for buffer_line_on*_pre functions, an operation can be   *
  * aborted by enabling the __READONLY property of the buffer. This    *
@@ -39,14 +45,11 @@ extern hook buffer_on_create;
 /* This hook is called before a buffer is deleted */
 extern hook buffer_on_delete;
 
-
 /* This hook is called with three parameters, a buffer, and two      *
  * linenumbers, a start and an end. It is called whenever            *
  * buffer_batch_end is successfully called. The content in between   *
  * and including the two linenumbers can be anything.                */
 extern hook buffer_on_batch_region;
-
-typedef struct buffer_s buffer;
 
 /*
  * Initialize and return a new buffer.
@@ -129,9 +132,10 @@ table *buffer_get_properties(buffer *b);
  */
 int buffer_insert(buffer *b, lineno ln);
 
-/*
- * Delete a specific line from a buffer. Subsequent lines are shifted
+/* Delete a specific line from a buffer. Subsequent lines are shifted
  * accordingly.
+ *
+ * Tested by unit_buffer.del
  *
  * @param b  A pointer to the buffer to delete a line from.
  * @param ln The linenumber of the line to delete.
@@ -168,6 +172,8 @@ vec *buffer_get_line(buffer *b, lineno ln);
  * Measures to prevent this from happening should be added via a hook or similar
  * if necessary.
  *
+ * Tested by unit_buffer.*
+ *
  * @param b  A pointer to the buffer to set the contents of a line in.
  * @param ln The linenumber of the line to set contents of. This line must have
  *           already been created with buffer_insert or equivilent.
@@ -178,7 +184,9 @@ vec *buffer_get_line(buffer *b, lineno ln);
 int buffer_set_line(buffer *b, lineno ln, vec *l);
 
 /*
- * Get the number of lines in a buffer.
+ * Get the number of lines in a buffer. 0 on error.
+ *
+ * Tested by unit_buffer.insert*, delete
  *
  * @param b A pointer to the buffer to count lines in.
  *
