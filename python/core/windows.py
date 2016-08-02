@@ -3,40 +3,18 @@ import signal
 import symbols.win
 
 import core.hook
-from core.buffer import Buffer
+
+from core.buffer    import Buffer
+from core.container import Container, StructObject
+
 import ctypes
 import cutil
 import weakref
 
-class WindowContainer:
-    def __init__(self):
-        self.by_ptr = weakref.WeakValueDictionary()
 
-    def mount(self):
-        @hooks.delete_struct(50)
-        def handle_delete(struct):
-            ptr = cutil.ptr2int(struct)
-            w   = self.by_ptr.get(ptr)
-
-            if w == None:
-                return
-
-            w.valid = False
-            del self.by_ptr[ptr]
-
-        self.handle_delete = handle_delete
-
-    def __call__(self, struct):
-        ptr = cutil.ptr2int(struct)
-        w   = self.by_ptr.get(ptr)
-
-        if w != None:
-            return w
-
-        w = WindowObj(struct)
-        self.by_ptr[ptr] = w
-
-        return w
+class WindowContainer(Container):
+    delete_struct = hooks.delete_struct
+    Obj           = WindowObj
 
 class direction(symbols.win.dir):
     pass
@@ -56,21 +34,8 @@ def get_selected():
 def get_root():
     return Window(symbols.win.root)
 
-class WindowObj:
-    def __init__(self, ptr):
-        self.struct = ctypes.cast(ptr, symbols.win.win_p)
-
-    @property
-    def struct(self):
-        if not self.valid:
-            raise Exception("Invalid window")
-
-        return self._struct
-
-    @struct.setter
-    def struct(self, value):
-        self.valid   = True
-        self._struct = value
+class WindowObj(StructObject):
+    PtrType = symbols.win.win_p
 
     @property
     def offsetx(self):
@@ -168,10 +133,6 @@ class WindowObj:
             sub = symbols.win.iter.next(sub)
 
         yield Window(sub)
-
-
-    def __hash__(self):
-        return cutil.ptr2int(self.struct)
 
     def next(self):
         return Window(symbols.win.iter.next(self.struct))
