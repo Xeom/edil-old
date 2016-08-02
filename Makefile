@@ -16,7 +16,7 @@ lib.so: $(OBJ_FILES)
 	cp $@ python/lib.so
 	@$(call psucc,"Copied lib.so to python")
 
-OBJFLAGS= -fPIC $(F_FLAGS) $(D_FLAGS) $(W_FLAGS) $(I_FLAGS)
+OBJFLAGS= $(D_FLAGS) $(W_FLAGS) $(I_FLAGS) $(F_FLAGS) -fPIC
 
 obj/%.o: src/%.c
 	@$(call pinfo,"Creating object file $@...")
