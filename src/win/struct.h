@@ -3,6 +3,7 @@
 
 # include "win/win.h"
 # include "buffer/buffer.h"
+# include "container/table.h"
 
 typedef enum
 {
@@ -20,7 +21,8 @@ typedef enum
 
 struct win_s
 {
-    win        *parent;
+    table *properties;
+    win   *parent;
     union
     {
         struct

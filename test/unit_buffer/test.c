@@ -146,8 +146,6 @@ void test_del(void)
     v = vec_init(10);
     vec_insert(v, 0, 10, "          ");
 
-    PINFO("Inserting items...");
-
     for (ind = 0; ind < TEST_LEN; ind++)
     {
         sprintf(vec_item(v, 0), "%lu", ind);

@@ -31,4 +31,6 @@ char *io_key_str(key key);
 
 int io_key_handle_chr(int chr);
 
+int io_key_poll(void);
+
 #endif /* IO_KEY_H */

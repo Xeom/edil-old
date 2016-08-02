@@ -19,4 +19,6 @@ int cursor_snap_initsys(void);
 
 int cursor_snap_y(win *w, cursor *cur);
 
+int cursor_snap_x(win *w, cursor *cur, size_t xpos);
+
 #endif /* CURSOR_SNAP_H */

@@ -31,7 +31,7 @@ int win_initsys(void);
 
 int win_killsys(void);
 
-int win_split(win *w, win_dir d);
+win *win_split(win *w, win_dir d);
 
 int win_delete(win *w);
 

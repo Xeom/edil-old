@@ -35,7 +35,8 @@ import editor.query
 import editor.clipboard
 import editor.files
 import editor.buffers.ring
-import editor.buffers.userlog
+import editor.buffers.searches
+#import editor.buffers.userlog
 import editor.bind.keymap
 import editor.autocomplete
 
@@ -93,6 +94,10 @@ mastermap = core.keymap.maps["master"]
 @mastermap.add(Key("V", con=True))
 def paste(keys):
     editor.clipboard.do_paste(cursors.current)
+
+@mastermap.add(Key("G", con=True))
+def search(keys):
+    editor.buffers.searches.log("slut")
 
 @mastermap.add(Key("X", con=True))
 def masterexit(keys):

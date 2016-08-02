@@ -35,7 +35,7 @@ killsys.restype  = ctypes.c_int
 
 split = so.win_split
 split.argtypes = [win_p, ctypes.c_int]
-split.restype  = ctypes.c_int
+split.restype  = win_p
 
 delete = so.win_delete
 delete.argtypes = [win_p]

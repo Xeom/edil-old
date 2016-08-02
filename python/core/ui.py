@@ -3,6 +3,7 @@ import symbols.lib
 import symbols.vec
 import symbols.buffer
 import ctypes
+import signal
 
 import core.buffer
 import core.windows
@@ -74,6 +75,10 @@ def resize():
     symbols.ui.resize()
     refresh()
 
+#def handle_sigwinch(sn, frame):
+#    print("\a")
+#signal.signal(signal.SIGWINCH, handle_sigwinch)
+
 def refresh():
     symbols.lib.clear()
     symbols.ui.refresh()
@@ -120,3 +125,5 @@ def draw_window_frame(w):
 
 def get_window_cursor_posx(w, cur):
     return symbols.ui.win.content.get_cursor_offset(w.struct, cur.ln)
+
+

@@ -32,8 +32,9 @@ class Command:
         self.args = args
         self.hook = NativeHook()
 
-        self.names.add(name)
-        self.by_name[name] = self
+        if name != None:
+            self.names.add(name)
+            self.by_name[name] = self
 
     def __del__(self):
         if self.name != None:
@@ -60,4 +61,3 @@ class Command:
 
 def get_command(name):
     return Command.by_name[name]
-

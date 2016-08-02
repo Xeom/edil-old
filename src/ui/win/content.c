@@ -14,6 +14,7 @@
 
 #include "err.h"
 
+#include <stdio.h>
 size_t ui_win_content_get_cursor_offset(win *w, lineno ln)
 {
     buffer *b;

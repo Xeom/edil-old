@@ -105,6 +105,4 @@ int file_read_buffer(buffer *b, FILE *stream)
             return -1;
         }
     }
-
-
 }

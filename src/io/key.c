@@ -4,6 +4,8 @@
 #include <limits.h>
 
 #include "hook.h"
+#include "ui/ui.h"
+#include "err.h"
 
 #include "io/key.h"
 
@@ -155,6 +157,22 @@ int io_key_handle_chr(int chr)
     }
 
     io_key_handle_completed();
+
+    return 0;
+}
+
+int io_key_poll(void)
+{
+    int chr;
+
+    while ((chr = getch()) != ERR)
+    {
+        if (chr == KEY_RESIZE)
+            TRACE_INT(ui_resize(), return -1);
+
+        else
+            TRACE_INT(io_key_handle_chr(chr), return -1);
+    }
 
     return 0;
 }

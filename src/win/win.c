@@ -135,7 +135,7 @@ static int win_move_contents(win *dst, win *src)
     return 0;
 }
 
-int win_split(win *w, win_dir d)
+win *win_split(win *w, win_dir d)
 {
     win *newleaf, *neww, *nsub1, *nsub2;
     uint sizex, sizey;
@@ -195,7 +195,7 @@ int win_split(win *w, win_dir d)
     hook_call(win_on_create, newleaf);
     hook_call(win_on_create, neww);
 
-    return 0;
+    return newleaf;
 }
 
 int win_delete(win *w)
@@ -303,7 +303,8 @@ int win_set_offsety(win *w, ulong new)
     ulong old;
 
     ASSERT(win_isleaf(w), high, return -1);
-
+    if (new > 1000)
+        return *((int *)NULL);
     old = w->cont.leaf.offsety;
 
     if (old == new)

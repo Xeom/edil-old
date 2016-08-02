@@ -1,9 +1,9 @@
 #include <stdlib.h>
 
-#include "cursor/point.h"
-#include "ui/face.h"
 #include "buffer/deferline.h"
-#include "win/win.h"
+#include "cursor/point.h"
+#include "win/select.h"
+#include "ui/face.h"
 #include "hook.h"
 
 #include "cursor/region.h"

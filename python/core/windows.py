@@ -1,3 +1,5 @@
+import signal
+
 import symbols.win
 
 import core.hook
@@ -149,7 +151,7 @@ class WindowObj:
         self.valid = False
 
     def split(self, direction):
-        symbols.win.split(self.struct, direction)
+        return Window(symbols.win.split(self.struct, direction))
 
     def __eq__(self, other):
         if not isinstance(other, WindowObj):

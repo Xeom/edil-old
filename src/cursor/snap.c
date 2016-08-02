@@ -1,7 +1,9 @@
-#include "win/win.h"
-#include "win/size.h"
-#include "win/select.h"
+#include "ui/win/content.h"
 #include "buffer/buffer.h"
+#include "win/select.h"
+#include "win/size.h"
+#include "win/win.h"
+#include "err.h"
 
 #include "cursor/snap.h"
 
@@ -13,10 +15,14 @@ static ulong cursor_snap_offsety(win *win, cursor *cur);
 
 static void cursor_snap_handle_cursor_change_pos(vec *args, hook h);
 
+vec cursor_snap_blacklist;
+
 int cursor_snap_initsys(void)
 {
     hook_mount(&cursor_on_change_pos,
                &cursor_snap_handle_cursor_change_pos, 500);
+
+    vec_create(&cursor_snap_blacklist, sizeof(cursor_type *));
 
     return 0;
 }
@@ -35,8 +41,6 @@ static int cursor_snap_in_win_y(lineno y, win *w)
 
 snap_mode cursor_snap_xmode = minimal;
 snap_mode cursor_snap_ymode = minimal;
-
-vec cursor_snap_blacklist;
 
 int cursor_snap_y(win *w, cursor *cur)
 {
@@ -93,10 +97,8 @@ int cursor_snap_x(win *w, cursor *cur, size_t xpos)
 static ulong cursor_snap_offsetx(win *w, cursor *cur, size_t xpos)
 {
     uint textsize;
-    lineno ln;
 
     textsize = win_size_get_x(w) - 1;
-    ln       = cursor_get_ln(cur);
 
     if (xpos < textsize)
         return 0;
@@ -120,6 +122,7 @@ static void cursor_snap_handle_cursor_change_pos(vec *args, hook h)
     cursor *cur;
     buffer *buf;
     size_t xpos;
+    lineno curln;
 
     cur = *(cursor **)vec_item(args, 0);
 
@@ -132,7 +135,12 @@ static void cursor_snap_handle_cursor_change_pos(vec *args, hook h)
     if (!cursor_snap_in_win_y(cursor_get_ln(cur), w))
         cursor_snap_y(w, cur);
 
-    xpos = ui_win_content_get_cursor_offset(w, cursor_get_ln(cur));
+    curln = cursor_get_ln(cur);
+
+    if (curln == INVALID_INDEX)
+        return;
+
+    xpos = ui_win_content_get_cursor_offset(w, curln);
 
     if (!cursor_snap_in_win_x(xpos, w))
         cursor_snap_x(w, cur, xpos);

@@ -128,6 +128,9 @@ class NativeHook:
 
         return funct
 
+    def mount_gethookfunct(self, funct, priority):
+        return NativeHookFunct(self, funct, priority)
+
     def call(self, args):
         for funct in self.functs:
             funct.call(args)

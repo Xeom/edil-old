@@ -71,9 +71,7 @@ int hook_mount(hook *h, hook_f f, priority pri)
             break;
     }
 
-    ++index;
-
-    vec_insert(functs, index, 1, &cont);
+    vec_insert(functs, index + 1, 1, &cont);
 
     return 0;
 }

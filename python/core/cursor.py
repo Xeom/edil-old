@@ -256,7 +256,6 @@ class CursorObj:
 
     def open_stream(self):
         fptr = symbols.buffer.log.point_stream(self.struct)
-
         return cutil.fptr2file(fptr, "wb", 1)
 
 Cursor = CursorContainer()
@@ -283,6 +282,9 @@ def select_last(buf):
 
 def delete_selected(buf):
     symbols.cursor.free(symbols.cursor.buffer_selected(buf.struct))
+
+snap_blacklist = symbols.vec.Vec(symbols.cursor.snap_blacklist,
+                                 symbols.cursor.cursor_type_p)
 
 class types:
     point  = CursorTypeFromPtr(symbols.cursor.point.type)

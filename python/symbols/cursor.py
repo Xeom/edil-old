@@ -46,6 +46,8 @@ class cursor_type_s(ctypes.Structure):
 
 cursor_type_p = ctypes.POINTER(cursor_type_s)
 
+snap_blacklist = ctypes.cast(so.cursor_snap_blacklist, vec_p)
+
 initsys = so.cursor_initsys
 initsys.argtypes = []
 initsys.restype  = ctypes.c_int

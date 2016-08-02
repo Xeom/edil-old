@@ -17,8 +17,8 @@ int ui_initsys(void)
     initscr();
     start_color();
     noecho();
-    halfdelay(1);
     cbreak();
+    nodelay(stdscr, 1);
 
     curs_set(0);
     keypad(stdscr, TRUE);
