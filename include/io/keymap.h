@@ -7,6 +7,8 @@ typedef struct keymap_s keymap;
 
 keymap *keymap_init(void);
 
+void keymap_free(keymap *map);
+
 void keymap_clear(keymap *map);
 
 int keymap_press(keymap *map, key k);

@@ -128,6 +128,17 @@ static void keytree_create_map(keytree *ptr)
         sizeof(keytree), sizeof(key), NULL, NULL, NULL);
 }
 
+static void keytree_free(keytree *tree)
+{
+    if (tree->type == leaf)
+        hook_free(tree->cont.h);
+    else
+        table_foreach(tree->cont.subs, keytree *, sub,
+                      keytree_free(sub));
+
+    free(tree);
+}
+
 static keytree *keytree_init(void)
 {
     keytree *rtn;
@@ -154,6 +165,15 @@ keymap *keymap_init(void)
     /* DO UNKNOWN HOOKS */
 
     return rtn;
+}
+
+void keymap_free(keymap *map)
+{
+    vec_free(map->keys);
+    keytree_free(map->root);
+    hook_free(map->unknown);
+
+    free(map);
 }
 
 void keymap_clear(keymap *map)

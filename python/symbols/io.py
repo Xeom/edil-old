@@ -5,7 +5,6 @@ from symbols.hook   import hook_p
 from symbols.vec    import vec_p
 from symbols.buffer import buffer_p
 
-
 class listener_s(ctypes.Structure):
     pass
 
@@ -76,6 +75,10 @@ class keymap:
     init = so.keymap_init
     init.argtypes = []
     init.restype  = keymap_p
+
+    free = so.keymap_free
+    free.argtypes = [keymap_p]
+    free.restype  = ctypes.c_int
 
     clear = so.keymap_clear
     clear.argtypes = [keymap_p]
