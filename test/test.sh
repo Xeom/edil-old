@@ -1,5 +1,4 @@
 #!/bin/sh
-. ./pstatus.sh
 
 realfile=/tmp/edil-test-real
 simfile=/tmp/edil-test-sim
@@ -7,14 +6,14 @@ difffile=/tmp/edil-test-diff
 
 run_test() {
     if [ ! -d $1 ]; then
-        pwarn "$1 not a directory."
+        ../misc/plog.sh warn "$1 not a directory."
         return
     fi
 
     make -C.. test/$1/test.out
 
     if [ $? -eq 2 ]; then
-        perr "Error making $1 test binary."
+        ../misc/plog.sh err "Error making $1 test binary."
         make -C.. clean_test
         exit -1
     fi
@@ -30,12 +29,12 @@ run_test() {
     wait $testpid
 
     if [ $? -ne 0 ]; then
-        perr "Error testing $1."
+        ../misc/plog.sh err "Error testing $1."
         exit -1
     fi
 
     if [ $simrtn -ne 0 ]; then
-        perr "Error simulating $1."
+        ../misc/plog.sh err "Error simulating $1."
         exit -1
     fi
 
@@ -43,8 +42,8 @@ run_test() {
     diff -I "LINE: *" -B $realfile $simfile > $difffile
 
     if [ -s $difffile ]; then
-        pwarn "Difference found in results of $1 tests."
-        pinfo "Saving diff to diff/$1, diff/$1.sim diff/$1.real."
+        ../misc/plog.sh warn "Difference found in results of $1 tests."
+        ../misc/plog.sh info "Saving diff to diff/$1, diff/$1.sim diff/$1.real."
 
         [ -d diff ] || mkdir diff
 
@@ -53,7 +52,7 @@ run_test() {
         cp $simfile  diff/$1.sim
 
     else
-        psucc "Finished testing $1."
+        ../misc/plog.sh succ "Finished testing $1."
     fi
 
     rm $realfile
