@@ -1,3 +1,5 @@
+from bisect import bisect_left
+
 TEST_LEN = 20000
 TEST_FIND_LEN = 2000
 
@@ -93,11 +95,21 @@ def test_find():
         test("vec_find(v, &item) ->", v.index(item))
         test("vec_rfind(v, &item) ->", v.index(item))
         test("vec_contains(v, &item) -> 1")
+        test("vec_bisearch(v, &item, &map) ->", bisect_left(v, item))
+
+    v = []
+
+    for ind in range(TEST_FIND_LEN):
+        v.insert(ind, ind & (~0x1))
+
+    for item in range(TEST_FIND_LEN + 1):
+        test("vec_bisearch(v, &item, &map) ->", bisect_left(v, item))
 
     test("item -> -1")
     test("vec_contains(v, &item) -> 0")
     test("item ->", TEST_FIND_LEN + 1)
     test("vec_contains(v, &item) -> 0")
+        
 
 test_insert_end()
 test_insert_start()

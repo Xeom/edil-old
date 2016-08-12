@@ -29,10 +29,8 @@ static void test_print_vec(vec *v)
         TEST(ind, lu);
 
         if (!val)
-        {
             puts("v_item(v, ind) -> NULL");
-            TEST(vec_err_str(), s);
-        }
+
 
         else
             TEST(*(int *)vec_item(v, ind), d);
@@ -189,10 +187,28 @@ void test_find(void)
 
     for (item = 0; item < TEST_FIND_LEN; item++)
     {
+        static const int map = 0x7fffffff;
         TEST(item, d);
         TEST(vec_find(v, &item),     lu);
         TEST(vec_rfind(v, &item),    lu);
         TEST(vec_contains(v, &item),  d);
+        TEST(vec_bisearch(v, &item, &map), lu);
+    }
+
+    vec_free(v);
+
+    v = vec_init(sizeof(int));
+
+    for (ind = 0; ind < TEST_FIND_LEN; ind++)
+    {
+        item = (int)ind & (~0x1);
+        vec_insert(v, ind, 1, &item);
+    }
+
+    for (item = 0; item < TEST_FIND_LEN + 1; item++)
+    {
+        static const int map = 0x7fffffff;
+        TEST(vec_bisearch(v, &item, &map), lu);
     }
 
     PINFO("Trying vec_contains with out of bounds values...");

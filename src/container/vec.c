@@ -5,9 +5,58 @@
 
 #include "container/vec.h"
 
+/*
+ * Realloc a vec to its current capacity. Used when a vec is resized - its
+ * capacity property is changed, then this function is called to realloc its
+ * data.
+ *
+ * @param v A pointer to the vector to realloc.
+ *
+ * @return  0 on success, -1 on error.
+ *
+ */
 static int vec_realloc(vec *v);
+
+/*
+ * Perform any appropriate or necessary resizing after the length of a vec has
+ * increased. This function must be called after increasing the length property
+ * of a vec. If this function succeeds, the vec can then be assumed to have
+ * sufficient capacity for whatever is put in it.
+ *
+ * @param v A pointer to the vec to enlarge.
+ *
+ * @return  0 on success, -1 on error.
+ *
+ */
 static int vec_resize_bigger(vec *v);
+
+/*
+ * Perform any appropriate resizing on avec after its length has decreased.
+ *
+ * @param v A pointer to the vec that is shrinking.
+ *
+ * @return  0 on success, -1 on error.
+ *
+ */
 static int vec_resize_smaller(vec *v);
+
+/*
+ * Compare a value in a vec with a pointer to some memory. Used in bisearch.
+ * This function either works the same as memcmp, or in reverse, depending on
+ * the endianness of the system. If the value at index in the vector is greater
+ * than item, a positive value is returned. If they are equal, 0 is returned,
+ * a negative number is returned if item is greater.
+ *
+ * @param v      A pointer to the vector to take an item from and compare.
+ * @param index  The index of the item in the vector to compare.
+ * @param item   A pointer to an item to compare to the vector's item.
+ * @param map    A series of bytes, the same length as the a value in v. Acts as
+ *               a bitmask for the comparison - 0s are ignored.
+ *
+ */
+static inline int vec_bisearch_compare(
+    vec *v, size_t index, const uchar *item, const uchar *map);
+
 
 static int vec_realloc(vec *v)
 {
@@ -224,9 +273,7 @@ int vec_insert(vec *v, size_t index, size_t n, const void *new)
 
 size_t vec_len(vec *v)
 {
-    size_t *a;
-    a = NULL;
-    ASSERT_PTR(v, high, return *a);
+    ASSERT_PTR(v, high, return 0);
     ASSERT(v->width != 0, critical, return 0);
 
     /* To get the number of items, divide *
@@ -299,6 +346,81 @@ size_t vec_rfind(vec *v, const void *item)
     ERR_NEW(high, "Invalid value", "The value is not in the vec");
 
     return INVALID_INDEX;
+}
+
+static inline int vec_bisearch_compare(
+    vec *v, size_t index, const uchar *item, const uchar *map)
+{
+    size_t width, byte;
+    uchar  *vecitem;
+
+    vecitem = vec_item(v, index);
+    width   = v->width;
+
+#if defined(BIG_ENDIAN)
+    /* If big endian, start at the beginning */
+    byte = 0;
+#elif defined(LITTLE_ENDIAN)
+    /* If little endian, start at the end */
+    byte = v->width - 1;
+#endif
+
+    while (width--)
+    {
+        int diff;
+        if (map[byte])
+        {
+            diff  = vecitem[byte] & map[byte];
+            diff -= item[byte]    & map[byte];
+
+            if (diff) return diff;
+        }
+
+        /* Move either forward or backwards depending on endianness */
+#if defined(BIG_ENDIAN)
+        ++byte;
+#elif defined(LITTLE_ENDIAN)
+        --byte;
+#endif
+    }
+
+    return 0;
+}
+
+size_t vec_bisearch(vec *v, const void *item, const void *map)
+{
+    /* These are the lowest and highest indices we could be looking for.  */
+    size_t upper, lower;
+
+    ASSERT_PTR(v,    high, return INVALID_INDEX);
+    ASSERT_PTR(item, high, return INVALID_INDEX);
+    ASSERT_PTR(map,  high, return INVALID_INDEX);
+
+    /* Put the bounds at each extreme of the vector. */
+    lower = 0;
+    upper = vec_len(v);
+
+    /* Repeat until both bounds converge. */
+    while (upper != lower)
+    {
+        size_t pivot;
+
+        /* Take a position halfway through the vector.              *
+         * Be sure to round down, otherwise infinite loops happen.  */
+        pivot = (upper) / 2 + (lower) / 2;
+
+        /* If the pivot is greater or equal to the item we're looking for ... */
+        if (vec_bisearch_compare(v, pivot, item, map) >= 0)
+            /* ... set a new upper bound to the pivot's value */
+            upper = pivot;
+        else
+            /* If the pivot value is smaller than the item we're looking for, *
+             * we know the pivot cannot be the correct value, so our new      *
+             * lower bound is one position ahead of the pivot.                */
+            lower = pivot + 1;
+    }
+
+    return upper;
 }
 
 int vec_contains(vec *v, const void *item)
