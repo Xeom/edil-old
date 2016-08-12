@@ -27,6 +27,8 @@ struct buffercont_s
  * (cursor *cur)                     */
 hook_add(cursor_on_spawn, 1);
 
+hook_add(cursor_on_free, 1);
+
 /* Called before setting the ln of a cursor. The cursor is not affected       *
  * before calling this. Changing *new will change the value the cursor's ln   *
  * is set to. Not called if the relevant cursor_type has no set_ln function.  *
@@ -49,7 +51,6 @@ hook_add(cursor_on_set_cn_pre, 2);
  * (cursor *cur, colno *old)                                                  */
 hook_add(cursor_on_set_cn_post, 2);
 
-/* Called before */
 hook_add(cursor_on_move_lines_pre, 2);
 hook_add(cursor_on_move_lines_post, 3);
 hook_add(cursor_on_move_cols_pre, 2);
@@ -140,6 +141,8 @@ int cursor_free(cursor *cur)
 
     if (cur->type->free)
         cur->type->free(cur->ptr);
+
+    hook_call(cursor_on_free, cur);
 
     ind = (size_t)((char *)cur - (char *)vec_item(&(cont->cursors), 0))
         / sizeof(cursor);

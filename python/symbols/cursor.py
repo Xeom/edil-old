@@ -2,6 +2,7 @@ import ctypes
 from shared import lib as so
 
 from symbols.buffer import buffer_p, buffer_s, lineno, colno
+from symbols.hook   import hook_p
 from symbols.vec    import vec_p
 
 class cursor_s(ctypes.Structure):
@@ -145,3 +146,21 @@ class region:
     initsys.restype  = ctypes.c_int
 
     type = ctypes.cast(so.cursor_region_type, cursor_type_p)
+
+on_spawn           = ctypes.cast(so.cursor_on_spawn,           hook_p)
+on_free            = ctypes.cast(so.cursor_on_free,            hook_p)
+on_set_ln_pre      = ctypes.cast(so.cursor_on_set_ln_pre,      hook_p)
+on_set_ln_post     = ctypes.cast(so.cursor_on_set_ln_post,     hook_p)
+on_set_cn_pre      = ctypes.cast(so.cursor_on_set_cn_pre,      hook_p)
+on_set_cn_post     = ctypes.cast(so.cursor_on_set_cn_post,     hook_p)
+on_move_lines_pre  = ctypes.cast(so.cursor_on_move_lines_pre,  hook_p)
+on_move_lines_post = ctypes.cast(so.cursor_on_move_lines_post, hook_p)
+on_move_cols_pre   = ctypes.cast(so.cursor_on_move_cols_pre,   hook_p)
+on_move_cols_post  = ctypes.cast(so.cursor_on_move_cols_post,  hook_p)
+on_insert_pre      = ctypes.cast(so.cursor_on_insert_pre,      hook_p)
+on_insert_post     = ctypes.cast(so.cursor_on_insert_post,     hook_p)
+on_delete_pre      = ctypes.cast(so.cursor_on_delete_pre,      hook_p)
+on_delete_post     = ctypes.cast(so.cursor_on_delete_post,     hook_p)
+on_enter_pre       = ctypes.cast(so.cursor_on_enter_pre,       hook_p)
+on_enter_post      = ctypes.cast(so.cursor_on_enter_post,      hook_p)
+on_change_pos      = ctypes.cast(so.cursor_on_change_pos,      hook_p)
