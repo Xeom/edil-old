@@ -5,6 +5,8 @@ import symbols.io
 import symbols.hook
 import symbols.vec
 
+from core.vec import Vec, VecFreeOnDel
+
 import core.key
 
 class KeymapFunct:
@@ -27,8 +29,8 @@ class KeymapFunct:
             self.free()
             return
 
-        argvec  = symbols.vec.Vec(args, symbols.vec.vec_p)
-        keys    = symbols.vec.Vec(argvec[0], symbols.io.key_s)
+        argvec  = Vec(args, symbols.vec.vec_p)
+        keys    = Vec(argvec[0], symbols.io.key_s)
 
         pykeys = []
 
@@ -47,9 +49,8 @@ class Keymap:
         return symbols.io.keymap.press(self.struct, key.struct)
 
     def add(self, *keys):
-        v = symbols.vec.VecFreeOnDel(
-            symbols.vec.init(ctypes.sizeof(symbols.io.key_s)),
-            symbols.io.key_s)
+        v = VecFreeOnDel(symbols.vec.init(ctypes.sizeof(symbols.io.key_s)),
+                         symbols.io.key_s)
 
         for k in keys:
             v.insert(len(v), k.struct)

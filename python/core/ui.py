@@ -10,53 +10,52 @@ import core.windows
 import core.hook
 import core.callback
 
+from core.vec     import Vec
+from core.windows import Window
+from core.buffer  import Buffer
+from core.hook    import Hook
+
 class callbacks:
     pass
 
 class hooks:
-    resize_pre =  core.hook.Hook(
+    resize_pre =  Hook(
         symbols.ui.on_resize_pre,
         ctypes.c_size_t,
         ctypes.c_size_t)
-    resize_post = core.hook.Hook(
+    resize_post = Hook(
         symbols.ui.on_resize_post,
         ctypes.c_size_t,
         ctypes.c_size_t)
 
     class win:
         class frame:
-            draw_pre  = core.hook.Hook(
-                symbols.ui.win.frame.on_draw_pre,
-                core.windows.Window)
+            draw_pre  = Hook(symbols.ui.win.frame.on_draw_pre,
+                             Window)
 
-            draw_post = core.hook.Hook(
-                symbols.ui.win.frame.on_draw_post,
-                core.windows.Window)
+            draw_post = Hook(symbols.ui.win.frame.on_draw_post,
+                             Window)
 
         class content:
-            draw_pre  = core.hook.Hook(
-                symbols.ui.win.content.on_draw_pre,
-                core.windows.Window,
-                core.buffer.Buffer)
+            draw_pre  = Hook(symbols.ui.win.content.on_draw_pre,
+                             Window,
+                             Buffer)
 
-            draw_post = core.hook.Hook(
-                symbols.ui.win.content.on_draw_post,
-                core.windows.Window,
-                core.buffer.Buffer)
+            draw_post = Hook(symbols.ui.win.content.on_draw_post,
+                             Window,
+                             Buffer)
 
-            draw_line_pre  = core.hook.Hook(
-                symbols.ui.win.content.on_draw_line_pre,
-                core.windows.Window,
-                core.buffer.Buffer,
-                symbols.buffer.lineno,
-                symbols.vec.Vec.Type(ctypes.c_char))
+            draw_line_pre  = Hook(symbols.ui.win.content.on_draw_line_pre,
+                                  Window,
+                                  Buffer,
+                                  symbols.buffer.lineno,
+                                  Vec.Type(ctypes.c_char))
 
-            draw_line_post = core.hook.Hook(
-                symbols.ui.win.content.on_draw_line_post,
-                core.windows.Window,
-                core.buffer.Buffer,
-                symbols.buffer.lineno,
-                symbols.vec.Vec.Type(ctypes.c_char))
+            draw_line_post = Hook(symbols.ui.win.content.on_draw_line_post,
+                                  Window,
+                                  Buffer,
+                                  symbols.buffer.lineno,
+                                  Vec.Type(ctypes.c_char))
 
 
 cursorface = symbols.ui.face.cursor.value

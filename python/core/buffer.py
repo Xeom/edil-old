@@ -1,23 +1,13 @@
 import ctypes
 import symbols.buffer
-import core.hook
-import core.properties
 import cutil
 import weakref
 
-from symbols.vec import VecFreeOnDel
+from core.properties import Properties
+from core.vec        import VecFreeOnDel, Vec
+from core.hook       import Hook
 
- # An instance of this class acts a little like a class.
- # When called with a structure pointer to a buffer, this class
- # returns an object already representing that buffer if it exists,
- # or creates a new one if it does not. This means that setting or
- # modifying BufferObj objects can break things heavily, so isn't
- # the best idea.
- #
- # Note that if someone somewhere starts tracking every instance of
- # buffer creation and deletion, and stores them in a list. This will
- # be a cache of all buffers.
- class BufferContainer:
+class BufferContainer:
     def __init__(self):
         # This contains reference by pointer (to the struct. Integers
         # for speed) Objects are automatically removed from it when they
@@ -89,7 +79,7 @@ class BufferObj:
         self.valid   = True
         self._struct = value
         propptr = symbols.buffer.get_properties(value)
-        self.properties = core.properties.Properties(propptr)
+        self.properties = Properties(propptr)
 
     def __len__(self):
         return symbols.buffer.len(self.struct)
@@ -148,55 +138,54 @@ def initsys():
     Buffer.mount()
 
 class hooks:
-    batch_region = core.hook.Hook(
+    batch_region = Hook(
         symbols.buffer.on_batch_region,
         Buffer,
         symbols.buffer.lineno,
         symbols.buffer.lineno)
 
-    create = core.hook.Hook(
+    create = Hook(
         symbols.buffer.on_create,
         Buffer)
 
-    delete = core.hook.Hook(
+    delete = Hook(
         symbols.buffer.on_delete,
         Buffer)
 
-    delete_struct = core.hook.Hook(
+    delete_struct = Hook(
         symbols.buffer.on_delete,
         symbols.buffer.buffer_p,
         symbols.buffer.lineno)
 
     class line:
-        change_pre  = core.hook.Hook(
+        change_pre  = Hook(
             symbols.buffer.line.on_change_pre,
             Buffer,
             symbols.buffer.lineno,
-            symbols.vec.Vec.Type(ctypes.c_char))
+            Vec.Type(ctypes.c_char))
 
-        change_post = core.hook.Hook(
+        change_post = Hook(
             symbols.buffer.line.on_change_post,
             Buffer,
             symbols.buffer.lineno,
-            symbols.vec.Vec.Type(ctypes.c_char))
+            Vec.Type(ctypes.c_char))
 
-        delete_pre  = core.hook.Hook(
+        delete_pre  = Hook(
             symbols.buffer.line.on_delete_pre,
             Buffer,
             symbols.buffer.lineno)
 
-        delete_post = core.hook.Hook(
+        delete_post = Hook(
             symbols.buffer.line.on_delete_post,
             Buffer,
             symbols.buffer.lineno)
 
-        insert_pre = core.hook.Hook(
+        insert_pre = Hook(
             symbols.buffer.line.on_insert_pre,
             Buffer,
             symbols.buffer.lineno)
 
-        insert_post = core.hook.Hook(
+        insert_post = Hook(
             symbols.buffer.line.on_insert_post,
             Buffer,
             symbols.buffer.lineno)
-

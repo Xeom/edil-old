@@ -2,10 +2,10 @@ import ctypes
 
 import symbols.buffer
 
-import core.hook
+from core.hook    import Hook
 from core.windows import Window
 from core.buffer  import Buffer
-from symbols.vec  import Vec
+from core.vec     import Vec
 
 def initsys():
     symbols.buffer.deferline.initsys()
@@ -28,9 +28,8 @@ class DeferLine:
         return Vec(symbols.buffer.deferline.get_vec(self.struct), ctypes.c_char)
 
 class hooks:
-    draw = core.hook.Hook(
-        symbols.buffer.deferline.on_draw,
-        Window,
-        Buffer,
-        symbols.buffer.lineno,
-        DeferLine)
+    draw = Hook(symbols.buffer.deferline.on_draw,
+                Window,
+                Buffer,
+                symbols.buffer.lineno,
+                DeferLine)
