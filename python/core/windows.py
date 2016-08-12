@@ -11,28 +11,8 @@ import ctypes
 import cutil
 import weakref
 
-
-class WindowContainer(Container):
-    delete_struct = hooks.delete_struct
-    Obj           = WindowObj
-
 class direction(symbols.win.dir):
     pass
-
-Window = WindowContainer()
-
-def initsys():
-    symbols.win.initsys()
-    Window.mount()
-
-def killsys():
-    symbols.win.killsys()
-
-def get_selected():
-    return Window(symbols.win.select.get())
-
-def get_root():
-    return Window(symbols.win.root)
 
 class WindowObj(StructObject):
     PtrType = symbols.win.win_p
@@ -118,12 +98,6 @@ class WindowObj(StructObject):
     def split(self, direction):
         return Window(symbols.win.split(self.struct, direction))
 
-    def __eq__(self, other):
-        if not isinstance(other, WindowObj):
-            return False
-
-        return hash(self) == hash(other)
-
     def __iter__(self):
         sub = symbols.win.iter.first(self.struct)
         last = symbols.win.iter.last(self.struct)
@@ -148,6 +122,14 @@ class WindowObj(StructObject):
 
     def issplitter(self):
         return bool(symbols.win.type_issplitter(self.struct))
+
+class WindowContainer(Container):
+    Obj           = WindowObj
+    delete_struct = core.hook.Hook(symbols.win.on_delete_pre,
+                                   symbols.win.win_p)
+
+
+Window = WindowContainer()
 
 class hooks:
     class size:
@@ -175,9 +157,6 @@ class hooks:
         symbols.win.on_delete_pre,
         Window)
 
-    delete_struct = core.hook.Hook(
-        symbols.win.on_delete_pre,
-        symbols.win.win_p)
 
     create = core.hook.Hook(
         symbols.win.on_create,
@@ -224,3 +203,16 @@ class hooks:
             symbols.win.label.on_caption_set_post,
             Window,
             ctypes.c_char_p)
+
+def initsys():
+    symbols.win.initsys()
+    Window.mount()
+
+def killsys():
+    symbols.win.killsys()
+
+def get_selected():
+    return Window(symbols.win.select.get())
+
+def get_root():
+    return Window(symbols.win.root)
