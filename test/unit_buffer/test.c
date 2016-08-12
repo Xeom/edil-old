@@ -18,7 +18,7 @@ static void test_print_buffer(buffer *b)
 {
     size_t ind;
 
-    PINFO("Printing items...");
+    PLOG(info, "Printing items...");
 
     for (ind = 0; ind < buffer_len(b); ind++)
     {
@@ -50,7 +50,7 @@ void test_insert_end(void)
     v = vec_init(10);
     vec_insert(v, 0, 10, "          ");
 
-    PINFO("Inserting items...");
+    PLOG(info, "Inserting items...");
 
     for (ind = 0; ind < TEST_LEN; ind++)
     {
@@ -78,7 +78,7 @@ void test_insert_start(void)
     v = vec_init(10);
     vec_insert(v, 0, 10, "          ");
 
-    PINFO("Inserting items...");
+    PLOG(info, "Inserting items...");
 
     for (ind = 0; ind < TEST_LEN; ind++)
     {
@@ -106,7 +106,7 @@ void test_insert_middle(void)
     v = vec_init(10);
     vec_insert(v, 0, 10, "          ");
 
-    PINFO("Inserting items...");
+    PLOG(info, "Inserting items...");
 
     for (ind = 0; ind < TEST_LEN; ind++)
     {
@@ -127,7 +127,7 @@ void test_init(void)
 {
     buffer *b;
 
-    PINFO("Initializing with buffer_init...");
+    PLOG(info, "Initializing with buffer_init...");
 
     b = buffer_init();
     TEST(b == NULL, d);
@@ -153,7 +153,7 @@ void test_del(void)
         buffer_set_line(b, 0, v);
     }
 
-    PINFO("Doing sparse delete...");
+    PLOG(info, "Doing sparse delete...");
 
     ind = 0;
     while (ind < buffer_len(b))
@@ -170,7 +170,7 @@ void test_del(void)
 
     test_print_buffer(b);
 
-    PINFO("Doing full delete...");
+    PLOG(info, "Doing full delete...");
 
     while (buffer_len(b))
     {

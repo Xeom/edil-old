@@ -17,7 +17,7 @@ static void test_print_table(table *tbl)
 {
     int ind;
 
-    PINFO("Printing items...");
+    PLOG(info, "Printing items...");
 
     for (ind = 1; ind < TEST_LEN; ind++)
     {
@@ -42,7 +42,7 @@ void test_set(void)
     tbl = table_init(sizeof(int), sizeof(unsigned int),
                      NULL, NULL, NULL);
 
-    PINFO("Inserting items...");
+    PLOG(info, "Inserting items...");
 
     for (ind = 1; ind < TEST_LEN; ind++)
     {
@@ -66,7 +66,7 @@ void test_del(void)
     tbl = table_init(sizeof(int), sizeof(int),
                      NULL, NULL, NULL);
 
-    PINFO("Inserting items...");
+    PLOG(info, "Inserting items...");
 
     for (ind = 1; ind < TEST_LEN; ind++)
     {
@@ -75,7 +75,7 @@ void test_del(void)
         TEST(table_len(tbl), lu);
     }
 
-    PINFO("Deleting items sparsely...");
+    PLOG(info, "Deleting items sparsely...");
 
     for (ind = 1; ind < TEST_LEN; ind++)
     {
@@ -89,7 +89,7 @@ void test_del(void)
 
     test_print_table(tbl);
 
-    PINFO("Deleting all items...");
+    PLOG(info, "Deleting all items...");
 
     for (ind = 1; ind < TEST_LEN; ind++)
     {
@@ -110,7 +110,7 @@ void test_init(void)
 {
     table *tbl;
 
-    PINFO("Initializing with table_init...");
+    PLOG(info, "Initializing with table_init...");
 
     tbl = table_init(sizeof(char), sizeof(char), NULL, NULL, NULL);
     TEST(tbl == NULL, d);
@@ -119,7 +119,7 @@ void test_init(void)
     tbl = malloc(sizeof(table));
     TEST(tbl == NULL, d);
 
-    PINFO("Initializing with table_create...");
+    PLOG(info, "Initializing with table_create...");
 
     tbl = table_create(tbl, sizeof(char), sizeof(char), NULL, NULL, NULL);
     TEST(tbl == NULL, d);

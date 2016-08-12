@@ -19,7 +19,7 @@ static void test_print_vec(vec *v)
 {
     size_t ind;
 
-    PINFO("Printing items...");
+    PLOG(info, "Printing items...");
 
     for (ind = 0; ind < vec_len(v); ind++)
     {
@@ -44,7 +44,7 @@ void test_insert_end(void)
 
     v = vec_init(sizeof(int));
 
-    PINFO("Inserting items...");
+    PLOG(info, "Inserting items...");
 
     for (ind = 0; ind < TEST_LEN; ind++)
     {
@@ -69,7 +69,7 @@ void test_insert_start(void)
 
     v = vec_init(sizeof(int));
 
-    PINFO("Inserting items...");
+    PLOG(info, "Inserting items...");
 
     for (ind = 0; ind < TEST_LEN; ind++)
     {
@@ -95,7 +95,7 @@ void test_for(void)
 
     v = vec_init(sizeof(int));
 
-    PINFO("Inserting items...");
+    PLOG(info, "Inserting items...");
 
     for (ind = 0; ind < TEST_LEN; ind++)
     {
@@ -103,14 +103,14 @@ void test_for(void)
         vec_insert(v, ind, 1, &item);
     }
 
-    PINFO("Doing vec_foreach...");
+    PLOG(info, "Doing vec_foreach...");
 
     vec_foreach(v, int, item,
                 TEST(_vec_index, lu);
                 TEST(item,        d);
         );
 
-    PINFO("Doing vec_rforeach...");
+    PLOG(info, "Doing vec_rforeach...");
 
     vec_rforeach(v, int, item,
                  TEST(_vec_index, lu);
@@ -127,7 +127,7 @@ void test_del(void)
 
     v = vec_init(sizeof(int));
 
-    PINFO("Inserting items...");
+    PLOG(info, "Inserting items...");
 
     for (ind = 0; ind < TEST_LEN; ind++)
     {
@@ -137,7 +137,7 @@ void test_del(void)
         vec_insert(v, ind, 1, &item);
     }
 
-    PINFO("Doing sparse delete...");
+    PLOG(info, "Doing sparse delete...");
 
     ind = 0;
     while (ind < vec_len(v))
@@ -154,7 +154,7 @@ void test_del(void)
 
     test_print_vec(v);
 
-    PINFO("Doing full delete...");
+    PLOG(info, "Doing full delete...");
 
     while (vec_len(v))
     {
@@ -175,7 +175,7 @@ void test_find(void)
 
     v = vec_init(sizeof(int));
 
-    PINFO("Inserting items...");
+    PLOG(info, "Inserting items...");
 
     for (ind = 0; ind < TEST_FIND_LEN; ind++)
     {
@@ -183,7 +183,7 @@ void test_find(void)
         vec_insert(v, ind, 1, &item);
     }
 
-    PINFO("Searching vector...");
+    PLOG(info, "Searching vector...");
 
     for (item = 0; item < TEST_FIND_LEN; item++)
     {
@@ -211,7 +211,7 @@ void test_find(void)
         TEST(vec_bisearch(v, &item, &map), lu);
     }
 
-    PINFO("Trying vec_contains with out of bounds values...");
+    PLOG(info, "Trying vec_contains with out of bounds values...");
 
     item = -1;
     TEST(item, d);
