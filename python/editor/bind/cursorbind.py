@@ -192,3 +192,12 @@ def insert_hex_cb(number):
 
     else:
         insert_cmd.run_withargs(char)
+
+
+goto_line_cmd = Command("cursor-goto-line",
+                        CommandArg(int, "Lineno to go to"))
+
+@goto_line_cmd.hook(500)
+def goto_line_cb(ln):
+    sel = core.curssor.get_selected()
+    sel.ln = ln
