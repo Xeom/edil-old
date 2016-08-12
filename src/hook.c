@@ -46,6 +46,8 @@ int hook_mount(hook *h, hook_f f, priority pri)
     vec       *functs;
     hook_fcont cont;
 
+    static const hook_fcont cmpmap = {.pri = 0x3ff};
+
     ASSERT_PTR(h, high, return -1);
     cont.funct = f;
     cont.pri   = pri;
@@ -58,20 +60,8 @@ int hook_mount(hook *h, hook_f f, priority pri)
         vec_insert_end(hook_vecs_to_free, 1, &functs);
     }
 
-    index  = vec_len(functs);
-
-    /* In today's episode of "I really can't be fucked to bi-search..." */
-    while (index--)
-    {
-        hook_fcont *curr;
-
-        curr = vec_item(functs, index);
-
-        if (curr->pri <= pri)
-            break;
-    }
-
-    vec_insert(functs, index + 1, 1, &cont);
+    index = vec_bisearch(functs, &cont, &cmpmap);
+    vec_insert(functs, index, 1, &cont);
 
     return 0;
 }
