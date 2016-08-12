@@ -23,4 +23,8 @@ int mode_handle_press(key k);
 
 int mode_free(mode *m);
 
+int mode_add_mount(mode *m, hook *h, hook_f f);
+
+int mode_remove_mount(mode *m, hook *h, hook_f f);
+
 #endif /* MODE_H */

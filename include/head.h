@@ -22,6 +22,13 @@
 # define ADDPTR(ptr, n) (void *)((intptr_t)(ptr) + (ptrdiff_t)(n))
 # define SUBPTR(ptr, n) (void *)((intptr_t)(ptr) - (ptrdiff_t)(n))
 
+# if ( defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) ) \
+    || defined(__BIG_ENDIAN__) || defined(__BIG_ENDIAN) || defined(_BIG_ENDIAN)
+#  define BIG_ENDIAN
+# else
+#  define LITTLE_ENDIAN
+# endif
+
 typedef unsigned int       uint;
 typedef unsigned char      uchar;
 typedef unsigned short     ushort;

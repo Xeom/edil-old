@@ -30,6 +30,7 @@ struct cursor_type_s
 };
 
 extern hook cursor_on_spawn;
+extern hook cursor_on_free;
 extern hook cursor_on_set_ln_pre;
 extern hook cursor_on_set_ln_post;
 extern hook cursor_on_set_cn_pre;
