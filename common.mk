@@ -1,6 +1,6 @@
 srcify  = $(addprefix src/,  $(addsuffix .c,      $(1))) # Change names into .c paths
 objify  = $(addprefix obj/,  $(addsuffix .o,      $(1))) # Change names into .o paths
-testify = $(addprefix test/, $(addsuffix /test.c, $(1))  # Change names into c test files
+testify = $(addprefix test/, $(addsuffix /test.c, $(1))) # Change names into c test files
 
 depify = $(addprefix dep/, $(1:.c=.d)) # Change .c paths into .d paths
 

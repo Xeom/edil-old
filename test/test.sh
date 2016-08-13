@@ -18,7 +18,7 @@ run_test() {
         exit -1
     fi
 
-    pinfo "Running tests for $1 ..."
+    ../misc/plog.sh info "Running tests for $1 ..."
 
     $1/test.out > $realfile &
     testpid=$!
@@ -38,7 +38,7 @@ run_test() {
         exit -1
     fi
 
-    pinfo "Comparing simulated and real outputs."
+    ../misc/plog.sh info "Comparing simulated and real outputs."
     diff -I "LINE: *" -B $realfile $simfile > $difffile
 
     if [ -s $difffile ]; then

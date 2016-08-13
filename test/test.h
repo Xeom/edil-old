@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include "head.h"
@@ -20,7 +21,7 @@ int test_count;
     {                                                                   \
         double  dt;                                                     \
         clock_t start, end;                                             \
-        PINFO("Testing " #funct "...");                                 \
+        PLOG(info, "Testing " #funct "...");                            \
         start = clock();                                                \
         test_ ## funct ();                                              \
         end   = clock();                                                \
@@ -28,6 +29,9 @@ int test_count;
         PLOG(succ, "Ran tests for " #funct " in %.4fs", dt);            \
     }
 
-    
-#define PLOG(type, ...) system(sprintf("../misc/plog.sh " #type __VA_ARGS__))
- 
+#define PLOG(type, ...)                                         \
+    {                                                           \
+        char cmd[2000];                                         \
+        sprintf(cmd, "../misc/plog.sh " #type " " __VA_ARGS__); \
+        system(cmd);                                            \
+    }
