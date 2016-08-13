@@ -32,6 +32,6 @@ int test_count;
 #define PLOG(type, ...)                                         \
     {                                                           \
         char cmd[2000];                                         \
-        sprintf(cmd, "../misc/plog.sh " #type " " __VA_ARGS__); \
+        sprintf(cmd, STRIFY(ROOTDIR) "/misc/plog.sh " #type " " __VA_ARGS__); \
         system(cmd);                                            \
     }

@@ -1,3 +1,6 @@
+ROOT    := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+DEFINES += ROOTDIR=$(ROOT)
+
 srcify  = $(addprefix src/,  $(addsuffix .c,      $(1))) # Change names into .c paths
 objify  = $(addprefix obj/,  $(addsuffix .o,      $(1))) # Change names into .o paths
 testify = $(addprefix test/, $(addsuffix /test.c, $(1))) # Change names into c test files
@@ -5,6 +8,7 @@ testify = $(addprefix test/, $(addsuffix /test.c, $(1))) # Change names into c t
 depify = $(addprefix dep/, $(1:.c=.d)) # Change .c paths into .d paths
 
 D_FLAGS = $(addprefix -D, $(DEFINES))  # all the defines...      (-D*)
+$(info $(D_FLAGS))
 L_FLAGS = $(addprefix -l, $(LINKS))    # all the links...        (-l*)
 W_FLAGS = $(addprefix -W, $(WARNINGS)) # all the warnings...     (-W*)
 I_FLAGS = $(addprefix -I, $(INCLUDES)) # all the include dirs... (-I*)
