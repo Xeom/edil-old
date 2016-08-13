@@ -12,6 +12,9 @@ run_test() {
         return
     fi
 
+    defines="ROOTDIR=$rootdir"
+    make -C$rootdir DEFINES=$defines test/$(basename $1)/test.out
+
     if [ $? -eq 2 ]; then
         $rootdir/misc/plog.sh err "Error making $1 test binary."
         make -C$rootdir clean_test
@@ -71,6 +74,5 @@ else
 fi
 
 for i in $files; do
-    make -C$rootdir $i/test.out 
     run_test ${i%/}
 done
