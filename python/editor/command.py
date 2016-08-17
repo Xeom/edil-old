@@ -20,14 +20,16 @@ class CommandArg:
         return self.type(string)
 
 class Command:
-    by_name = weakref.WeakValueDictionary()
-    names   = set()
+    by_name    = weakref.WeakValueDictionary()
+    names      = set()
+    query_mode = 0
 
     def __init__(self, name, *args):
         if name in self.names:
             self.name = None
             raise Exception("This command already exists")
 
+        self.maps = []
         self.name = name
         self.args = args
         self.hook = NativeHook()
@@ -35,6 +37,15 @@ class Command:
         if name != None:
             self.names.add(name)
             self.by_name[name] = self
+
+    @classmethod
+    def query_mode_enable(self, cls):
+        cls.query_mode += 1
+        editor.buffers.userlog.log("Enabled query command mode.")
+
+    @classmethod
+    def query_mode_disable(self, cls):
+        cls.query_mode = max(cls.query_mode - 1, 0)
 
     def __del__(self):
         if self.name != None:
@@ -53,11 +64,38 @@ class Command:
 
             arg.make_query(cb)
 
-    def run(self, keys=None):
+    def run_query(self):
         self.get_arg([], 0)
 
     def run_withargs(self, *args):
         self.hook.call(args)
 
+    def run_default(self):
+        if self.defaultargs == None:
+            self.run_withargs(*([""] * len(self.args)))
+
+        else:
+            self.run_withargs(*self.default)
+
+    def run(self, keys=None, default=None):
+        if self.default == None:
+            self.run_query()
+
+        else:
+            if self.query_mode:
+                self.run_query()
+                self.disable_query_mode()
+
+            else:
+                self.run_default()
+
+    def map_to(self, keymap, *keys, defaultargs=None):
+        def mapped(keys):
+            self.run(default=defaultargs)
+
+        self.maps.append(mapped)
+        keymap.add(*keys)(mapped)
+
 def get_command(name):
     return Command.by_name[name]
+

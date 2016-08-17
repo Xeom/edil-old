@@ -24,6 +24,17 @@ def run_cb(name):
 def run_mapped(keys):
     run_cmd.run()
 
+query_mode_cmd = Command("command-query-mode")
+
+@querymode_cmd.hook(500)
+def query_mode_cb(keys):
+    Command.query_mode_enable()
+
+@cmdmap.add(Key("E", esc=True))
+def query_mode_mapped(keys):
+    query_mode_cmd.run()
+
+
 repeat_cmd = Command("command-repeat",
                      CommandArg(str, "Name", options_list(Command.names)),
                      CommandArg(int, "Repeats", number()))
