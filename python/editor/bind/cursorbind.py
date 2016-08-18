@@ -24,9 +24,7 @@ def up_cb(n):
     sel = core.cursor.get_selected()
     sel.move_lines(-n)
 
-@curmap.add(Key("UP"))
-def up_mapped(keys):
-    up_cmd.run_withargs(1)
+up_cmd.map_to(curmap, Key("UP"), defaultargs=[1])
 
 # cursor-down
 #
@@ -41,11 +39,7 @@ def down_cb(n):
     sel = core.cursor.get_selected()
     sel.move_lines(n)
 
-@curmap.add(Key("DOWN"))
-def down_mapped(keys):
-    down_cmd.run_withargs(1)
-    import core.ui
-    core.ui.resize()
+down_cmd.map_to(curmap, Key("DOWN"), defaultargs=[1])
 
 # cursor-back
 #
@@ -61,9 +55,7 @@ def back_cb(n):
     sel = core.cursor.get_selected()
     sel.move_cols(-n)
 
-@curmap.add(Key("LEFT"))
-def back_mapped(keys):
-    back_cmd.run_withargs(1)
+back_cmd.map_to(curmap, Key("LEFT"), defaultargs=[1])
 
 # cursor-forward
 #
@@ -79,9 +71,7 @@ def forward_cb(n):
     sel = core.cursor.get_selected()
     sel.move_cols(n)
 
-@curmap.add(Key("RIGHT"))
-def forward_mapped(keys):
-    forward_cmd.run_withargs(1)
+forward_cmd.map_to(curmap, Key("RIGHT"), defaultargs=[1])
 
 # cursor-delback
 #
@@ -95,9 +85,7 @@ def delback_cb(n):
     sel = core.cursor.get_selected()
     sel.delete(n)
 
-@curmap.add(Key("BACKSPACE"))
-def delback_mapped(keys):
-    delback_cmd.run_withargs(1)
+delback_cmd.map_to(curmap, Key("BACKSPACE"), defaultargs=[1])
 
 # cursor-activate
 #
@@ -144,9 +132,7 @@ def enter_cb():
     sel = core.cursor.get_selected()
     sel.enter()
 
-@curmap.add(Key("RETURN"))
-def enter_mapped(keys):
-    enter_cmd.run()
+enter_cmd.map_to(curmap, Key("RETURN"))
 
 # cursor-insert
 #
@@ -161,17 +147,18 @@ insertable_chars = ("!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ "
 insert_cmd = Command("cursor-insert",
                      CommandArg(str))
 @insert_cmd.hook(500)
-def insert_cb(string):
+def insert_cb(string, n):
     if isinstance(string, str):
         string = string.encode("ascii")
+
+    string *= n
 
     sel = core.cursor.get_selected()
     sel.insert(string)
 
 def insert_mapped(keys):
     keystring = str(keys[-1])
-
-    insert_cmd.run_withargs(keystring)
+    insert_cmd.run(default=[keystring, 1])
 
 for char in insertable_chars:
     curmap.add(Key(char))(insert_mapped)
@@ -193,11 +180,26 @@ def insert_hex_cb(number):
     else:
         insert_cmd.run_withargs(char)
 
+# cursor-goto-line
+#
+# Move the cursor to a specific line number
 
 goto_line_cmd = Command("cursor-goto-line",
                         CommandArg(int, "Lineno to go to"))
 
 @goto_line_cmd.hook(500)
 def goto_line_cb(ln):
-    sel = core.curssor.get_selected()
+    sel = core.cursor.get_selected()
     sel.ln = ln
+
+# cursor-goto-col
+#
+# Move the cursor to a specific column number
+
+goto_col_cmd = Command("cursor-goto-col",
+                       CommandArg(int, "Colno to go to"))
+
+@goto_col_cmd.hook(500)
+def goto_col_cb(cn):
+    sel = core.cursor.get_selected()
+    sel.cn = cn
