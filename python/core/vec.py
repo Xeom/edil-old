@@ -26,7 +26,7 @@ class Vec(StructObject):
 
     @classmethod
     def from_string(cls, string):
-        if isinstance(string, tr):
+        if isinstance(string, str):
             s = s.encode("ascii")
 
         rtn = cls.new(ctypes.c_char)
@@ -58,8 +58,8 @@ class Vec(StructObject):
         ptr = self.pyval_ptr(value)
         symbols.vec.insert(self.struct, index, 1, ptr)
 
-    def insert_bytes(elf, index, data):
-        num = self.width * len(self)
+    def insert_bytes(self, index, data):
+        num = len(data) // self.width
         symbols.vec.insert(self.struct, index, num, data)
 
     def getslice(self, start=0, end=-1):

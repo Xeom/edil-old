@@ -14,7 +14,7 @@ tabmap = core.keymap.maps[mapname]
 default_tab_string = b"   " + Face(Face.black, Face.cyan).colour(b">")
 default_indent_string = b"\t"
 
-@core.deferline.hooks.draw(500)
+@core.deferline.hooks.draw(600)
 def expandtabs(w, b, ln, li):
     tab = get_tab_string(b)
 
@@ -76,6 +76,7 @@ def get_last_nonzero_indent(buf, ln):
             return indent
 
     return 0
+
 def set_indent_of_line(buf, ln, n, cur):
     indent = get_indent_string(buf)
     text   = bytes(buf[ln])
@@ -100,7 +101,10 @@ def set_indent_of_line(buf, ln, n, cur):
 
     if tomove < 0:
         cur.move_cols(max(tomove, -cur.cn))
+    import sys
+    print((indent * n) + text[chars:], file=sys.stderr)
     buf[ln] = (indent * n) + text[chars:]
+
     if tomove >= 0:
         cur.move_cols(tomove)
 

@@ -94,7 +94,7 @@ class BufferObj:
 
     def __setitem__(self, index, vec):
         if isinstance(vec, (str, bytes)):
-            vec = symbols.vec.str2vec(vec)
+            vec = Vec.from_string(vec)
 
         symbols.buffer.set_line(self.struct, index, vec.struct)
 
