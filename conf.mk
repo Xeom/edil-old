@@ -54,7 +54,6 @@ SRC_NAMES=\
         container/table    \
         container/vec      \
         container/hashes   \
-        container/bivec    \
                            \
         ui/ui              \
         ui/sbar            \
