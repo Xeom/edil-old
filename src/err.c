@@ -49,7 +49,9 @@ static int err_are_we_dying(void)
 
     if (errs_this_sec == max_err_per_second)
     {
-        fputs("Too many errors, ignoring further errors ...\n", err_stream);
+        if (err_stream)
+            fputs("Too many errors, ignoring further errors ...\n", err_stream);
+
         return 1;
     }
 
@@ -101,8 +103,11 @@ void err_new(err_lvl lvl, const char *title, const char *content)
 
     errstr[plen + tlen    ] = '\n';
 
-    fwrite(errstr, plen + tlen + 1, 1, err_stream);
-    fflush(err_stream);
+    if (err_stream)
+    {
+        fwrite(errstr, plen + tlen + 1, 1, err_stream);
+        fflush(err_stream);
+    }
 
     if (lvl < err_min_detail_lvl)
         return;
@@ -112,8 +117,11 @@ void err_new(err_lvl lvl, const char *title, const char *content)
 
     errstr[plen + clen    ] = '\n';
 
-    fwrite(errstr, plen + clen + 1, 1, err_stream);
-    fflush(err_stream);
+    if (err_stream)
+    {
+        fwrite(errstr, plen + clen + 1, 1, err_stream);
+        fflush(err_stream);
+    }
 
     if (lvl < err_min_quit_lvl)
         return;
