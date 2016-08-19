@@ -7,6 +7,9 @@
 # include <string.h>
 # include <errno.h>
 
+# include "buffer/buffer.h"
+# include "cursor/cursor.h"
+
 /* Different levels of severity of errors. */
 typedef enum
 {

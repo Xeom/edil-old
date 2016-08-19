@@ -123,6 +123,7 @@ static void cursor_snap_handle_cursor_change_pos(vec *args, hook h)
     buffer *buf;
     size_t xpos;
     lineno curln;
+    colno  curcn;
 
     cur = *(cursor **)vec_item(args, 0);
 
@@ -136,12 +137,13 @@ static void cursor_snap_handle_cursor_change_pos(vec *args, hook h)
         cursor_snap_y(w, cur);
 
     curln = cursor_get_ln(cur);
+    curcn = cursor_get_cn(cur);
 
     if (curln == INVALID_INDEX)
         return;
 
     xpos = ui_win_content_get_cursor_offset(w, curln);
 
-    if (!cursor_snap_in_win_x(xpos, w))
+    if (!cursor_snap_in_win_x(xpos, w) || curcn == 0)
         cursor_snap_x(w, cur, xpos);
 }

@@ -35,12 +35,12 @@ static int win_size_adj_splitter_lr(win *w, int adj)
 {
     uint sizex, curroffset;
 
-    ASSERT_PTR(w, return -1);
+    ASSERT_PTR(w, high, return -1);
 
     curroffset = w->cont.split.sub2offset;
 
-    ASSERT(sizex = win_size_get_x(w),
-           return -1);
+    TRACE(sizex = win_size_get_x(w),
+          return -1);
 
     /* Do not adjust outside of range */
     adj = MIN(adj, (int)sizex - (int)curroffset);
@@ -75,12 +75,12 @@ static int win_size_adj_splitter_ud(win *w, int adj)
 {
     uint sizey, curroffset;
 
-    ASSERT_PTR(w, return -1);
+    ASSERT_PTR(w, high, return -1);
 
     curroffset = w->cont.split.sub2offset;
 
-    ASSERT(sizey = win_size_get_y(w),
-           return -1);
+    TRACE(sizey = win_size_get_y(w),
+          return -1);
 
     if (adj + (int)curroffset > (int)sizey ||
         adj + (int)curroffset < 0)
@@ -89,9 +89,11 @@ static int win_size_adj_splitter_ud(win *w, int adj)
     hook_call(win_size_on_adj_pre, w, &adj);
 
     TRACE_INT(win_size_resize_y(w->cont.split.sub1,
-                                (uint)((int)curroffset + (int)adj)));
+                                (uint)((int)curroffset + (int)adj)),
+              return -1);
     TRACE_INT(win_size_resize_y(w->cont.split.sub1,
-                                (uint)((int)sizey - (int)curroffset - adj)));
+                                (uint)((int)sizey - (int)curroffset - adj)),
+              return -1);
 
     w->cont.split.sub2offset = (uint)((int)curroffset + adj);
 
