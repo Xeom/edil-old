@@ -24,15 +24,15 @@ def run_cb(name):
 def run_mapped(keys):
     run_cmd.run()
 
-query_mode_cmd = Command("command-query-mode")
+undefault_cmd = Command("command-undefault")
 
-@query_mode_cmd.hook(500)
-def query_mode_cb():
-    Command.query_mode_enable()
+@undefault_cmd.hook(500)
+def undefault_cb():
+    Command.undefault()
 
 @cmdmap.add(Key("e", esc=True))
-def query_mode_mapped(keys):
-    query_mode_cmd.run()
+def undefault_mapped(keys):
+    undefault_cmd.run()
 
 
 repeat_cmd = Command("command-repeat",

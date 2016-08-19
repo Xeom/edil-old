@@ -22,7 +22,7 @@ class CommandArg:
 class Command:
     by_name    = weakref.WeakValueDictionary()
     names      = set()
-    query_mode = 0
+    undefaulted = 0
 
     def __init__(self, name, *args):
         if name in self.names:
@@ -39,20 +39,31 @@ class Command:
             self.by_name[name] = self
 
     @classmethod
-    def query_mode_enable(cls):
-        cls.query_mode += 1
+    def undefault(cls):
+        cls.undefaulted += 1
         editor.buffers.userlog.log(
-            "Enabled query command mode (%s)" % cls.query_mode)
-
-    @classmethod
-    def query_mode_disable(cls):
-        cls.query_mode = max(cls.query_mode - 1, 0)
+            "Undefaulted next (%s) command arguments." % cls.query_mode)
 
     def __del__(self):
         if self.name != None:
             self.names.remove(self.name)
 
-    def get_arg(self, args, n):
+    def get_default_args(self, default):
+        if default == None:
+            return []
+
+        num_undefaulted = min(len(default), self.undefaulted)
+
+        if num_undefaulted:
+            default = default[:-num_undefaulted]
+
+        type(self).undefaulted -= num_undefaulted
+
+        return default
+
+    def get_arg(self, args):
+        n = len(args)
+
         if n >= len(self.args):
             self.hook.call(args)
 
@@ -61,27 +72,19 @@ class Command:
 
             def cb(string):
                 args.append(arg.type_convert(string))
-                self.get_arg(args, n + 1)
+                self.get_arg(args)
 
             arg.make_query(cb)
 
     def run_query(self):
-        self.get_arg([], 0)
+        self.get_arg([])
 
     def run_withargs(self, *args):
         self.hook.call(args)
 
     def run(self, keys=None, default=None):
-        if default == None:
-            self.run_query()
-
-        else:
-            if self.query_mode and not editor.query.in_query():
-                self.run_query()
-                type(self).query_mode_disable()
-
-            else:
-                self.run_withargs(*default)
+        args = self.get_default_args(default)
+        self.get_arg(args)
 
     def map_to(self, keymap, *keys, defaultargs=None):
         def mapped(keys):
