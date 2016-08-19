@@ -1,0 +1,51 @@
+/-----------\
+|Not errored|
+\-----------/
+./src/buffer/deferline.c
+./src/callback.c
+./src/container/hashes.c # But does it need to be?
+./src/core.c             # Probably up for deletion anyway.
+
+./src/cursor/point.c
+./src/cursor/region.c
+./src/cursor/snap.c
+./src/err.c
+./src/hook.c
+./src/input/keytree.c
+./src/io/file.c
+./src/io/key.c
+./src/io/keymap.c
+./src/io/listener.c
+./src/mode.c
+./src/ui/face.c
+./src/ui/sbar.c
+./src/ui/ui.c
+./src/ui/updates.c
+./src/ui/util.c
+./src/ui/win/content.c
+./src/ui/win/frame.c
+./src/ui/win/win.c
+./src/win/iter.c
+./src/win/label.c
+./src/win/pos.c
+./src/win/select.c
+./src/win/size.c
+./src/win/win.c
+./test/unit_buffer/test.c
+./test/unit_table/test.c
+./test/unit_vec/test.c
+/-------------\
+|Fully errored|
+\-------------/
+./src/buffer/buffer.c
+./src/buffer/chunk.c
+./src/buffer/line.c
+./src/buffer/log.c
+./src/container/vec.c
+
+/-----------------\
+|Partially errored|
+\-----------------/
+./src/buffer/point.c
+./src/container/table.c
+./src/cursor/cursor.c
