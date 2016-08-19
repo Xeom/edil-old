@@ -79,13 +79,16 @@ void cursor_handle_deferline_draw(vec *args, hook h);
 
 int cursor_initsys(void)
 {
-    table_create(&cursors_by_buffer, sizeof(buffercont), sizeof(buffer *),
-                 NULL, NULL, NULL);
+    TRACE_PTR(table_create(
+                  &cursors_by_buffer, sizeof(buffercont), sizeof(buffer *),
+                  NULL, NULL, NULL),
+              return -1);
 
-    hook_mount(&buffer_deferline_on_draw,
-               &cursor_handle_deferline_draw, 500);
+    TRACE_INT(hook_mount(&buffer_deferline_on_draw,
+                          &cursor_handle_deferline_draw, 500),
+               return -1);
 
-    cursor_snap_initsys();
+    TRACE_INT(cursor_snap_initsys());
 
     return 0;
 }
@@ -94,10 +97,17 @@ static buffercont *cursor_buffercont_init(buffer *b)
 {
     buffercont *rtn;
 
-    table_set(&cursors_by_buffer, &b, NULL);
-    rtn = table_get(&cursors_by_buffer, &b);
+    TRACE_INT(table_set(&cursors_by_buffer, &b, NULL),
+              return NULL);
 
-    vec_create(&(rtn->cursors), sizeof(cursor));
+    TRACE_PTR(rtn = table_get(&cursors_by_buffer, &b),
+              table_delete(&cursors_by_buffer, &b);
+              return NULL);
+
+    TRACE_PTR(vec_create(&(rtn->cursors), sizeof(cursor)),
+              table_delete(&cursors_by_buffer, &b);
+              return NULL);
+
     rtn->selectind = 0;
 
     return rtn;
@@ -108,13 +118,15 @@ cursor *cursor_spawn(buffer *b, cursor_type *type)
     buffercont *cont;
     cursor     *new;
 
-    cont = table_get(&cursors_by_buffer, &b);
+    cont = table_get(&cursors_by_buffer, &b)
 
     if (!cont)
         cont = cursor_buffercont_init(b);
 
-    vec_insert_end(&(cont->cursors), 1, NULL);
-    new = vec_item(&(cont->cursors), vec_len(&(cont->cursors)) - 1);
+    TRACE_INT(vec_insert_end(&(cont->cursors), 1, NULL),
+              return NULL);
+    TRACE_PTR(new = vec_item(&(cont->cursors), vec_len(&(cont->cursors)) - 1),
+              return NULL);
 
     new->type = type;
 
@@ -133,44 +145,55 @@ int cursor_free(cursor *cur)
     buffer *b;
     size_t  ind;
 
-    b    = cur->b;
-    cont = table_get(&cursors_by_buffer, &b);
+    ASSERT_PTR(cur, high, return -1);
 
-    if (!cont)
-        return -1;
+    b = cur->b;
 
-    if (cur->type->free)
+    TRACE_PTR(cont = table_get(&cursors_by_buffer, &b), return -1);
+
+    if (cur->type && cur->type->free)
         cur->type->free(cur->ptr);
 
     hook_call(cursor_on_free, cur);
 
     ind = (size_t)((char *)cur - (char *)vec_item(&(cont->cursors), 0))
         / sizeof(cursor);
-    vec_delete(&(cont->cursors), ind, 1);
 
     if (cont->selectind && cont->selectind >= ind)
         cont->selectind--;
+
+    TRACE_INT(vec_delete(&(cont->cursors), ind, 1),
+              return -1);
 
     return 0;
 }
 
 buffer *cursor_get_buffer(cursor *cur)
 {
+    ASSERT_PTR(cur, high, return NULL);
+
     return cur->b;
 }
 
 void *cursor_get_ptr(cursor *cur)
 {
+    ASSERT_PTR(cur, high, return NULL);
+
     return cur->ptr;
 }
 
 cursor_type *cursor_get_type(cursor *cur)
 {
+    ASSERT_PTR(cur, high, return NULL);
+
     return cur->type;
 }
 
 lineno cursor_get_ln(cursor *cur)
 {
+    ASSERT_PTR(cur,       high,     return NULL);
+    ASSERT_PTR(cur->type, critical, return NULL);
+
     if (!(cur->type->get_ln))
         return INVALID_INDEX;
 
@@ -180,6 +203,9 @@ lineno cursor_get_ln(cursor *cur)
 
 colno cursor_get_cn(cursor *cur)
 {
+    ASSERT_PTR(cur,       high,     return NULL);
+    ASSERT_PTR(cur->type, critical, return NULL);
+
     if (!(cur->type->get_cn))
         return 0;
 
@@ -191,6 +217,9 @@ int cursor_set_ln(cursor *cur, lineno ln)
 {
     lineno oldln;
     colno  oldcn;
+
+    ASSERT_PTR(cur,       high,     return NULL);
+    ASSERT_PTR(cur->type, critical, return NULL);
 
     if (!(cur->type->set_ln))
         return 0;
@@ -217,6 +246,9 @@ int cursor_set_cn(cursor *cur, colno cn)
     lineno oldln;
     colno  oldcn;
 
+    ASSERT_PTR(cur,       high,     return NULL);
+    ASSERT_PTR(cur->type, critical, return NULL);
+
     if (!(cur->type->set_cn))
         return 0;
 
@@ -241,6 +273,9 @@ int cursor_move_cols(cursor *cur, int n)
 {
     lineno oldln;
     colno  oldcn;
+
+    ASSERT_PTR(cur,       high,     return NULL);
+    ASSERT_PTR(cur->type, critical, return NULL);
 
     if (!(cur->type->move_cols))
         return 0;
@@ -267,6 +302,9 @@ int cursor_move_lines(cursor *cur, int n)
     lineno oldln;
     colno  oldcn;
 
+    ASSERT_PTR(cur,       high,     return NULL);
+    ASSERT_PTR(cur->type, critical, return NULL);
+
     if (!(cur->type->move_lines))
         return 0;
 
@@ -291,6 +329,9 @@ int cursor_insert(cursor *cur, const char *str)
 {
     lineno oldln;
     lineno oldcn;
+
+    ASSERT_PTR(cur,       high,     return NULL);
+    ASSERT_PTR(cur->type, critical, return NULL);
 
     if (!(cur->type->insert))
         return 0;
@@ -317,6 +358,9 @@ int cursor_delete(cursor *cur, uint n)
     lineno oldln;
     colno  oldcn;
 
+    ASSERT_PTR(cur,       high,     return NULL);
+    ASSERT_PTR(cur->type, critical, return NULL);
+
     if (!(cur->type->delete))
         return 0;
 
@@ -342,6 +386,9 @@ int cursor_enter(cursor *cur)
     lineno oldln;
     colno  oldcn;
 
+    ASSERT_PTR(cur,       high,     return NULL);
+    ASSERT_PTR(cur->type, critical, return NULL);
+
     if (!(cur->type->enter))
         return 0;
 
@@ -364,6 +411,9 @@ int cursor_enter(cursor *cur)
 
 int cursor_activate(cursor *cur)
 {
+    ASSERT_PTR(cur,       high,     return NULL);
+    ASSERT_PTR(cur->type, critical, return NULL);
+
     if (!(cur->type->activate))
         return 0;
 
@@ -379,6 +429,9 @@ int cursor_activate(cursor *cur)
 
 int cursor_deactivate(cursor *cur)
 {
+    ASSERT_PTR(cur,       high,     return NULL);
+    ASSERT_PTR(cur->type, critical, return NULL);
+
     if (!(cur->type->deactivate))
         return 0;
 
@@ -396,6 +449,8 @@ cursor *cursor_buffer_selected(buffer *b)
 {
     buffercont *cont;
 
+    ASSERT_PTR(b, high, return NULL);
+
     cont = table_get(&cursors_by_buffer, &b);
 
     if (!cont)
@@ -407,6 +462,8 @@ cursor *cursor_buffer_selected(buffer *b)
 vec *cursor_buffer_all(buffer *b)
 {
     buffercont *cont;
+
+    ASSERT_PTR(b, high, return NULL);
 
     cont = table_get(&cursors_by_buffer, &b);
 
@@ -421,8 +478,8 @@ cursor *cursor_selected(void)
     buffer *b;
     win    *w;
 
-    w = win_select_get();
-    b = win_get_buffer(w);
+    TRACE_PTR(w = win_select_get(),  return NULL);
+    TRACE_PTR(b = win_get_buffer(w), return NULL);
 
     return cursor_buffer_selected(b);
 }
@@ -431,10 +488,7 @@ int cursor_select_next(buffer *b)
 {
     buffercont *cont;
 
-    cont = table_get(&cursors_by_buffer, &b);
-
-    if (!cont)
-        return -1;
+    ASSERT_PTR(cont = table_get(&cursors_by_buffer, &b), return -1);
 
     cont->selectind += 1;
     cont->selectind %= vec_len(&(cont->cursors));
@@ -444,12 +498,9 @@ int cursor_select_next(buffer *b)
 
 int cursor_select_last(buffer *b)
 {
-   buffercont *cont;
+    buffercont *cont;
 
-    cont = table_get(&cursors_by_buffer, &b);
-
-    if (!cont)
-        return -1;
+    ASSERT_PTR(cont = table_get(&cursors_by_buffer, &b), return -1);
 
     cont->selectind = vec_len(&(cont->cursors)) - 1;
 
