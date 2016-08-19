@@ -26,11 +26,11 @@ def run_mapped(keys):
 
 query_mode_cmd = Command("command-query-mode")
 
-@querymode_cmd.hook(500)
-def query_mode_cb(keys):
+@query_mode_cmd.hook(500)
+def query_mode_cb():
     Command.query_mode_enable()
 
-@cmdmap.add(Key("E", esc=True))
+@cmdmap.add(Key("e", esc=True))
 def query_mode_mapped(keys):
     query_mode_cmd.run()
 

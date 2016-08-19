@@ -39,12 +39,13 @@ class Command:
             self.by_name[name] = self
 
     @classmethod
-    def query_mode_enable(self, cls):
+    def query_mode_enable(cls):
         cls.query_mode += 1
-        editor.buffers.userlog.log("Enabled query command mode.")
+        editor.buffers.userlog.log(
+            "Enabled query command mode (%s)" % cls.query_mode)
 
     @classmethod
-    def query_mode_disable(self, cls):
+    def query_mode_disable(cls):
         cls.query_mode = max(cls.query_mode - 1, 0)
 
     def __del__(self):
@@ -70,24 +71,17 @@ class Command:
     def run_withargs(self, *args):
         self.hook.call(args)
 
-    def run_default(self):
-        if self.defaultargs == None:
-            self.run_withargs(*([""] * len(self.args)))
-
-        else:
-            self.run_withargs(*self.default)
-
     def run(self, keys=None, default=None):
-        if self.default == None:
+        if default == None:
             self.run_query()
 
         else:
-            if self.query_mode:
+            if self.query_mode and not editor.query.in_query():
                 self.run_query()
-                self.disable_query_mode()
+                type(self).query_mode_disable()
 
             else:
-                self.run_default()
+                self.run_withargs(*default)
 
     def map_to(self, keymap, *keys, defaultargs=None):
         def mapped(keys):
