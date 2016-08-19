@@ -185,6 +185,14 @@ def autocomplete_query():
     if auto != None:
         curinst.set(auto)
 
+def in_query():
+    buf  = core.windows.get_selected().buffer
+
+    if buf in querying_buffers:
+        return True
+
+    return False
+
 def make_query(callback, prefix=b"", completecallback=None):
     core.keymap.frames.active.push("query-default")
 

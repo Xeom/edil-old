@@ -145,7 +145,8 @@ insertable_chars = ("!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ "
                     "0123456789")
 
 insert_cmd = Command("cursor-insert",
-                     CommandArg(str))
+                     CommandArg(str, "String to insert"),
+                     CommandArg(int, "Repetitions"))
 @insert_cmd.hook(500)
 def insert_cb(string, n):
     if isinstance(string, str):
@@ -156,12 +157,9 @@ def insert_cb(string, n):
     sel = core.cursor.get_selected()
     sel.insert(string)
 
-def insert_mapped(keys):
-    keystring = str(keys[-1])
-    insert_cmd.run(default=[keystring, 1])
-
 for char in insertable_chars:
-    curmap.add(Key(char))(insert_mapped)
+    insert_cmd.map_to(curmap, Key(char), defaultargs=[char, 1])
+
 
 # cursor-insert-hex
 #
