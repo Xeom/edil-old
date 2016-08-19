@@ -49,7 +49,6 @@ SRC_NAMES=\
         buffer/line        \
         buffer/deferline   \
         buffer/log         \
-        buffer/point       \
                            \
         container/table    \
         container/vec      \

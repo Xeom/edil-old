@@ -45,7 +45,6 @@
 /-----------------\
 |Partially errored|
 \-----------------/
-./src/buffer/point.c
 ./src/container/table.c
 ./src/io/keymap.c
 ./src/io/listener.c

@@ -2,7 +2,6 @@
 
 #include "hook.h"
 #include "buffer/buffer.h"
-#include "buffer/point.h"
 
 #include "win/win.h"
 #include "win/label.h"

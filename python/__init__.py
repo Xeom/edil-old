@@ -11,14 +11,12 @@ import core.keymap
 import core.table
 import core.buffer
 import core.deferline
-import core.point
 import core.cursor
 import ctypes
 import shared
 import symbols
 import signal
 
-symbols.hook.initsys()
 symbols.io.listener.initsys()
 core.windows.initsys()
 core.buffer.initsys()
@@ -26,7 +24,6 @@ core.deferline.initsys()
 core.ui.initsys()
 core.key.initsys()
 core.keymap.initsys()
-core.point.initsys()
 core.ui.refresh()
 core.cursor.initsys()
 symbols.buffer.log.initsys()
