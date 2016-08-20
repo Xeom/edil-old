@@ -6,9 +6,7 @@ $(shell $(call pinfo,"Making dependencies..."))
 $(shell make -f deps.mk deps >/dev/null)
 $(shell $(call pinfo,"Done"))
 
-$(info $(D_FLAGS))
 include $(DEP_FILES)
-$(info $(D_FLAGS))
 
 lib.so: $(OBJ_FILES)
 	@$(call pinfo,"Linking...")
@@ -19,7 +17,7 @@ lib.so: $(OBJ_FILES)
 	@$(call psucc,"Copied lib.so to python")
 
 OBJFLAGS= $(D_FLAGS) $(W_FLAGS) $(I_FLAGS) $(F_FLAGS) -fPIC
-$(info $(D_FLAGS))
+
 obj/%.o: src/%.c
 	@$(call pinfo,"Creating object file $@...")
 	mkdir -p $(@D)
