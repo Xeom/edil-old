@@ -18,8 +18,6 @@ struct hook_s
 
 #define hook_add(name, nargs) hook name = {NULL, nargs}
 
-int hook_initsys(void);
-
 int hook_killsys(void);
 
 void hook_free(hook h);

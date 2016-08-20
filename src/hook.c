@@ -18,17 +18,11 @@ static vec *hook_vecs_to_free = NULL;
 
 static void hook_call_funct(hook h, hook_fcont f, vec *args);
 
-int hook_initsys(void)
-{
-    hook_vecs_to_free = vec_init(sizeof(vec *));
-
-    return 0;
-}
-
 int hook_killsys(void)
 {
-    vec_foreach(hook_vecs_to_free, vec *, v,
-                vec_free(v));
+    if (hook_vecs_to_free)
+        vec_foreach(hook_vecs_to_free, vec *, v,
+                    vec_free(v));
 
     vec_free(hook_vecs_to_free);
 
@@ -56,7 +50,12 @@ int hook_mount(hook *h, hook_f f, priority pri)
 
     if (functs == NULL)
     {
-        functs = h->functs = vec_init(sizeof(hook_fcont));
+        functs    = vec_init(sizeof(hook_fcont));
+        h->functs = functs;
+
+        if (hook_vecs_to_free == NULL)
+            hook_vecs_to_free = vec_init(sizeof(vec *));
+
         vec_insert_end(hook_vecs_to_free, 1, &functs);
     }
 

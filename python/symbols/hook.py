@@ -13,9 +13,6 @@ hook_p = ctypes.POINTER(hook_s)
 
 hook_f = ctypes.CFUNCTYPE(None, vec_p, hook_p)
 
-initsys = so.hook_initsys
-initsys.argtypes = []
-
 killsys = so.hook_killsys
 killsys.argtypes = []
 killsys.restype  = ctypes.c_int
