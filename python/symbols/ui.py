@@ -187,6 +187,12 @@ class win:
         draw_subs.argtypes = [win_p]
         draw_subs.restype  = ctypes.c_int
 
+
+class util:
+    text_next_char = so.ui_util_text_next_char
+    text_next_char.argtypes = [ctypes.c_char_p, ctypes.c_char_p]
+    text_next_char.restype  = ctypes.c_char_p
+    
 on_resize_pre  = ctypes.cast(so.ui_on_resize_pre,  hook_p)
 on_resize_post = ctypes.cast(so.ui_on_resize_post, hook_p)
 

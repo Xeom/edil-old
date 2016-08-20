@@ -125,4 +125,15 @@ def draw_window_frame(w):
 def get_window_cursor_posx(w, cur):
     return symbols.ui.win.content.get_cursor_offset(w.struct, cur.ln)
 
+def text_next_char(string):
+    start = ctypes.c_char_p(string)
+    end   = ctypes.cast(start, ctypes.c_void_p).value + len(string)
+    end   = ctypes.cast(end, ctypes.c_char_p)
 
+    rtn = symbols.ui.util.text_next_char(start, end)
+
+    if rtn == None:
+        return None
+
+    else:
+        return bytes(rtn)
