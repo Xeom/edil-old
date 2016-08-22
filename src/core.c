@@ -8,7 +8,6 @@
 
 int initsys(void)
 {
-    hook_initsys();
     win_initsys();
     ui_initsys();
     io_key_initsys();

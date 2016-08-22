@@ -20,7 +20,6 @@
 
 #include "ui/updates.h"
 
-
 static buffer *ui_updates_holding_buffer = NULL;
 
 #define unpack_arg(num, type, name)             \

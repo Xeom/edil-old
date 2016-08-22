@@ -377,7 +377,7 @@ static int cursor_point_move_cols_backward(point *p, uint n)
 
     ln = p->ln;
 
-    while (n > p->cn && p->ln)
+    while (n > p->cn && ln)
     {
         --ln;
         n -= (uint)p->cn + 1;

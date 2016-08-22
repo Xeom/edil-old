@@ -217,4 +217,3 @@ short ui_face_deserialize_length(const char *str)
 
     return rtn;
 }
-
