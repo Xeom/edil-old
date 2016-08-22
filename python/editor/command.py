@@ -42,7 +42,7 @@ class Command:
     def undefault(cls):
         cls.undefaulted += 1
         editor.buffers.userlog.log(
-            "Undefaulted next (%s) command arguments." % cls.query_mode)
+            "Undefaulted next (%s) command arguments." % cls.undefaulted)
 
     def __del__(self):
         if self.name != None:
@@ -75,9 +75,6 @@ class Command:
                 self.get_arg(args)
 
             arg.make_query(cb)
-
-    def run_query(self):
-        self.get_arg([])
 
     def run_withargs(self, *args):
         self.hook.call(args)
