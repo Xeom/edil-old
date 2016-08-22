@@ -12,17 +12,28 @@ mapname = "cmd-default"
 core.keymap.maps.add(mapname)
 cmdmap = core.keymap.maps[mapname]
 
+# command-run
+#
+# Runs a command of a specific name, with no default arguments.
+
 run_cmd = Command("command-run",
                   CommandArg(str, "Name", options_list(Command.names)))
 
 @run_cmd.hook(500)
 def run_cb(name):
     cmd = get_command(name)
-    cmd.run()
+    cmd.run_query()
 
-@cmdmap.add(Key("E", con=True))
-def run_mapped(keys):
-    run_cmd.run()
+run_cmd.map_to(cmdmap, Key("E", con=True), Key("x"))
+
+# command-undefault
+#
+# Increments the undefault counter. For each command argument that would
+# normally assume a default value, if the undefault counter is nonzero, the user
+# is prompted for a value in place of the default. The counter is then
+# decremented.
+#
+# The last arguments of each command are undefaulted first.
 
 undefault_cmd = Command("command-undefault")
 
@@ -30,10 +41,12 @@ undefault_cmd = Command("command-undefault")
 def undefault_cb():
     Command.undefault()
 
-@cmdmap.add(Key("e", esc=True))
-def undefault_mapped(keys):
-    undefault_cmd.run()
+undefault_cmd.map_to(cmdmap, Key("e", esc=True))
 
+# command-repeat
+#
+# Repeat a command several times. A specified command is run n times. The user
+# is prompted for arguments of the command only once.
 
 repeat_cmd = Command("command-repeat",
                      CommandArg(str, "Name", options_list(Command.names)),

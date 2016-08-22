@@ -15,12 +15,25 @@ winmap = core.keymap.maps["window-default"]
 
 modifier_key = Key("W", con=True)
 
+default_cursor_type = core.cursor.types.region
+
 # window-split
 #
-# Split the selected window, replacing the space it currently occupies with two
-# new windows. The new window is above, below, to the left or right of the
-# selected window, depending on the argument given to the command.
-
+#
+# Splits the currently selected window into two sub-windows. The space occupied
+# by the original window will be occupied by two windows - The original one,
+# shrunk to fit, and a new window. The arrangement of these two windows is
+# determined by the direction argument handed to this command e.g.
+#
+#      right          left         up      down
+# +------+-----+ +-----+------+ +------+ +------+
+# |      |     | |     |      | | new  | | orig |
+# | orig | new | | new | orig | +------+ +------+
+# |      |     | |     |      | | orig | | new  |
+# +------+-----+ +-----+------+ +------+ +------+
+#
+# The command also spawns a new cursor in the new window, of type
+# default_cursor_type. (defined in this file.)
 split_cmd = Command("window-split",
                     CommandArg(str, "Direction", options(
                         "up", "down", "left", "right")))
@@ -42,22 +55,16 @@ def split_cb(direction):
 
     editor.buffers.userlog.log("Split current window..")
 
-@winmap.add(modifier_key, Key("UP"))
-def splitup_mapped(keys):
-    split_cmd.run_withargs("up")
+split_cmd.map_to(winmap, modifier_key, Key("UP"),    defaultargs=["up"])
+split_cmd.map_to(winmap, modifier_key, Key("DOWN"),  defaultargs=["down"])
+split_cmd.map_to(winmap, modifier_key, Key("LEFT"),  defaultargs=["left"])
+split_cmd.map_to(winmap, modifier_key, Key("RIGHT"), defaultargs=["right"])
 
-@winmap.add(modifier_key, Key("DOWN"))
-def splitdown_mapped(keys):
-    split_cmd.run_withargs("down")
-
-@winmap.add(modifier_key, Key("LEFT"))
-def splitleft_mapped(keys):
-    split_cmd.run_withargs("left")
-
-@winmap.add(modifier_key, Key("RIGHT"))
-def splitright_mapped(keys):
-    split_cmd.run_withargs("right")
-
+# window-delete
+#
+# Deletes the currently selected window. The space occupied by the window is
+# taken up by enlarging the other window in its splitter. The root window cannot
+# be deleted.
 del_cmd = Command("window-delete")
 
 @del_cmd.hook(500)
@@ -65,40 +72,55 @@ def del_cb():
     core.windows.get_selected().delete()
     editor.buffers.userlog.log("Deleted selected window")
 
-@winmap.add(modifier_key, Key("k"))
-def del_mapped(keys):
-    del_cmd.run()
+del_cmd.map_to(winmap, modifier_key, Key("k"))
 
-next_cmd = Command("window-next")
+# window-next
+#
+# Select the n-th next window. After iterating over all windows, this command
+# returns to the first window. Negative values select previous windows.
+next_cmd = Command("window-next",
+                   CommandArg(int, "# windows to move"))
 
 @next_cmd.hook(500)
-def next_cb():
-    core.windows.get_selected().next().select()
+def next_cb(n):
+    w = core.windows.get_selected()
 
-@winmap.add(modifier_key, Key("."))
-def next_mapped(keys):
-    next_cmd.run()
+    if n < 0:
+        for i in range(n):
+            w = w.prev()
 
-prev_cmd = Command("window-prev")
+    elif n > 0:
+        for i in range(n):
+            w = w.next()
 
-@prev_cmd.hook(500)
-def prev_cb():
-    core.windows.get_selected().prev().select()
+    w.select()
 
-@winmap.add(modifier_key, Key("."))
-def prev_mapped(keys):
-    prev_cmd.run()
+next_cmd.map_to(winmap, modifier_key, Key("."), defaultargs=[ 1])
+next_cmd.map_to(winmap, modifier_key, Key(","), defaultargs=[-1])
 
-up_cmd = Command("window-up")
+# window-up
+#
+# Select the window that's the parent of the currently selected window.
+up_cmd = Command("window-up",
+                 CommandArg(int, "# levels to move up"))
 
 @up_cmd.hook(500)
-def up_cb():
-    core.windows.get_selected().parent.select()
+def up_cb(n):
+    w = core.windows.get_selected()
 
-@winmap.add(modifier_key, Key("l"))
-def up_mapped(keys):
-    core.windows.get_selected().parent.select()
+    for i in range(n):
+        w = w.parent
 
+    w.select()
+
+up_cmd.map_to(winmap, modifier_key, Key("l"), defaultargs=[1])
+
+# window-adjust
+#
+# Adjust the boundary between the two sub-windows of a selected splitter. The
+# splitter is moved the specified number of spaces either right or down,
+# depending on which way it is oriented. Negative values move the splitter up or
+# left.
 adj_cmd = Command("window-adjust",
                   CommandArg(int, "Number of spaces"))
 
@@ -106,10 +128,5 @@ adj_cmd = Command("window-adjust",
 def adj_cb(n):
     core.windows.get_selected().adj(n)
 
-@winmap.add(modifier_key, Key("+"))
-def adjplus_mapped(keys):
-    adj_cmd.run_withargs(1)
-
-@winmap.add(modifier_key, Key("-"))
-def adjminus_mapped(keys):
-    adj_cmd.run_withargs(-1)
+adj_cmd.map_to(winmap, modifier_key, Key("+"), defaultargs=[ 1])
+adj_cmd.map_to(winmap, modifier_key, Key("-"), defaultargs=[-1])

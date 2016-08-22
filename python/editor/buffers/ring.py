@@ -12,6 +12,15 @@ def handle_buffer_create(b):
 def handle_buffer_delete(b):
     buffers.remove(b)
 
+def get_id(b, increment=0):
+    index = buffers.index(b)
+
+    if increment:
+        index += increment
+        index %= len(buffers)
+
+    return buffers.index(b)
+
 def next(b):
     index = buffers.index(b)
     index = (index + 1) % len(buffers)

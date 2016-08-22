@@ -1,6 +1,9 @@
+import itertools
+
 import core.keymap
 import core.cursor
 import core.deferline
+import core.ui
 
 from core.key import Key
 from core.face import Face
@@ -11,17 +14,52 @@ mapname = "tabs-default"
 core.keymap.maps.add(mapname)
 tabmap = core.keymap.maps[mapname]
 
-default_tab_string = b"   " + Face(Face.black, Face.cyan).colour(b">")
+default_tab_string    = b"   " + Face(Face.black, Face.cyan).colour(b">")
 default_indent_string = b"\t"
+default_tab_align     = True
 
+"""Hooked function to display tabs properly.
+
+This function expands tab characters in each line that's rendered into
+default_tab_string. This is generally to make them more visible.
+"""
 @core.deferline.hooks.draw(600)
 def expandtabs(w, b, ln, li):
-    tab = get_tab_string(b)
+    tab    = get_tab_string(b)
+    align  = get_tab_align(b)
 
-    for i, c in enumerate(li.vec):
-        if c.value == b'\t':
-            li.delete(i)
-            li.insert(i, tab)
+    if align:
+        tablen = 0
+        subtab = core.ui.text_next_char(tab)
+        while subtab:
+            subtab  = core.ui.text_next_char(subtab[1:])
+            tablen += 1
+
+        colnum = 0
+        for i, c in enumerate(li.vec):
+            if c.value == b'\t':
+                li.delete(i)
+
+                skiplen = colnum % tablen
+                subtab  = tab
+                import sys
+                print(skiplen, file=sys.stderr)
+                for n in range(skiplen):
+                    subtab = core.ui.text_next_char(subtab[1:])
+
+                li.insert(i, subtab)
+                colnum += tablen - skiplen
+
+            else:
+                colnum += 1
+
+    else:
+        exit()
+        for i, c in enumerate(li.vec):
+            if c.value == b'\t':
+                li.delete(i)
+                li.insert(i, tab)
+
 
 def get_indent_string(buf):
     prop = buf.properties["indent-string"]
@@ -36,6 +74,19 @@ def get_indent_string(buf):
 def set_indent_string(buf, string):
     buf.properties["indent-string"] = string
 
+def get_tab_align(buf):
+    prop = buf.properties["tab-align"]
+
+    if prop == None:
+        buf.properties["tab-align"] = str(default_tab_align)
+
+        return default_tab_align
+
+    return prop == b"True"
+
+def set_tab_align(buf, v):
+    buf.properties["tab-align"] = "True" if v else "False"
+
 def get_tab_string(buf):
     prop = buf.properties["tab-string"]
 
@@ -45,6 +96,7 @@ def get_tab_string(buf):
         return default_tab_string
 
     return prop
+
 
 def set_tab_string(buf, string):
     buf.properties["tab-string"] = string
@@ -109,7 +161,7 @@ def set_indent_of_line(buf, ln, n, cur):
         cur.move_cols(tomove)
 
 indent_cmd = Command("tab-indent",
-                     CommandArg(int, "Levels to change"))
+                           CommandArg(int, "Levels to change"))
 
 @indent_cmd.hook(500)
 def indent_cb(n):
@@ -121,13 +173,9 @@ def indent_cb(n):
 
     set_indent_of_line(cur.buffer, cur.ln, lvl, cur)
 
-@tabmap.add(Key("TAB"), Key("RIGHT"))
-def indent_right_mapped(keys):
-    indent_cmd.run_withargs(1)
 
-@tabmap.add(Key("TAB"), Key("LEFT"))
-def indent_left_mapped(keys):
-    indent_cmd.run_withargs(-1)
+indent_cmd.map_to(tabmap, Key("TAB"), Key("RIGHT"), defaultargs=[ 1])
+indent_cmd.map_to(tabmap, Key("TAB"), Key("LEFT"),  defaultargs=[-1])
 
 align_cmd = Command("tab-align",
                     CommandArg(int, "Relative lineno to copy alignment from"))
@@ -146,14 +194,8 @@ def align_cb(n):
     lvl = get_indent_of_line(cur.buffer, ln)
     set_indent_of_line(cur.buffer, cur.ln, lvl, cur)
 
-@tabmap.add(Key("TAB"), Key("DOWN"))
-def align_up_mapped(keys):
-    align_cmd.run_withargs(1)
-
-@tabmap.add(Key("TAB"), Key("UP"))
-def align_down_mapped(keys):
-    align_cmd.run_withargs(-1)
-
+align_cmd.map_to(tabmap, Key("TAB"), Key("DOWN"), defaultargs=[ 1])
+align_cmd.map_to(tabmap, Key("TAB"), Key("UP"),   defaultargs=[-1])
 
 align_last_nonzero_cmd = Command("tab-align-last-nonzero")
 
@@ -164,6 +206,4 @@ def align_last_nonzero_cb():
     lvl = get_last_nonzero_indent(cur.buffer, cur.ln)
     set_indent_of_line(cur.buffer, cur.ln, lvl, cur)
 
-@tabmap.add(Key("TAB"), Key("TAB"))
-def align_last_nonzero_mapped(keys):
-    align_last_nonzero_cmd.run()
+align_cmd.map_to(tabmap, Key("TAB"), Key("TAB"), defaultargs=[])
