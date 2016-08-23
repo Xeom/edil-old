@@ -89,13 +89,18 @@ class HookFunct:
 
         # Extract arguments and cast them to their correct types
         for typ, arg in zip(self.parent.types, cargs):
-            if isinstance(typ, type) and (             \
-               issubclass(typ, ctypes.Structure)    or \
-               issubclass(typ, ctypes._SimpleCData) or \
-               issubclass(typ, ctypes._Pointer)):
-                # If the type is a raw ctype, then our argument is a ptr
-                # to that type, and we dereference it.
-                value = ctypes.cast(arg, ctypes.POINTER(typ)).contents
+            if isinstance(typ, type):
+                if issubclass(typ, (ctypes.Structure,
+                                    ctypes._SimpleCData)):
+                    # If the type is a raw ctype, then our argument is a ptr
+                    # to that type, and we dereference it.
+                    value = ctypes.cast(arg, ctypes.POINTER(typ)).contents
+
+                elif issubclass(typ, ctypes._Pointer):
+                    value = ctypes.cast(arg, typ)
+
+                else:
+                    value = typ(arg)
 
             else:
                 # Otherwise, we simply hand the pointer to the class

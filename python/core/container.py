@@ -121,7 +121,7 @@ class Container:
 
         # Check if we have a delete_struct attribute...
         if hasattr(self, "delete_struct"):
-            @self.delete_struct(50)
+            @self.delete_struct(900)
             def handle_delete(struct):
                 # Get an int pointer from the struct, and use this to look it
                 # up in our dictionary of structs.
@@ -136,7 +136,7 @@ class Container:
 
         # Check if we have a delete attribute...
         elif hasattr(self, "delete"):
-            @self.delete(50)
+            @self.delete(900)
             def handle_delete(obj):
                 # Get an int pointer to our StructObject by hashing it, use this
                 # to look it up in our dictionary of structs.
