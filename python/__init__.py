@@ -19,7 +19,6 @@ import signal
 
 symbols.io.listener.initsys()
 core.windows.initsys()
-core.buffer.initsys()
 core.deferline.initsys()
 core.ui.initsys()
 core.key.initsys()
@@ -132,6 +131,7 @@ def hi(key):
 
 cur = core.cursor.spawn(core.windows.get_selected().buffer,
                         core.cursor.types.region)
+
 cur.insert(b"SLUT")
 cur.enter()
 cur.insert(b"\tI love you really <3")

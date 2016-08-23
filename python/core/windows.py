@@ -6,6 +6,7 @@ import core.hook
 
 from core.buffer    import Buffer
 from core.container import Container, StructObject
+from core.hook      import Hook
 
 import ctypes
 import cutil
@@ -133,73 +134,73 @@ Window = WindowContainer()
 
 class hooks:
     class size:
-        adj_pre = core.hook.Hook(
+        adj_pre = Hook(
             symbols.win.size.on_adj_pre,
             Window,
             ctypes.c_int)
 
-        adj_post = core.hook.Hook(
+        adj_post = Hook(
             symbols.win.size.on_adj_post,
             Window,
             ctypes.c_uint,
             ctypes.c_uint)
 
-    split = core.hook.Hook(
+    split = Hook(
         symbols.win.on_split,
         Window,
         Window)
 
-    delete_post = core.hook.Hook(
+    delete_post = Hook(
         symbols.win.on_delete_post,
         Window)
 
-    delete_pre = core.hook.Hook(
+    delete_pre = Hook(
         symbols.win.on_delete_pre,
         Window)
 
 
-    create = core.hook.Hook(
+    create = Hook(
         symbols.win.on_create,
         Window)
 
-    select = core.hook.Hook(
+    select = Hook(
         symbols.win.on_select,
         Window,
         Window)
 
-    buffer_set = core.hook.Hook(
+    buffer_set = Hook(
         symbols.win.on_buffer_set,
         Window,
         Buffer)
 
-    offsetx_set = core.hook.Hook(
+    offsetx_set = Hook(
         symbols.win.on_offsetx_set,
         Window,
         ctypes.c_ulong)
 
-    offsety_set = core.hook.Hook(
+    offsety_set = Hook(
         symbols.win.on_offsety_set,
         Window,
         ctypes.c_ulong)
 
     class sidebar:
-        set_pre = core.hook.Hook(
+        set_pre = Hook(
             symbols.win.label.on_sidebar_set_pre,
             Window,
             ctypes.c_char_p)
 
-        set_post = core.hook.Hook(
+        set_post = Hook(
             symbols.win.label.on_sidebar_set_post,
             Window,
             ctypes.c_char_p)
 
     class caption:
-        set_pre = core.hook.Hook(
+        set_pre = Hook(
             symbols.win.label.on_caption_set_pre,
             Window,
             ctypes.c_char_p)
 
-        set_post = core.hook.Hook(
+        set_post = Hook(
             symbols.win.label.on_caption_set_post,
             Window,
             ctypes.c_char_p)

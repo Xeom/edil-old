@@ -3,67 +3,12 @@ import symbols.buffer
 import cutil
 import weakref
 
+from core.container  import Container, StructObject
 from core.properties import Properties
 from core.vec        import VecFreeOnDel, Vec
 from core.hook       import Hook
 
-class BufferContainer:
-    def __init__(self):
-        # This contains reference by pointer (to the struct. Integers
-        # for speed) Objects are automatically removed from it when they
-        # leave scope. They are not kept alive here.
-        self.by_ptr = weakref.WeakValueDictionary()
-
-    def mount(self):
-        # Only one of these methods is mounted, in contrast to the method
-        # where every BufferObj mounts its own method. (ew)
-        #
-        # This function stops Segmentation Faults where a buffer is freed
-        # and a reference to it still exists in Python. The python reference
-        # contains a non-null pointer to freed memory, and if it tries to
-        # operate on it, it things explode.
-        @hooks.delete_struct(50)
-        def handle_delete(struct):
-            ptr = cutil.ptr2int(struct)
-            b   = self.by_ptr.get(ptr)
-
-            # If we have no idea what just got deleted, return.
-            if b == None:
-                return
-
-            # Set the object to be non-valid. It will throw exceptions if
-            # we try and access its struct.
-            b.valid = False
-            # We also need to delete /our/ reference to this pointer, since
-            # if it gets reallocated, we need to not return an invalid and
-            # broken pointer.
-            del self.by_ptr[ptr]
-
-        # We also need to keep a reference around to the hook function we made,
-        # otherwise it will get GC'd and core/hook.py will delete it also.
-        self.handle_delete = handle_delete
-
-    # We need to pretend like we just initialized this, and didn't just
-    # find it already alive in a trashcan someplace.
-    def __call__(self, struct):
-        ptr = cutil.ptr2int(struct)
-        b   = self.by_ptr.get(ptr)
-
-        # If we have a BufferObj with the same pointer, return that.
-        if b != None:
-            return b
-
-        # Otherwise create a new one, and save a reference to it.
-        b = BufferObj(struct)
-        self.by_ptr[ptr] = b
-
-        return b
-
-    def new(self):
-        ptr = symbols.buffer.init()
-        return self(ptr)
-
-class BufferObj:
+class BufferObj(StructObject):
     def __init__(self, ptr):
         self.struct = ctypes.cast(ptr, symbols.buffer.buffer_p)
 
@@ -132,10 +77,17 @@ class BufferObj:
         self.insert(0)
         self[0] = s
 
-Buffer = BufferContainer()
+class BufferContainer(Container):
+    Obj           = BufferObj
+    delete_struct = Hook(symbols.buffer.on_delete,
+                         symbols.buffer.buffer_p,
+                         symbols.buffer.lineno)
 
-def initsys():
-    Buffer.mount()
+    def new(self):
+        ptr = symbols.buffer.init()
+        return self(ptr)
+
+Buffer = BufferContainer()
 
 class hooks:
     batch_region = Hook(
@@ -151,11 +103,6 @@ class hooks:
     delete = Hook(
         symbols.buffer.on_delete,
         Buffer)
-
-    delete_struct = Hook(
-        symbols.buffer.on_delete,
-        symbols.buffer.buffer_p,
-        symbols.buffer.lineno)
 
     class line:
         change_pre  = Hook(
