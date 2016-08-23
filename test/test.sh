@@ -1,6 +1,6 @@
 #!/bin/sh
 
-rootdir=$(dirname $(dirname $0))
+rootdir=$(dirname $(cd $(dirname $0); pwd))
 
 realfile=/tmp/edil-test-real
 simfile=/tmp/edil-test-sim

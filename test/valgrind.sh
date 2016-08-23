@@ -1,6 +1,6 @@
 #!/bin/sh
 
-rootdir=$(dirname $(dirname $0))
+rootdir=$(dirname $(cd $(dirname $0); pwd))
 
 valfile=/tmp/edil-test-val
 valflags="--error-exitcode=128 --leak-check=full --log-file=$valfile"
