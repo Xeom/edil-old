@@ -12,6 +12,7 @@ import core.table
 import core.buffer
 import core.deferline
 import core.cursor
+import core.mode
 import ctypes
 import shared
 import symbols

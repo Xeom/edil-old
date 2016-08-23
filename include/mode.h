@@ -6,8 +6,8 @@
 
 typedef struct mode_s mode;
 
-extern hook on_mode_free;
-extern hook on_mode_init;
+extern hook mode_on_free;
+extern hook mode_on_init;
 
 mode *mode_init(int priority, char *name);
 

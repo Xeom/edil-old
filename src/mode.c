@@ -26,8 +26,8 @@ struct mode_s
 
 vec   *mode_active;
 
-hook_add(on_mode_free, 1);
-hook_add(on_mode_init, 1);
+hook_add(mode_on_free, 1);
+hook_add(mode_on_init, 1);
 
 /* * THINGS TODO * *
  * Sorted Vec      *
@@ -51,7 +51,7 @@ mode *mode_init(int priority, char *name)
     new->on_activate   = h;
     new->on_deactivate = h;
 
-    hook_call(on_mode_init, new);
+    hook_call(mode_on_init, new);
 
     return new;
 }
@@ -110,6 +110,17 @@ int mode_deactivate(mode *m)
     return -1;
 }
 
+
+hook *mode_on_activate(mode *m)
+{
+    return &(m->on_activate);
+}
+
+hook *mode_on_deactivate(mode *m)
+{
+    return &(m->on_deactivate);
+}
+
 static mode *mode_handle_press_last;
 
 int mode_handle_press(key k)
@@ -152,7 +163,7 @@ int mode_free(mode *m)
     if (m->active)
         mode_deactivate(m);
 
-    hook_call(on_mode_free, m);
+    hook_call(mode_on_free, m);
 
     free(m->name);
     m->name = NULL;

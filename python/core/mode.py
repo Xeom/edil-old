@@ -1,5 +1,8 @@
 import symbols.mode
 
+from core.hook      import Hook
+from core.container import Container, StructObject
+
 class NativeModeMountf:
     def __init__(self, nativehook, funct):
         self.hook  = nativehook
@@ -11,10 +14,10 @@ class NativeModeMountf:
     def unmount(self):
         pass
 
-class ModeObject(StructObj):
+class ModeObject(StructObject):
     PtrType = symbols.mode.mode_p
 
-    @classfunction
+    @classmethod
     def new(cls, priority, name):
         ptr = symbols.mode.init(priority, name)
         return cls(ptr)
@@ -45,3 +48,9 @@ class ModeObject(StructObj):
         else:
             cfunct = hook.generate_cfunct(funct)
             symbols.mode.add_mount(self.struct, hook.struct, funct)
+
+class ModeContainer(Container):
+    Obj           = ModeObject
+    delete_struct = Hook(symbols.mode.on_free)
+
+Mode = ModeContainer()
