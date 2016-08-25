@@ -96,13 +96,11 @@ delback_cmd.map_to(kmap, Key("BACKSPACE"), defaultargs=[1])
 activate_cmd = Command("cursor-activate")
 @activate_cmd.hook(500)
 def activate_cb():
+    editor.buffers.userlog.log("Activated cursor")
     sel = core.cursor.get_selected()
     sel.activate()
 
-@kmap.add(Key("A", con=True))
-def activate_mapped(keys):
-    editor.buffers.userlog.log("Activated cursor")
-    activate_cmd.run()
+activate_cmd.map_to(kmap, Key("A", con=True))
 
 # cursor-activate
 #
@@ -113,13 +111,11 @@ def activate_mapped(keys):
 deactivate_cmd = Command("cursor-deactivate")
 @deactivate_cmd.hook(500)
 def deactivate_cb():
+    editor.buffers.userlog.log("Deactivated cursor")
     sel = core.cursor.get_selected()
     sel.deactivate()
 
-@kmap.add(Key("D", con=True))
-def deactivate_mapped(keys):
-    editor.buffers.userlog.log("Deactivated cursor")
-    deactivate_cmd.run()
+deactivate_cmd.map_to(curmap, Key("a", esc=True))
 
 # cursor-enter
 #
