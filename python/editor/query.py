@@ -215,6 +215,9 @@ def make_query(callback, prefix=b"", completecallback=None):
     newinst.callback      = callback
 
 def confirm(callback, message=None):
+    if isinstance(message, str):
+        message = message.encode("ascii")
+
     if message == None:
         message = b"Are you sure?"
 
@@ -224,13 +227,13 @@ def confirm(callback, message=None):
         if string == "yes":
             callback()
 
-        if string == "no":
+        elif string == "no":
             return
 
         else:
             confirm(callback, b"Please type yes or no")
 
-    make_query(cb, message + " ", editor.autocomplete.options("yes", "no"))
+    make_query(cb, message + b" ", editor.autocomplete.options("yes", "no"))
 
 def leave_query():
     curcursor = core.cursor.get_selected()
