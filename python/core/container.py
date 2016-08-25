@@ -157,7 +157,7 @@ class Container:
         # won't be GC'd, and so we can manipulate it later if we want.
         self.handle_delete = handle_delete
 
-    def __call__(self, struct):
+    def __call__(self, struct, objtype=None):
         """Return a StructObject representing a struct pointer.
 
         All pointers handed to this function should be very valid to avoid
@@ -172,6 +172,9 @@ class Container:
             A StructObject representing the pointer handed to this funtion.
         """
 
+        if objtype == None:
+            objtype = self.Obj
+
         # Get an integer from the pointer, and try and find a matching
         # StructObject in the weak dictionary.
         ptr = cutil.ptr2int(struct)
@@ -183,7 +186,7 @@ class Container:
 
         # Otherwise, create a new one, save it to the weak dictionary,
         # and return it.
-        obj = self.Obj(struct)
+        obj = objtype(struct)
         self.by_ptr[ptr] = obj
 
         return obj

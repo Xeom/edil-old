@@ -1,7 +1,7 @@
 import ctypes
 
 from symbols.hook import hook_p, hook_f
-from symbols.io   import key_s
+from symbols.io   import key_s, keymap_p
 from shared import lib as so
 
 class mode_s(ctypes.Structure):
@@ -21,13 +21,17 @@ deactivate = so.mode_deactivate
 deactivate.argtypes = [mode_p]
 deactivate.restype  = ctypes.c_int
 
-on_activate = so.mode_on_activate
-on_activate.argtypes = [mode_p]
-on_activate.restype  = hook_p
+get_on_activate = so.mode_get_on_activate
+get_on_activate.argtypes = [mode_p]
+get_on_activate.restype  = hook_p
 
-on_deactivate = so.mode_on_deactivate
-on_deactivate.argtypes = [mode_p]
-on_deactivate.restype  = hook_p
+get_on_deactivate = so.mode_get_on_deactivate
+get_on_deactivate.argtypes = [mode_p]
+get_on_deactivate.restype  = hook_p
+
+get_keymap = so.mode_get_keymap
+get_keymap.argtypes = [mode_p]
+get_keymap.restype  = keymap_p
 
 handle_press = so.mode_handle_press
 handle_press.argtypes = [key_s]

@@ -111,14 +111,19 @@ int mode_deactivate(mode *m)
 }
 
 
-hook *mode_on_activate(mode *m)
+hook *mode_get_on_activate(mode *m)
 {
     return &(m->on_activate);
 }
 
-hook *mode_on_deactivate(mode *m)
+hook *mode_get_on_deactivate(mode *m)
 {
     return &(m->on_deactivate);
+}
+
+keymap *mode_get_keymap(mode *m)
+{
+    return &(m->map);
 }
 
 static mode *mode_handle_press_last;
