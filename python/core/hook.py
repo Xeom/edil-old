@@ -17,7 +17,7 @@ class HookFunct:
     into classes.
     """
 
-    def __init__(self, parent, funct, priority):
+    def __init__(self, parent, funct, priority, hook):
         """Initialize an instance of this class.
 
         Arguments:
@@ -26,7 +26,7 @@ class HookFunct:
             priority (int): The priority of this funct - a value from 0 to 1000.
         """
         self.parent  = parent
-        self.struct  = parent.struct
+        self.struct  = hook
 
         # By using a weakref, we do not keep the hooked function alive.
         # Use self.free as a callback for when funct dies.
@@ -121,7 +121,7 @@ class Hook:
         return lambda funct:self.mount(funct, priority)
 
     def mount(self, funct, priority):
-        hf = HookFunct(self, funct, priority)
+        hf = HookFunct(self, funct, priority, self.struct)
 
         if hasattr(funct, "_hookfunct"):
             funct._hookfunct.append(hf)
