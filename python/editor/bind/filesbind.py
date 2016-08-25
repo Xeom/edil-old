@@ -1,15 +1,13 @@
 import core.windows
-import core.keymap
 
-from core.key import Key
+from core.mode      import Mode
+from core.key       import Key
 from editor.command import Command, CommandArg
 
 import editor.autocomplete
 
-mapname = "files-default"
-
-core.keymap.maps.add(mapname)
-filesmap = core.keymap.maps[mapname]
+mode = Mode(100, "default-files")
+kmap = mode.keymap
 
 modifier_key = Key("F", con=True)
 

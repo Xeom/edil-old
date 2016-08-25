@@ -1,15 +1,13 @@
-import core.keymap
 import core.windows
 
-from core.key import Key
+from core.key  import Key
+from core.mode import Mode
 
 import editor.buffers.ring
 from editor.command import Command, CommandArg
 
-mapname = "buffer-default"
-
-core.keymap.maps.add(mapname)
-bufmap = core.keymap.maps[mapname]
+mode = Mode.new(100, "default-buffer")
+kmap = buffermode.keymap
 
 modifier_key = Key("B", con=True)
 
@@ -25,6 +23,6 @@ def next_cb(n):
     buf = editor.buffers.ring.get_id(w, increment=n)
     w.buffer = buf
 
-next_cmd.map_to(bufmap, modifier_key, Key("."), defaultargs=[ 1])
-next_cmd.map_to(bufmap, modifier_key, Key(","), defaultargs=[-1])
+next_cmd.map_to(kmap, modifier_key, Key("."), defaultargs=[ 1])
+next_cmd.map_to(kmap, modifier_key, Key(","), defaultargs=[-1])
 

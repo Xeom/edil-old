@@ -1,15 +1,15 @@
 import string
 
-import core.keymap
 import editor.buffers.userlog
 
-from core.key import Key
+from core.mode      import Mode
+from core.key       import Key
 from editor.command import Command, CommandArg
 
-mapname = "cursor-default"
+mode = Mode(100, "default-cursor")
+kmap = mode.keymap
 
-core.keymap.maps.add(mapname)
-curmap = core.keymap.maps[mapname]
+mapname = "cursor-default"
 
 # cursor-up
 #
@@ -24,7 +24,7 @@ def up_cb(n):
     sel = core.cursor.get_selected()
     sel.move_lines(-n)
 
-up_cmd.map_to(curmap, Key("UP"), defaultargs=[1])
+up_cmd.map_to(kmap, Key("UP"), defaultargs=[1])
 
 # cursor-down
 #
@@ -39,7 +39,7 @@ def down_cb(n):
     sel = core.cursor.get_selected()
     sel.move_lines(n)
 
-down_cmd.map_to(curmap, Key("DOWN"), defaultargs=[1])
+down_cmd.map_to(kmap, Key("DOWN"), defaultargs=[1])
 
 # cursor-back
 #
@@ -55,7 +55,7 @@ def back_cb(n):
     sel = core.cursor.get_selected()
     sel.move_cols(-n)
 
-back_cmd.map_to(curmap, Key("LEFT"), defaultargs=[1])
+back_cmd.map_to(kmap, Key("LEFT"), defaultargs=[1])
 
 # cursor-forward
 #
@@ -71,7 +71,7 @@ def forward_cb(n):
     sel = core.cursor.get_selected()
     sel.move_cols(n)
 
-forward_cmd.map_to(curmap, Key("RIGHT"), defaultargs=[1])
+forward_cmd.map_to(kmap, Key("RIGHT"), defaultargs=[1])
 
 # cursor-delback
 #
@@ -85,7 +85,7 @@ def delback_cb(n):
     sel = core.cursor.get_selected()
     sel.delete(n)
 
-delback_cmd.map_to(curmap, Key("BACKSPACE"), defaultargs=[1])
+delback_cmd.map_to(kmap, Key("BACKSPACE"), defaultargs=[1])
 
 # cursor-activate
 #
@@ -99,7 +99,7 @@ def activate_cb():
     sel = core.cursor.get_selected()
     sel.activate()
 
-@curmap.add(Key("A", con=True))
+@kmap.add(Key("A", con=True))
 def activate_mapped(keys):
     editor.buffers.userlog.log("Activated cursor")
     activate_cmd.run()
@@ -116,7 +116,7 @@ def deactivate_cb():
     sel = core.cursor.get_selected()
     sel.deactivate()
 
-@curmap.add(Key("D", con=True))
+@kmap.add(Key("D", con=True))
 def deactivate_mapped(keys):
     editor.buffers.userlog.log("Deactivated cursor")
     deactivate_cmd.run()
@@ -132,7 +132,7 @@ def enter_cb():
     sel = core.cursor.get_selected()
     sel.enter()
 
-enter_cmd.map_to(curmap, Key("RETURN"))
+enter_cmd.map_to(kmap, Key("RETURN"))
 
 # cursor-insert
 #
@@ -158,8 +158,7 @@ def insert_cb(string, n):
     sel.insert(string)
 
 for char in insertable_chars:
-    insert_cmd.map_to(curmap, Key(char), defaultargs=[char, 1])
-
+    insert_cmd.map_to(kmap, Key(char), defaultargs=[char, 1])
 
 # cursor-insert-hex
 #

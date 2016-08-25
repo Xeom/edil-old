@@ -1,16 +1,14 @@
-import core.keymap
 import core.cursor
 import core.deferline
 
-from core.key import Key
+from core.mode import Mode
+from core.key  import Key
 
 from editor.autocomplete import options_list, number
 from editor.command import Command, CommandArg, get_command
 
-mapname = "cmd-default"
-
-core.keymap.maps.add(mapname)
-cmdmap = core.keymap.maps[mapname]
+mode = Mode(100, "default-command")
+kmap = mode.keymap
 
 # command-run
 #
@@ -24,7 +22,7 @@ def run_cb(name):
     cmd = get_command(name)
     cmd.run_query()
 
-run_cmd.map_to(cmdmap, Key("E", con=True), Key("x"))
+run_cmd.map_to(kmap, Key("E", con=True), Key("x"))
 
 # command-undefault
 #
@@ -41,7 +39,7 @@ undefault_cmd = Command("command-undefault")
 def undefault_cb():
     Command.undefault()
 
-undefault_cmd.map_to(cmdmap, Key("e", esc=True))
+undefault_cmd.map_to(kmap, Key("e", esc=True))
 
 # command-repeat
 #

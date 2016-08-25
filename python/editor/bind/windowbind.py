@@ -1,17 +1,15 @@
 import core.windows
-import core.keymap
 
 import editor.buffers.userlog
 
-from core.key import Key
+from core.mode import Mode
+from core.key  import Key
 
 from editor.autocomplete import options
 from editor.command import Command, CommandArg
 
-
-
-core.keymap.maps.add("window-default")
-winmap = core.keymap.maps["window-default"]
+mode = Mode(100, "default-window")
+kmap = mode.keymap
 
 modifier_key = Key("W", con=True)
 
@@ -55,10 +53,10 @@ def split_cb(direction):
 
     editor.buffers.userlog.log("Split current window..")
 
-split_cmd.map_to(winmap, modifier_key, Key("UP"),    defaultargs=["up"])
-split_cmd.map_to(winmap, modifier_key, Key("DOWN"),  defaultargs=["down"])
-split_cmd.map_to(winmap, modifier_key, Key("LEFT"),  defaultargs=["left"])
-split_cmd.map_to(winmap, modifier_key, Key("RIGHT"), defaultargs=["right"])
+split_cmd.map_to(kmap, modifier_key, Key("UP"),    defaultargs=["up"])
+split_cmd.map_to(kmap, modifier_key, Key("DOWN"),  defaultargs=["down"])
+split_cmd.map_to(kmap, modifier_key, Key("LEFT"),  defaultargs=["left"])
+split_cmd.map_to(kmap, modifier_key, Key("RIGHT"), defaultargs=["right"])
 
 # window-delete
 #
@@ -72,7 +70,7 @@ def del_cb():
     core.windows.get_selected().delete()
     editor.buffers.userlog.log("Deleted selected window")
 
-del_cmd.map_to(winmap, modifier_key, Key("k"))
+del_cmd.map_to(kmap, modifier_key, Key("k"))
 
 # window-next
 #
@@ -95,8 +93,8 @@ def next_cb(n):
 
     w.select()
 
-next_cmd.map_to(winmap, modifier_key, Key("."), defaultargs=[ 1])
-next_cmd.map_to(winmap, modifier_key, Key(","), defaultargs=[-1])
+next_cmd.map_to(kmap, modifier_key, Key("."), defaultargs=[ 1])
+next_cmd.map_to(kmap, modifier_key, Key(","), defaultargs=[-1])
 
 # window-up
 #
@@ -113,7 +111,7 @@ def up_cb(n):
 
     w.select()
 
-up_cmd.map_to(winmap, modifier_key, Key("l"), defaultargs=[1])
+up_cmd.map_to(kmap, modifier_key, Key("l"), defaultargs=[1])
 
 # window-adjust
 #
@@ -128,5 +126,5 @@ adj_cmd = Command("window-adjust",
 def adj_cb(n):
     core.windows.get_selected().adj(n)
 
-adj_cmd.map_to(winmap, modifier_key, Key("+"), defaultargs=[ 1])
-adj_cmd.map_to(winmap, modifier_key, Key("-"), defaultargs=[-1])
+adj_cmd.map_to(kmap, modifier_key, Key("+"), defaultargs=[ 1])
+adj_cmd.map_to(kmap, modifier_key, Key("-"), defaultargs=[-1])
