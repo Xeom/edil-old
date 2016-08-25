@@ -164,13 +164,13 @@ class WindowObj(StructObject):
     def sidebar(self):
        """Gets the current sidebar of this window.
 
-        The sidebar is a column of text displayed on the right border of this
-        window.
+       The sidebar is a column of text displayed on the right border of this
+       window.
 
-        Return (bytes): The current sidebar.
-        """
+       Return (bytes): The current sidebar.
+       """
 
-        return symbols.win.label.sidebar_get(self.struct)
+       return symbols.win.label.sidebar_get(self.struct)
 
     @caption.setter
     def sidebar(self, sbar):
