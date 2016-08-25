@@ -5,6 +5,9 @@
 
 typedef struct keymap_s keymap;
 
+extern hook keymap_on_init;
+extern hook keymap_on_free;
+
 keymap *keymap_init(void);
 
 void keymap_free(keymap *map);

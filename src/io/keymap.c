@@ -13,6 +13,9 @@
 
 #include "io/keymap.h"
 
+hook_add(keymap_on_free, 1);
+hook_add(keymap_on_init, 1);
+
 typedef struct keytree_s keytree;
 
 typedef enum
