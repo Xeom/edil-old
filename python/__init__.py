@@ -3,6 +3,7 @@ import cProfile, pstats, io, select, sys
 pr = cProfile.Profile()
 pr.enable()
 
+import core.err
 import core.ui
 import core.windows
 import core.hook
@@ -124,10 +125,6 @@ def handle_offsety_set(win, old):
     seen   = win.textsize[1] - before - after
 
     win.sidebar = (b" " * before) + (b"|" * seen) + (b" " * after)
-
-@core.key.hooks.key(500)
-def hi(key):
-    print(key, file=sys.stderr)
 
 cur = core.cursor.spawn(core.windows.get_selected().buffer,
                         core.cursor.types.region)
