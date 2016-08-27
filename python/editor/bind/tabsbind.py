@@ -42,8 +42,7 @@ def expandtabs(w, b, ln, li):
 
                 skiplen = colnum % tablen
                 subtab  = tab
-                import sys
-                print(skiplen, file=sys.stderr)
+
                 for n in range(skiplen):
                     subtab = core.ui.text_next_char(subtab[1:])
 
@@ -153,8 +152,7 @@ def set_indent_of_line(buf, ln, n, cur):
 
     if tomove < 0:
         cur.move_cols(max(tomove, -cur.cn))
-    import sys
-    print((indent * n) + text[chars:], file=sys.stderr)
+
     buf[ln] = (indent * n) + text[chars:]
 
     if tomove >= 0:
