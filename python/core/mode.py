@@ -79,10 +79,10 @@ class ModeStuck(ModeFreeOnDel):
     def handle_change(cls, new, old):
         cls.curr = new
 
-        for oldmode in cls.modes[old]:
+        for oldmode in cls.modes.get(old, []):
             oldmode.deactivate()
 
-        for newmode in cls.modes[new]:
+        for newmode in cls.modes.get(new, []):
             newmode.activate()
 
     @classmethod
@@ -113,6 +113,9 @@ class ModeStuck(ModeFreeOnDel):
 
             if bufmodes != None and self in bufmodes:
                 bufmodes.remove(self)
+
+        self.on_activate_handler   = handle_activate
+        self.on_deactivate_handler = handle_deactivate
 
 class ModeStuckBuffer(ModeStuck):
     @staticmethod

@@ -90,6 +90,10 @@ class Command:
         self.maps.append(mapped)
         keymap.add(*keys)(mapped)
 
+    def run_withargs_string(self, *strargs):
+        self.hook.call(
+            a.type_convert(s) for a, s in zip(self.args, strargs))
+
 def get_command(name):
     return Command.by_name[name]
 

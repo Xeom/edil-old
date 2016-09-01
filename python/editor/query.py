@@ -207,23 +207,8 @@ def make_query(callback, prefix=b"", completecallback=None):
     qinst.autocompleter = AutoCompleter(completecallback)
     qinst.callback      = callback
 
-    query_mode.activate()
-
-def make_query(callback, prefix=b"", completecallback=None):
-    core.keymap.frames.active.push("query-default")
-
-    buf  = core.windows.get_selected().buffer
-
-    if buf in querying_buffers:
-        raise Exception("Cannot double-query")
-
-    querying_buffers.add(buf)
-
-    newcursor = core.cursor.spawn(buf, QueryCursorType)
     core.cursor.select_last(buf)
-    newinst   = QueryCursorType.find_instance(newcursor)
-    newinst.autocompleter = AutoCompleter(completecallback)
-    newinst.callback      = callback
+    query_mode.activate()
 
 def confirm(callback, message=None):
     if message == None:
