@@ -1,12 +1,13 @@
 import string
 
 import editor.buffers.userlog
+import core.cursor
 
 from core.mode      import Mode
 from core.key       import Key
 from editor.command import Command, CommandArg
 
-mode = Mode(100, "default-cursor")
+mode = Mode.new(100, "default-cursor")
 kmap = mode.keymap
 
 mapname = "cursor-default"
@@ -115,7 +116,7 @@ def deactivate_cb():
     sel = core.cursor.get_selected()
     sel.deactivate()
 
-deactivate_cmd.map_to(curmap, Key("a", esc=True))
+deactivate_cmd.map_to(kmap, Key("a", esc=True))
 
 # cursor-enter
 #

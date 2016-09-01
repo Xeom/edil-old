@@ -24,7 +24,6 @@ core.buffer.initsys()
 core.deferline.initsys()
 core.ui.initsys()
 core.key.initsys()
-core.keymap.initsys()
 core.ui.refresh()
 core.cursor.initsys()
 symbols.buffer.log.initsys()
@@ -88,7 +87,7 @@ def addeol(w, b, ln, li):
     li.insert(len(li.vec), suffix)
 
 
-mastermap = core.keymap.maps["master"]
+mastermap = core.keymap.Keymap.new()
 @mastermap.add(Key("V", con=True))
 def paste(keys):
     editor.clipboard.do_paste(cursors.current)
@@ -130,6 +129,8 @@ def handle_offsety_set(win, old):
 @core.key.hooks.key(500)
 def hi(key):
     print(key, file=sys.stderr)
+    import symbols.mode
+    symbols.mode.handle_press(key.struct)
 
 cur = core.cursor.spawn(core.windows.get_selected().buffer,
                         core.cursor.types.region)

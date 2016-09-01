@@ -11,7 +11,7 @@ from editor.command import Command, CommandArg
 
 mapname = "tabs-default"
 
-mode = Mode(100, "default-tabs")
+mode = Mode.new(100, "default-tabs")
 kmap = mode.keymap
 
 default_tab_string    = b"   " + Face(Face.black, Face.cyan).colour(b">")

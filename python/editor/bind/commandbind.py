@@ -7,7 +7,7 @@ from core.key  import Key
 from editor.autocomplete import options_list, number
 from editor.command import Command, CommandArg, get_command
 
-mode = Mode(100, "default-command")
+mode = Mode.new(100, "default-command")
 kmap = mode.keymap
 
 # command-run

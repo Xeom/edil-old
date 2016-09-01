@@ -8,7 +8,7 @@ from core.key  import Key
 from editor.autocomplete import options
 from editor.command import Command, CommandArg
 
-mode = Mode(100, "default-window")
+mode = Mode.new(100, "default-window")
 kmap = mode.keymap
 
 modifier_key = Key("W", con=True)

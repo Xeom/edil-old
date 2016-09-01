@@ -63,8 +63,6 @@ class CursorType:
 
         self.struct = ctypes.pointer(symbols.cursor.cursor_type_s(*cfuncts))
 
-
-
     # The following functions, prefixed with _, are turned into C function
     # pointer
     def _free(self, ptr):
@@ -166,6 +164,11 @@ class CursorType:
 
     def find_instance(self, cursor):
         return self.instances[symbols.cursor.get_ptr(cursor.struct)]
+
+    def is_instance(self, cursor):
+        return symbols.cursor.get_ptr(cursor.struct) in self.instances
+
+    
 
 class CursorTypeFromPtr:
     """Class used to represent a cursor type defined outside python.
@@ -317,9 +320,7 @@ def select_next(buf):
     symbols.cursor.select_next(buf.struct)
 
 def select_last(buf):
-    """Causes the previous cursor in a buffer to be selected.
-
-    The inverse of select_next.
+    """Causes the most recently created cursor in a buffer to be selected.
 
     Arguments:
         buf (Buffer): The buffer to change the selected cursor in.
@@ -352,6 +353,8 @@ class hooks:
                            Cursor)
     free            = Hook(symbols.cursor.on_free,
                            Cursor)
+    select          = Hook(symbols.cursor.on_select,
+                           Buffer, Cursor)
     set_ln_pre      = Hook(symbols.cursor.on_set_ln_pre,
                            Cursor, symbols.buffer.lineno)
     set_ln_post     = Hook(symbols.cursor.on_set_ln_post,

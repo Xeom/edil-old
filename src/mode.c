@@ -24,7 +24,7 @@ struct mode_s
     vec     mounts;
 };
 
-vec   *mode_active;
+vec   *mode_active = NULL;
 
 hook_add(mode_on_free, 1);
 hook_add(mode_on_init, 1);
@@ -65,10 +65,10 @@ int mode_activate(mode *m)
         TRACE_PTR(mode_active = vec_init(sizeof(mode *)),
                   return -1);
 
-    ASSERT(!vec_contains(mode_active, m), high, return -1);
+    ASSERT(!vec_contains(mode_active, &m), high, return -1);
     index = vec_len(mode_active);
 
-    index = vec_bisearch(mode_active, m, &cmpmap);
+    index = vec_bisearch(mode_active, &m, &cmpmap);
     vec_insert(mode_active, index, 1, &m);
 
     vec_foreach(&(m->mounts), mode_mountf, mount,
@@ -123,10 +123,10 @@ hook *mode_get_on_deactivate(mode *m)
 
 keymap *mode_get_keymap(mode *m)
 {
-    return &(m->map);
+    return m->map;
 }
 
-static mode *mode_handle_press_last;
+static mode *mode_handle_press_last = NULL;
 
 int mode_handle_press(key k)
 {

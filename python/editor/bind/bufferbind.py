@@ -7,7 +7,7 @@ import editor.buffers.ring
 from editor.command import Command, CommandArg
 
 mode = Mode.new(100, "default-buffer")
-kmap = buffermode.keymap
+kmap = mode.keymap
 
 modifier_key = Key("B", con=True)
 

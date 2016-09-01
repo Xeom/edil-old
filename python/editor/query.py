@@ -4,6 +4,7 @@ import core.keymap
 import core.ui
 import editor.autocomplete
 
+from core.mode   import Mode
 from core.cursor import CursorType
 import core.cursor
 
@@ -163,13 +164,10 @@ class QueryCursor:
 
 QueryCursorType = CursorType(QueryCursor)
 
+query_mode = Mode.new_cursor(80, "query")
+query_kmap = query_mode.keymap
+
 core.cursor.snap_blacklist.insert(0, QueryCursorType.struct)
-#cursor.Snapper.blacklist.append(QueryPoint)
-
-mapname = "query-default"
-
-core.keymap.maps.add(mapname)
-querymap = core.keymap.maps[mapname]
 
 querying_buffers = set()
 
@@ -178,7 +176,7 @@ def autocomplete_query():
     curinst   = QueryCursorType.find_instance(curcursor)
 
     if not isinstance(curinst, QueryCursor):
-        raise Exception("Not in a query")
+        raise Exception("Current cursor is not a query cursor")
 
     auto = curinst.autocompleter.complete("".join(curinst.string))
 
@@ -194,17 +192,30 @@ def in_query():
     return False
 
 def make_query(callback, prefix=b"", completecallback=None):
+    if isinstance(prefix, str):
+        prefix = prefix.encode("ascii")
+
+
+    ## TODO: PROVIDE DOUBLE QUERY PROTECTION
+    buf = core.windows.get_selected().buffer
+
+    core.ui.set_sbar(query_prefix_face.colour(prefix))
+
+    qcursor = core.cursor.spawn(buf, QueryCursorType)
+    qinst   = QueryCursorType.find_instance(qcursor)
+
+    qinst.autocompleter = AutoCompleter(completecallback)
+    qinst.callback      = callback
+
+    query_mode.activate()
+
+def make_query(callback, prefix=b"", completecallback=None):
     core.keymap.frames.active.push("query-default")
 
     buf  = core.windows.get_selected().buffer
 
     if buf in querying_buffers:
         raise Exception("Cannot double-query")
-
-    if isinstance(prefix, str):
-        prefix = prefix.encode("ascii")
-
-    core.ui.set_sbar(query_prefix_face.serialize(len(prefix)) + prefix)
 
     querying_buffers.add(buf)
 
@@ -221,10 +232,10 @@ def confirm(callback, message=None):
     def cb(string):
         string = string.lower()
 
-        if string == "yes":
+        if string in ("y", "yes", "yea", "fucking go for it"):
             callback()
 
-        if string == "no":
+        if string in ("n", "no", "nah", "fuck off mate"):
             return
 
         else:
@@ -233,25 +244,22 @@ def confirm(callback, message=None):
     make_query(cb, message + " ", editor.autocomplete.options("yes", "no"))
 
 def leave_query():
-    curcursor = core.cursor.get_selected()
-    curinst   = QueryCursorType.find_instance(curcursor)
-
     buf = core.windows.get_selected().buffer
 
-    core.keymap.frames.active.remove("query-default")
-
-    if buf in querying_buffers:
-        querying_buffers.remove(buf)
+    qcursor = core.cursor.get_buffer_selected(buf)
+    qinst   = QueryCursorType.find_instance(qcursor)
 
     core.ui.set_sbar(b"")
-    core.cursor.delete_selected(buf)
-    curinst.callback("".join(curinst.string))
 
-@querymap.add(Key("RETURN"))
+    query_mode.deactivate()
+    core.cursor.delete_selected(buf)
+    qinst.callback("".join(qinst.string))
+
+@query_kmap.add(Key("RETURN"))
 def query_enter(keys):
     leave_query()
 
-@querymap.add(Key("TAB"))
+@query_kmap.add(Key("TAB"))
 def query_tab(keys):
     autocomplete_query()
 

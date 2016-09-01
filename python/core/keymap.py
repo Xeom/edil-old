@@ -5,6 +5,7 @@ import symbols.io
 import symbols.hook
 import symbols.vec
 
+from core.container import StructObject, Container
 from core.hook import Hook, HookFunct
 from core.vec  import Vec, VecFreeOnDel
 
@@ -32,6 +33,10 @@ class KeymapFunct(HookFunct):
 class KeymapObj(StructObject):
     PtrType = symbols.io.keymap_p
 
+    def __init__(self, ptr):
+        self.functs = []
+        super().__init__(ptr)
+
     def press(self, key):
         return symbols.io.keymap.press(self.struct, key.struct)
 
@@ -46,7 +51,7 @@ class KeymapObj(StructObject):
         hook = symbols.io.keymap.get(self.struct, v.struct)
 
         def rtn(funct):
-            kf = KeymapFunct(self, funct, 500, hook)
+            kf = KeymapFunct(self, funct, 500, hook, self.functs)
 
             return funct
 
@@ -69,6 +74,6 @@ class KeymapContainer(Container):
 
     def new(self):
         ptr = symbols.io.keymap.init()
-        return self(ptr, Obj=KeymapFreeOnDel)
+        return self(ptr, objtype=KeymapFreeOnDel)
 
 Keymap = KeymapContainer()

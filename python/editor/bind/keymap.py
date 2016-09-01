@@ -11,3 +11,6 @@ default_buffer_modes = [editor.bind.cursorbind.mode,
                         editor.bind.filesbind.mode,
                         editor.bind.tabsbind.mode,
                         editor.bind.commandbind.mode]
+
+for mode in default_buffer_modes:
+    mode.activate()

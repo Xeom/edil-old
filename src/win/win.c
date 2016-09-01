@@ -4,6 +4,7 @@
 #include "win/size.h"
 #include "win/util.h"
 #include "win/label.h"
+#include "win/select.h"
 #include "hook.h"
 #include "err.h"
 
