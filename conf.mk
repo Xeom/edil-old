@@ -27,7 +27,7 @@ LINKS=ncurses
 
 INCLUDES=include/ src/ test/
 
-TEST_NAMES=unit_table unit_vec unit_buffer
+TEST_NAMES=unit_table unit_vec unit_buffer unit_ui_text
 
 SRC_NAMES=\
     core                   \
@@ -59,6 +59,7 @@ SRC_NAMES=\
         ui/face            \
         ui/util            \
         ui/updates         \
+        ui/text            \
                            \
             ui/win/win     \
             ui/win/content \

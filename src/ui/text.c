@@ -1,59 +1,62 @@
-typedef enum {
-    ascii = 0x01,
-    uni_2 = 0x02,
-    uni_3 = 0x03,
-    uni_4 = 0x04,
-    face  = 0x81,
-    uni_x = 0x82
-} text_symbol_type;
+#include <stdint.h>
 
-text_symbol_type ui_text_symbol(uchar c)
+#include "ui/face.h"
+#include "err.h"
+
+#include "ui/text.h"
+
+text_symbol_type ui_text_symbol(char c)
 {
-    if (c == '\n')
-        return face;
+    if ((uchar)c == '\n')
+        return face_start;
 
-    if (0x80 & c == 0x00)
+    if ((uchar)c < 0x80)
         return ascii;
 
-    if (0xc0 & c == 0x80)
-        return uni_x;
+    if ((uchar)c < 0xc0)
+        return utf8_mid;
 
-    text_symbol_type rtn = ascii;
+    if ((uchar)c < 0xe0)
+        return utf8_2wide;
 
-    while (0x40 & c)
-    {
-        c  <<= 1;
-        rtn += 1;
-    }
+    if ((uchar)c < 0xf0)
+        return utf8_3wide;
 
-    return rtn;
+    if ((uchar)c < 0xf8)
+        return utf8_4wide;
+
+    return utf8_big;
 }
 
 size_t ui_text_symbol_width(text_symbol_type sym)
 {
     switch (sym)
     {
-    case face:
+    case face_start:
         return face_serialized_len;
-    case uni_x:
+    case utf8_big:
+    case utf8_mid:
         return 1;
     default:
-        return (int)sym;
+        return (size_t)sym;
     }
 }
 
-static inline ui_text_next_symbol(char *str)
+char *ui_text_next_symbol(char *str)
 {
     return str + ui_text_symbol_width(ui_text_symbol(*str));
 }
 
-ui_text_symbol_is_char(text_symbol_type sym)
+int ui_text_symbol_is_char(text_symbol_type sym)
 {
-    return sym <= uni_4;
+    return sym <= utf8_4wide;
 }
 
-static char *ui_text_next_char(char *str, char *end)
+char *ui_text_next_char(char *str, char *end)
 {
+    ASSERT_PTR(str, high, return NULL);
+    ASSERT_PTR(end, high, return NULL);
+
     while (str < end &&
            (str = ui_text_next_symbol(str)) < end)
     {
@@ -68,8 +71,11 @@ static char *ui_text_next_char(char *str, char *end)
     return NULL;
 }
 
-static char *ui_text_next_face(char *str, char *end)
+char *ui_text_next_face(char *str, char *end)
 {
+    ASSERT_PTR(str, high, return NULL);
+    ASSERT_PTR(end, high, return NULL);
+
     while (str < end &&
            (str = ui_text_next_symbol(str)) < end)
     {
@@ -77,16 +83,19 @@ static char *ui_text_next_face(char *str, char *end)
 
         typ = ui_text_symbol(*str);
 
-        if (typ == face)
+        if (typ == face_start)
             return str;
     }
 
     return NULL;
 }
 
-static size_t ui_text_len(char *str, char *end)
+size_t ui_text_len(char *str, char *end)
 {
     size_t rtn;
+
+    ASSERT_PTR(str, high, return 0);
+    ASSERT_PTR(end, high, return 0);
 
     rtn = 0;
 
@@ -99,14 +108,17 @@ static size_t ui_text_len(char *str, char *end)
         if (ui_text_symbol_is_char(typ))
             rtn++;
 
-        str = ui_text_next_symbol(str)
+        str = ui_text_next_symbol(str);
     }
 
     return rtn;
 }
 
-static char *ui_text_get_char(char *str, char *end, size_t n)
+char *ui_text_get_char(char *str, char *end, size_t n)
 {
+    ASSERT_PTR(str, high, return NULL);
+    ASSERT_PTR(end, high, return NULL);
+
     while (str < end)
     {
         text_symbol_type typ;
@@ -120,6 +132,36 @@ static char *ui_text_get_char(char *str, char *end, size_t n)
         str = ui_text_next_symbol(str);
     }
 
-    return rtn;
+    ERR_NEW(high, "Invalid Index - Not enough text", "");
+    return NULL;
 }
 
+int32_t ui_text_decode_utf8(char *str, char *end)
+{
+    text_symbol_type typ;
+    int32_t          rtn;
+    size_t           width;
+
+    ASSERT_PTR(str, high, return -1);
+    ASSERT_PTR(end, high, return -1);
+
+    typ = ui_text_symbol(*str);
+
+    width = ui_text_symbol_width(typ);
+
+    ASSERT(str + width < end,           high, return -1);
+    ASSERT(ui_text_symbol_is_char(typ), high, return -1);
+
+    if (typ == ascii)
+        return (int32_t)*str;
+
+    rtn = (0x7f >> (int)typ) & (*str);
+
+    while (width--)
+    {
+        rtn <<= 6;
+        rtn  |= *(++str) & 0x3f;
+    }
+
+    return rtn;
+}
