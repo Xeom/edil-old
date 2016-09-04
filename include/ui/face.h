@@ -28,9 +28,6 @@ extern const colour face_colour_magenta;
 extern const colour face_colour_yellow;
 extern const colour face_colour_white;
 
-extern const size_t face_serialized_len;
-extern const char   face_cursor[];
-
 typedef struct face_s face;
 
 struct face_s
@@ -40,6 +37,10 @@ struct face_s
     char   bright;
     char   under;
 };
+
+extern const size_t face_serialized_len;
+extern const face   face_default;
+extern const char   face_cursor[];
 
 extern const colour face_colour_black;
 extern const colour face_colour_blue;

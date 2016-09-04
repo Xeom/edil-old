@@ -33,6 +33,8 @@ const size_t face_serialized_len = 6;
 
 const char face_cursor[] = "\nCURSA";
 
+const face face_default = {.bg = black, .fg = white, .bright = 0};
+
 int ui_face_initsys(void)
 {
     short id;

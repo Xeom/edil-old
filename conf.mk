@@ -23,7 +23,7 @@ WARNINGS=all no-unused-parameter extra pedantic \
          conversion declaration-after-statement \
          error
 
-LINKS=ncurses
+LINKS=ncursesw
 
 INCLUDES=include/ src/ test/
 

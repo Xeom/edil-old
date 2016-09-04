@@ -1,6 +1,8 @@
+#define _XOPEN_SOURCE_EXTENDED
+#include <ncursesw/ncurses.h>
+
 #include <stdint.h>
 
-#include "ui/face.h"
 #include "err.h"
 
 #include "ui/text.h"
@@ -42,17 +44,47 @@ size_t ui_text_symbol_width(text_symbol_type sym)
     }
 }
 
-char *ui_text_next_symbol(char *str)
-{
-    return str + ui_text_symbol_width(ui_text_symbol(*str));
-}
-
 int ui_text_symbol_is_char(text_symbol_type sym)
 {
     return sym <= utf8_4wide;
 }
 
-char *ui_text_next_char(char *str, char *end)
+char *ui_text_next_symbol(const char *str)
+{
+    return (char *)str + ui_text_symbol_width(ui_text_symbol(*str));
+}
+
+int32_t ui_text_decode_utf8(const char *str, const char *end)
+{
+    text_symbol_type typ;
+    int32_t          rtn;
+    size_t           width;
+
+    ASSERT_PTR(str, high, return -1);
+    ASSERT_PTR(end, high, return -1);
+
+    typ = ui_text_symbol(*str);
+
+    width = ui_text_symbol_width(typ);
+
+    ASSERT(str + width <= end,          high, return -1);
+    ASSERT(ui_text_symbol_is_char(typ), high, return -1);
+
+    if (typ == ascii)
+        return (int32_t)*str;
+
+    rtn = (0x7f >> (int)typ) & (*str);
+
+    while (--width)
+    {
+        rtn <<= 6;
+        rtn  |= *(++str) & 0x3f;
+    }
+
+    return rtn;
+}
+
+char *ui_text_next_char(const char *str, const char *end)
 {
     ASSERT_PTR(str, high, return NULL);
     ASSERT_PTR(end, high, return NULL);
@@ -65,13 +97,30 @@ char *ui_text_next_char(char *str, char *end)
         typ = ui_text_symbol(*str);
 
         if (ui_text_symbol_is_char(typ))
-            return str;
+            return (char *)str;
     }
 
     return NULL;
 }
 
-char *ui_text_next_face(char *str, char *end)
+char *ui_text_first_char(const char *str, const char *end)
+{
+    text_symbol_type typ;
+
+    if (str == end)
+        return NULL;
+
+    typ = ui_text_symbol(*str);
+
+    if (ui_text_symbol_is_char(typ))
+        return (char *)str;
+
+    else
+        return ui_text_next_face(str, end);
+}
+
+
+char *ui_text_next_face(const char *str, const char *end)
 {
     ASSERT_PTR(str, high, return NULL);
     ASSERT_PTR(end, high, return NULL);
@@ -84,13 +133,52 @@ char *ui_text_next_face(char *str, char *end)
         typ = ui_text_symbol(*str);
 
         if (typ == face_start)
-            return str;
+            return (char *)str;
     }
 
     return NULL;
 }
 
-size_t ui_text_len(char *str, char *end)
+char *ui_text_first_face(const char *str, const char *end)
+{
+    text_symbol_type typ;
+
+    if (str == end)
+        return NULL;
+
+    typ = ui_text_symbol(*str);
+
+    if (typ == face_start)
+        return (char *)str;
+
+    else
+        return ui_text_next_face(str, end);
+}
+
+
+char *ui_text_get_char(const char *str, const char *end, size_t n)
+{
+    ASSERT_PTR(str, high, return NULL);
+    ASSERT_PTR(end, high, return NULL);
+
+    while (str < end)
+    {
+        text_symbol_type typ;
+
+        typ = ui_text_symbol(*str);
+
+        if (ui_text_symbol_is_char(typ))
+            if (n-- == 0)
+                return (char *)str;
+
+        str = ui_text_next_symbol(str);
+    }
+
+    ERR_NEW(high, "Invalid Index - Not enough text", "");
+    return NULL;
+}
+
+size_t ui_text_len(const char *str, const char *end)
 {
     size_t rtn;
 
@@ -114,54 +202,84 @@ size_t ui_text_len(char *str, char *end)
     return rtn;
 }
 
-char *ui_text_get_char(char *str, char *end, size_t n)
+short ui_text_face_overflow(const char *str, const char *end, face *f)
 {
-    ASSERT_PTR(str, high, return NULL);
-    ASSERT_PTR(end, high, return NULL);
+    short facen;
+    char *facechar, *textchar, *nextface;
 
-    while (str < end)
-    {
-        text_symbol_type typ;
+    facen = 0;
 
-        typ = ui_text_symbol(*str);
+    facechar = ui_text_first_face(str, end);
 
-        if (ui_text_symbol_is_char(typ))
-            if (n-- == 0)
-                return str;
+    if (!facechar)
+        return 0;
 
-        str = ui_text_next_symbol(str);
-    }
+    while ((nextface = ui_text_next_face(facechar, end)))
+        facechar = nextface;
 
-    ERR_NEW(high, "Invalid Index - Not enough text", "");
-    return NULL;
+    textchar = facechar;
+
+    if (f) *f = ui_face_deserialize_face(facechar);
+    facen     = ui_face_deserialize_length(facechar);
+
+    while (facen && (textchar = ui_text_next_char(textchar, end)))
+        facen--;
+
+    return facen;
 }
 
-int32_t ui_text_decode_utf8(char *str, char *end)
+int ui_text_draw_h(
+    const char *str,
+    const char *end,
+    uint sizelim,
+    chtype filler,
+    short facen)
 {
-    text_symbol_type typ;
-    int32_t          rtn;
-    size_t           width;
+    char *facechar, *textchar;
 
-    ASSERT_PTR(str, high, return -1);
-    ASSERT_PTR(end, high, return -1);
+    facechar = ui_text_first_face(str, end);
+    textchar = ui_text_first_char(str, end);
 
-    typ = ui_text_symbol(*str);
+    if      (str == NULL) end = NULL;
+    else if (end == NULL) end = str + strlen(str);
 
-    width = ui_text_symbol_width(typ);
-
-    ASSERT(str + width < end,           high, return -1);
-    ASSERT(ui_text_symbol_is_char(typ), high, return -1);
-
-    if (typ == ascii)
-        return (int32_t)*str;
-
-    rtn = (0x7f >> (int)typ) & (*str);
-
-    while (width--)
+    while (--sizelim)
     {
-        rtn <<= 6;
-        rtn  |= *(++str) & 0x3f;
+        while (facechar && facen == 0 && facechar < textchar)
+        {
+            if (facechar + face_serialized_len <= end)
+            {
+                face f;
+                f        = ui_face_deserialize_face(facechar);
+                facen    = ui_face_deserialize_length(facechar);
+                attron(ui_face_get_attr(f));
+
+                facechar = ui_text_next_face(facechar, end);
+            }
+            else
+                facechar = NULL;
+        }
+
+        if (textchar)
+        {
+            int32_t chrint;
+            wchar_t chr;
+
+            chrint   = ui_text_decode_utf8(textchar, end);
+            chr      = (wchar_t)((chrint != -1) ? chrint : L'?');
+
+            if (facen == 0) attrset(0);
+            else facen--;
+
+            addnwstr(&chr, 1);
+
+            textchar = ui_text_next_char(textchar, end);
+        }
+        else
+            addch(filler);
+
     }
 
-    return rtn;
+    return 0;
 }
+

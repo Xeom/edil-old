@@ -11,6 +11,7 @@
 
 #include "ui/win/content.h"
 #include "ui/face.h"
+#include "ui/text.h"
 
 #include "err.h"
 
@@ -142,35 +143,30 @@ int ui_win_content_draw_line(win *w, lineno ln)
             l = NULL;
     }
 
+    move(curry++, currx);
+
     if (l)
     {
-        char *iter, *last;
-        size_t index;
+        char *start, *str, *end;
+        face   startface;
+        short  startfacen;
 
-        iter = vec_item(l, 0);
-        last = (char *)vec_item(l, vec_len(l) - 1) + 1;
+        start = (char *)vec_item(l, 0);
+        end   = (char *)vec_item(l, vec_len(l) - 1) + 1;
 
-        iter = ui_util_text_next_char(iter, last);
+        str = ui_text_get_char(start, end, offx);
 
-        for (index = 0; index < offx; index++)
-        {
-            iter = ui_util_text_next_char(iter + 1, last);
+        startface  = face_default;
+        startfacen = ui_text_face_overflow(start, str, &startface);
 
-            if (!iter)
-                return 0;
-        }
-
-        move(curry++, currx);
-        ui_util_draw_text_limited_h(sizex - 1, (uint)(last - iter), ' ', iter);
+        attron(ui_face_get_attr(startface));
+        ui_text_draw_h(str, end, sizex - 1, ' ', startfacen);
     }
     else
-    {
-        move(curry++, currx);
-        ui_util_draw_text_limited_h(sizex - 1, 0, ' ', "");
-    }
+        ui_text_draw_h(NULL, NULL, sizex - 1, ' ', 0);
 
     hook_call(ui_win_content_on_draw_line_post, &w, &b, &ln, &l);
-// TODO Faces on offsetx
+
     vec_free(l);
 
     return 0;
