@@ -16,6 +16,7 @@
 #include "err.h"
 
 #include <stdio.h>
+
 size_t ui_win_content_get_cursor_offset(win *w, lineno ln)
 {
     buffer *b;
@@ -156,11 +157,14 @@ int ui_win_content_draw_line(win *w, lineno ln)
 
         str = ui_text_get_char(start, end, offx);
 
+        if (str == NULL) str = end;
+
         startface  = face_default;
         startfacen = ui_text_face_overflow(start, str, &startface);
 
         attron(ui_face_get_attr(startface));
         ui_text_draw_h(str, end, sizex - 1, ' ', startfacen);
+
     }
     else
         ui_text_draw_h(NULL, NULL, sizex - 1, ' ', 0);

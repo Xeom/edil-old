@@ -3,8 +3,12 @@
 
 #include "container/table.h"
 #include "ui/win/content.h"
+#include "ui/text.h"
+#include "err.h"
 
 #include "buffer/deferline.h"
+
+
 
 struct deferline_s
 {
@@ -86,7 +90,8 @@ static void buffer_deferline_sorted_vinsert(vec *v, size_t value)
 */
 }
 
-int buffer_deferline_insert(deferline *dl, size_t index, const char *str)
+int buffer_deferline_insert_at_byte(
+    deferline *dl, size_t index, const char *str)
 {
     char *new, **oldptr;
     size_t inslen, oldlen;
@@ -115,6 +120,31 @@ int buffer_deferline_insert(deferline *dl, size_t index, const char *str)
 
         memcpy(new + oldlen, str, inslen + 1);
     }
+
+    return 0;
+}
+
+int buffer_deferline_insert(deferline *dl, size_t index, const char *str)
+{
+    size_t byte, len;
+    char *start, *end, *chr;
+
+    len = vec_len(dl->v);
+
+    if (len == 0)
+    {
+        TRACE_INT(buffer_deferline_insert_at_byte(dl, index, str), return -1);
+        return 0;
+    }
+
+    start = vec_item(dl->v, 0);
+    end   = start + vec_len(dl->v);
+
+    TRACE_PTR(chr = ui_text_get_char(start, end, index), return -1);
+
+    byte = (size_t)(chr - str);
+
+    TRACE_INT(buffer_deferline_insert_at_byte(dl, byte, str), return -1);
 
     return 0;
 }

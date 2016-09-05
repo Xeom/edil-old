@@ -31,6 +31,9 @@ vec *buffer_deferline_get_vec(deferline *dl);
 
 void buffer_deferline_free(deferline *dl);
 
+int buffer_deferline_insert_at_byte(
+    deferline *dl, size_t index, const char *str);
+
 int buffer_deferline_insert(deferline *dl, size_t index, const char *str);
 
 int buffer_deferline_delete(deferline *dl, size_t index);

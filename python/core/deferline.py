@@ -15,10 +15,17 @@ class DeferLine:
         self.struct = ctypes.cast(ptr, symbols.buffer.deferline_p)
 
     def insert(self, index, string):
+
         if isinstance(string, str):
             string = string.encode("ascii")
 
         symbols.buffer.deferline.insert(self.struct, index, string)
+
+    def insert_at_byte(self, index, string):
+        if isinstance(string, str):
+            string = string.encode("ascii")
+
+        symbols.buffer.deferline.insert_at_byte(self.struct, index, string)
 
     def delete(self, index):
         symbols.buffer.deferline.delete(self.struct, index)

@@ -536,6 +536,5 @@ void cursor_handle_deferline_draw(vec *args, hook h)
     if (*ln != cursor_get_ln(selected))
         return;
 
-
-    buffer_deferline_insert(dl, cursor_get_cn(selected), face_cursor);
+    buffer_deferline_insert_at_byte(dl, cursor_get_cn(selected), face_cursor);
 }

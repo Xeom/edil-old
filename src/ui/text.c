@@ -9,24 +9,31 @@
 
 text_symbol_type ui_text_symbol(char c)
 {
+    /* Special case - \n is an escape for a face. */
     if ((uchar)c == '\n')
         return face_start;
 
+    /* 0xxx xxxx - Ordinary ascii */
     if ((uchar)c < 0x80)
         return ascii;
 
+    /* 10xx xxxx - utf-8 continuation character */
     if ((uchar)c < 0xc0)
         return utf8_mid;
 
+    /* 110x xxxx - utf-8 2-byte wide start character */
     if ((uchar)c < 0xe0)
         return utf8_2wide;
 
+    /* 1110 xxxx - utf-8 3-byte wide start character */
     if ((uchar)c < 0xf0)
         return utf8_3wide;
 
+    /* 1111 xxxx - utf-8 4-byte wide start character */
     if ((uchar)c < 0xf8)
         return utf8_4wide;
 
+    /* Anything else is a utf-8 starting character for more than 4 bytes */
     return utf8_big;
 }
 
@@ -49,9 +56,17 @@ int ui_text_symbol_is_char(text_symbol_type sym)
     return sym <= utf8_4wide;
 }
 
-char *ui_text_next_symbol(const char *str)
+char *ui_text_next_symbol(const char *str, const char *end)
 {
-    return (char *)str + ui_text_symbol_width(ui_text_symbol(*str));
+    char *rtn;
+
+    if (str >= end) return NULL;
+
+    rtn = (char *)str + ui_text_symbol_width(ui_text_symbol(*str));
+
+    if (rtn >= end) return NULL;
+
+    return rtn;
 }
 
 int32_t ui_text_decode_utf8(const char *str, const char *end)
@@ -62,6 +77,7 @@ int32_t ui_text_decode_utf8(const char *str, const char *end)
 
     ASSERT_PTR(str, high, return -1);
     ASSERT_PTR(end, high, return -1);
+    ASSERT(end >= str, high, return -1);
 
     typ = ui_text_symbol(*str);
 
@@ -89,8 +105,7 @@ char *ui_text_next_char(const char *str, const char *end)
     ASSERT_PTR(str, high, return NULL);
     ASSERT_PTR(end, high, return NULL);
 
-    while (str < end &&
-           (str = ui_text_next_symbol(str)) < end)
+    while ((str = ui_text_next_symbol(str, end)))
     {
         text_symbol_type typ;
 
@@ -116,17 +131,16 @@ char *ui_text_first_char(const char *str, const char *end)
         return (char *)str;
 
     else
-        return ui_text_next_face(str, end);
+        return ui_text_next_char(str, end);
 }
 
 
 char *ui_text_next_face(const char *str, const char *end)
 {
     ASSERT_PTR(str, high, return NULL);
-    ASSERT_PTR(end, high, return NULL);
+    ASSERT_PTR(end, high, return *(char **)NULL);
 
-    while (str < end &&
-           (str = ui_text_next_symbol(str)) < end)
+    while ((str = ui_text_next_symbol(str, end)))
     {
         text_symbol_type typ;
 
@@ -155,13 +169,13 @@ char *ui_text_first_face(const char *str, const char *end)
         return ui_text_next_face(str, end);
 }
 
-
 char *ui_text_get_char(const char *str, const char *end, size_t n)
 {
     ASSERT_PTR(str, high, return NULL);
     ASSERT_PTR(end, high, return NULL);
+    ASSERT(str < end, high, return NULL);
 
-    while (str < end)
+    while (str)
     {
         text_symbol_type typ;
 
@@ -171,10 +185,11 @@ char *ui_text_get_char(const char *str, const char *end, size_t n)
             if (n-- == 0)
                 return (char *)str;
 
-        str = ui_text_next_symbol(str);
+        str = ui_text_next_symbol(str, end);
     }
 
-    ERR_NEW(high, "Invalid Index - Not enough text", "");
+    if (n == 0) return (char *)end;
+
     return NULL;
 }
 
@@ -196,7 +211,7 @@ size_t ui_text_len(const char *str, const char *end)
         if (ui_text_symbol_is_char(typ))
             rtn++;
 
-        str = ui_text_next_symbol(str);
+        str = ui_text_next_symbol(str, end);
     }
 
     return rtn;
@@ -206,6 +221,9 @@ short ui_text_face_overflow(const char *str, const char *end, face *f)
 {
     short facen;
     char *facechar, *textchar, *nextface;
+
+    ASSERT_PTR(str, high, return -1);
+    if (end == NULL) end = str + strlen(str);
 
     facen = 0;
 
@@ -237,11 +255,18 @@ int ui_text_draw_h(
 {
     char *facechar, *textchar;
 
-    facechar = ui_text_first_face(str, end);
-    textchar = ui_text_first_char(str, end);
+    if (str == NULL)
+    {
+        facechar = NULL;
+        textchar = NULL;
+    }
+    else
+    {
+        if (end == NULL) end = str + strlen(str);
 
-    if      (str == NULL) end = NULL;
-    else if (end == NULL) end = str + strlen(str);
+        facechar = ui_text_first_face(str, end);
+        textchar = ui_text_first_char(str, end);
+    }
 
     while (--sizelim)
     {

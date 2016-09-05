@@ -46,7 +46,7 @@ def expandtabs(w, b, ln, li):
                 for n in range(skiplen):
                     subtab = core.ui.text_next_char(subtab[1:])
 
-                li.insert(i, subtab)
+                li.insert_at_byte(i, subtab)
                 colnum += tablen - skiplen
 
             else:
@@ -57,7 +57,7 @@ def expandtabs(w, b, ln, li):
         for i, c in enumerate(li.vec):
             if c.value == b'\t':
                 li.delete(i)
-                li.insert(i, tab)
+                li.insert_at_byte(i, tab)
 
 
 def get_indent_string(buf):

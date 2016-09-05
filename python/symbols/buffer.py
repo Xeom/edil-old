@@ -62,6 +62,10 @@ class deferline:
     insert.argtypes = [deferline_p, ctypes.c_size_t, ctypes.c_char_p]
     insert.restype  = ctypes.c_int
 
+    insert_at_byte = so.buffer_deferline_insert_at_byte
+    insert_at_byte.argtypes = [deferline_p, ctypes.c_size_t, ctypes.c_char_p]
+    insert_at_byte.restype  = ctypes.c_int
+
     delete = so.buffer_deferline_delete
     delete.argtypes = [deferline_p, ctypes.c_size_t]
     delete.restype  = ctypes.c_int

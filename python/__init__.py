@@ -75,15 +75,15 @@ def addlineno(w, b, ln, li):
     prefix =  hex(ln.value)[2:].zfill(4) + "> "
     prefix = face.serialize(len(prefix)) + prefix.encode("ascii")
 
-    li.insert(0, prefix)
+    li.insert_at_byte(0, prefix)
 
 @core.deferline.hooks.draw(900)
 def addeol(w, b, ln, li):
     face = Face(Face.black, Face.black, bright=True)
-    suffix = "<"
-    suffix = b" " + face.serialize(len(suffix)) + suffix.encode("ascii")
+    suffix = "<«CATS"
+    suffix = b" " + face.serialize(len(suffix)) + suffix.encode("utf-8")
 
-    li.insert(len(li.vec), suffix)
+    li.insert_at_byte(len(li.vec), suffix)
 
 
 mastermap = core.keymap.maps["master"]
@@ -132,9 +132,15 @@ def hi(key):
 cur = core.cursor.spawn(core.windows.get_selected().buffer,
                         core.cursor.types.region)
 
+
 cur.insert(b"SLUT")
 cur.enter()
 cur.insert(b"\tI love you really <3")
+
+for x in range(10):
+    cur.enter()
+    cur.insert(("( ͡° ͜ʖ ͡°)"*5).encode("utf-8"))
+
 
 while alive:
     symbols.io.listener.listen()
