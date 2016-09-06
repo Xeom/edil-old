@@ -51,6 +51,8 @@ mode *mode_init(int priority, char *name)
     new->on_activate   = h;
     new->on_deactivate = h;
 
+    new->active = 0;
+
     hook_call(mode_on_init, new);
 
     return new;

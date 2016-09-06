@@ -13,10 +13,6 @@ hook_p = ctypes.POINTER(hook_s)
 
 hook_f = ctypes.CFUNCTYPE(None, vec_p, hook_p)
 
-killsys = so.hook_killsys
-killsys.argtypes = []
-killsys.restype  = ctypes.c_int
-
 mount = so.hook_mount
 mount.argtypes = [hook_p, hook_f, priority]
 mount.restype  = ctypes.c_int

@@ -16,22 +16,33 @@ struct hook_fcont_s
 
 static vec *hook_vecs_to_free = NULL;
 
+static void hook_killsys(void);
+
 static void hook_call_funct(hook h, hook_fcont f, vec *args);
 
-int hook_killsys(void)
+static void hook_killsys(void)
 {
     if (hook_vecs_to_free)
+    {
         vec_foreach(hook_vecs_to_free, vec *, v,
                     vec_free(v));
 
-    vec_free(hook_vecs_to_free);
+        vec_free(hook_vecs_to_free);
+    }
 
-    return 0;
+    hook_vecs_to_free = NULL;
 }
 
 void hook_free(hook h)
 {
-    vec_free(h.functs);
+    if (h.functs)
+    {
+        vec_free(h.functs);
+
+        if (vec_contains(hook_vecs_to_free, &h.functs))
+            vec_delete(hook_vecs_to_free,
+                       vec_find(hook_vecs_to_free, &h.functs), 1);
+    }
 }
 
 int hook_mount(hook *h, hook_f f, priority pri)
@@ -54,7 +65,10 @@ int hook_mount(hook *h, hook_f f, priority pri)
         h->functs = functs;
 
         if (hook_vecs_to_free == NULL)
+        {
             hook_vecs_to_free = vec_init(sizeof(vec *));
+            atexit(hook_killsys);
+        }
 
         vec_insert_end(hook_vecs_to_free, 1, &functs);
     }
