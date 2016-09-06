@@ -5,23 +5,13 @@ import symbols.io
 import symbols.hook
 import symbols.vec
 
-from core.vec import Vec, VecFreeOnDel
+from core.container import StructObject, Container
+from core.hook import Hook, HookFunct
+from core.vec  import Vec, VecFreeOnDel
 
 import core.key
 
-class KeymapFunct:
-    def __init__(self, parent, hook, funct):
-        self.struct  = hook
-        self.parent  = parent
-        self.pyfunct = weakref.ref(funct, self.free)
-        self.cfunct  = symbols.hook.hook_f(self.call)
-        symbols.hook.mount(self.struct, self.cfunct, 500)
-        self.parent.functs.append(self)
-
-    def free(self, obj=None):
-        symbols.hook.unmount(self.struct, self.cfunct)
-        self.parent.functs.remove(self)
-
+class KeymapFunct(HookFunct):
     def call(self, args, hook):
         pyfunct = self.pyfunct()
 
@@ -40,10 +30,12 @@ class KeymapFunct:
 
         pyfunct(pykeys)
 
-class Keymap:
+class KeymapObj(StructObject):
+    PtrType = symbols.io.keymap_p
+
     def __init__(self, ptr):
-        self.struct = ptr
         self.functs = []
+        super().__init__(ptr)
 
     def press(self, key):
         return symbols.io.keymap.press(self.struct, key.struct)
@@ -59,7 +51,7 @@ class Keymap:
         hook = symbols.io.keymap.get(self.struct, v.struct)
 
         def rtn(funct):
-            kf = KeymapFunct(self, hook, funct)
+            kf = KeymapFunct(self, funct, 500, hook, self.functs)
 
             return funct
 
@@ -68,105 +60,20 @@ class Keymap:
     def clear(self):
         return symbols.io.keymap.clear(self.struct)
 
-class KeyFrame:
-    def __init__(self):
-        self.maps = []
-        self.last = None
+    def free(self):
+        symbols.io.keymap.free(self.struct)
 
-    def push(self, mapname, priority=0):
-        m = maps[mapname]
+class KeymapFreeOnDel(KeymapObj):
+    def __del__(self):
+        self.free()
 
-        if m in self.maps:
-            self.maps.remove(m)
+class KeymapContainer(Container):
+    Obj = KeymapObj
+    delete_struct = Hook(symbols.io.keymap.on_free,
+                         symbols.io.keymap_p)
 
-        self.maps.insert(0, m)
+    def new(self):
+        ptr = symbols.io.keymap.init()
+        return self(ptr, objtype=KeymapFreeOnDel)
 
-    def remove(self, mapname):
-        m = maps[mapname]
-
-        self.maps.remove(m)
-
-    def press(self, key):
-        # If there is a semicomplete key sequence
-        if self.last != None:
-            # Try entering the next key to the last keymap
-            rtn = self.last.press(key)
-
-            # If the sequence is still incomplete, return.
-            if rtn == 1:
-                return
-
-            # If the sequence is now complete, set
-            # the last keymap to None
-            if rtn == 2:
-                self.last = None
-                return
-
-        # If we have not added to an existing key sequence,
-        # we need to find a relevant map.
-        for map in self.maps:
-            # Make sure we don't call this map twice
-            if map == self.last:
-                continue
-
-            rtn = map.press(key)
-
-            # If this map recognises the key, but the
-            # sequence is incomplete, set it as last map.
-            if rtn == 1:
-                self.last = map
-                return
-
-            # If this map completes this key sequence with
-            # just this one key, return.
-            if rtn == 2:
-                self.last = None
-                return
-
-    def clear(self):
-        for map in self.maps:
-            map.clear()
-
-class KeyCont:
-    def __init__(self):
-        self.items = {}
-
-    def __getitem__(self, name):
-        return self.items[name]
-
-    def __contains__(self, name):
-        return name in self.items
-
-class KeyFrameCont(KeyCont):
-    def __init__(self):
-        KeyCont.__init__(self)
-        self.active = None
-
-    def add(self, name):
-        if name not in self.items:
-            self.items[name] = KeyFrame()
-
-    def switch(self, name):
-        self.active = self.items[name]
-        self.active.clear()
-
-    def press(self, key):
-        if self.active != None:
-            self.active.press(key)
-
-class KeyMapCont(KeyCont):
-    def __init__(self):
-        self.items = {}
-
-    def add(self, name):
-        if name not in self.items:
-            self.items[name] = Keymap(symbols.io.keymap.init())
-
-def initsys():
-    global frames, maps, handle_press
-    frames = KeyFrameCont()
-    maps   = KeyMapCont()
-
-    @core.key.hooks.key(500)
-    def handle_press(key):
-        frames.press(key)
+Keymap = KeymapContainer()

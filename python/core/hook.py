@@ -17,7 +17,7 @@ class HookFunct:
     into classes.
     """
 
-    def __init__(self, parent, funct, priority):
+    def __init__(self, parent, funct, priority, hook, functs=None):
         """Initialize an instance of this class.
 
         Arguments:
@@ -26,21 +26,23 @@ class HookFunct:
             priority (int): The priority of this funct - a value from 0 to 1000.
         """
         self.parent  = parent
-        self.struct  = parent.struct
+        self.struct  = hook
+        self.functs  = functs
 
         # By using a weakref, we do not keep the hooked function alive.
         # Use self.free as a callback for when funct dies.
         self.pyfunct = weakref.ref(funct, self.free)
 
         # Wrap up self.call with ctypes to make a C function pointer.
-        self.cfunct  = symbols.hook.hook_f(self.call)
+        self.cfunct = symbols.hook.hook_f(self.call)
 
         # Mount the C function pointer on the appropriate hook.
         symbols.hook.mount(self.struct, self.cfunct, priority)
 
         # Keep a reference to this class in the parent's list of functions. This
         # way it will be kept alive until the weakly referenced funtion dies.
-        self.parent.functs.append(self)
+        if self.functs != None:
+            self.functs.append(self)
 
     def free(self, obj=None):
         """Handles the deletion of this function.
@@ -56,8 +58,8 @@ class HookFunct:
 
         symbols.hook.unmount(self.struct, self.cfunct)
 
-        if self in self.parent.functs:
-            self.parent.functs.remove(self)
+        if self.functs != None and self in self.functs:
+            self.functs.remove(self)
 
     # The python function wrapped up to mount to hook_mount()
     def call(self, args, hook):
@@ -126,7 +128,7 @@ class Hook:
         return lambda funct:self.mount(funct, priority)
 
     def mount(self, funct, priority):
-        hf = HookFunct(self, funct, priority)
+        hf = HookFunct(self, funct, priority, self.struct, self.functs)
 
         if hasattr(funct, "_hookfunct"):
             funct._hookfunct.append(hf)

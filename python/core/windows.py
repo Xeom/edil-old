@@ -346,7 +346,6 @@ class hooks:
         symbols.win.on_delete_pre,
         Window)
 
-
     create = core.hook.Hook(
         symbols.win.on_create,
         Window)

@@ -1,18 +1,18 @@
 import itertools
 
-import core.keymap
 import core.cursor
 import core.deferline
 import core.ui
 
-from core.key import Key
+from core.mode import Mode
+from core.key  import Key
 from core.face import Face
 from editor.command import Command, CommandArg
 
 mapname = "tabs-default"
 
-core.keymap.maps.add(mapname)
-tabmap = core.keymap.maps[mapname]
+mode = Mode.new(100, "default-tabs")
+kmap = mode.keymap
 
 default_tab_string    = b"   " + Face(Face.black, Face.cyan).colour(b">")
 default_indent_string = b"\t"
@@ -172,8 +172,8 @@ def indent_cb(n):
     set_indent_of_line(cur.buffer, cur.ln, lvl, cur)
 
 
-indent_cmd.map_to(tabmap, Key("TAB"), Key("RIGHT"), defaultargs=[ 1])
-indent_cmd.map_to(tabmap, Key("TAB"), Key("LEFT"),  defaultargs=[-1])
+indent_cmd.map_to(kmap, Key("TAB"), Key("RIGHT"), defaultargs=[ 1])
+indent_cmd.map_to(kmap, Key("TAB"), Key("LEFT"),  defaultargs=[-1])
 
 align_cmd = Command("tab-align",
                     CommandArg(int, "Relative lineno to copy alignment from"))
@@ -192,8 +192,8 @@ def align_cb(n):
     lvl = get_indent_of_line(cur.buffer, ln)
     set_indent_of_line(cur.buffer, cur.ln, lvl, cur)
 
-align_cmd.map_to(tabmap, Key("TAB"), Key("DOWN"), defaultargs=[ 1])
-align_cmd.map_to(tabmap, Key("TAB"), Key("UP"),   defaultargs=[-1])
+align_cmd.map_to(kmap, Key("TAB"), Key("DOWN"), defaultargs=[ 1])
+align_cmd.map_to(kmap, Key("TAB"), Key("UP"),   defaultargs=[-1])
 
 align_last_nonzero_cmd = Command("tab-align-last-nonzero")
 
@@ -204,4 +204,4 @@ def align_last_nonzero_cb():
     lvl = get_last_nonzero_indent(cur.buffer, cur.ln)
     set_indent_of_line(cur.buffer, cur.ln, lvl, cur)
 
-align_cmd.map_to(tabmap, Key("TAB"), Key("TAB"), defaultargs=[])
+align_cmd.map_to(kmap, Key("TAB"), Key("TAB"), defaultargs=[])

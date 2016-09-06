@@ -13,6 +13,9 @@
 
 #include "io/keymap.h"
 
+hook_add(keymap_on_free, 1);
+hook_add(keymap_on_init, 1);
+
 typedef struct keytree_s keytree;
 
 typedef enum
@@ -124,6 +127,7 @@ static void keytree_create_leaf(keytree *ptr)
 static void keytree_create_map(keytree *ptr)
 {
     ptr->type = kmap;
+
     ptr->cont.subs = table_init(
         sizeof(keytree), sizeof(key), NULL, NULL, NULL);
 }
@@ -132,11 +136,13 @@ static void keytree_free(keytree *tree)
 {
     if (tree->type == leaf)
         hook_free(tree->cont.h);
-    else
-        table_foreach(tree->cont.subs, keytree *, sub,
-                      keytree_free(sub));
 
-    free(tree);
+    if (tree->type == kmap)
+    {
+        table_foreach_ptr(tree->cont.subs, keytree *, sub,
+                          keytree_free(sub));
+        table_free(tree->cont.subs);
+    }
 }
 
 static keytree *keytree_init(void)
@@ -171,6 +177,7 @@ void keymap_free(keymap *map)
 {
     vec_free(map->keys);
     keytree_free(map->root);
+    free(map->root);
     hook_free(map->unknown);
 
     free(map);

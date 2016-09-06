@@ -12,6 +12,7 @@ import core.table
 import core.buffer
 import core.deferline
 import core.cursor
+import core.mode
 import ctypes
 import shared
 import symbols
@@ -22,7 +23,6 @@ core.windows.initsys()
 core.deferline.initsys()
 core.ui.initsys()
 core.key.initsys()
-core.keymap.initsys()
 core.ui.refresh()
 core.cursor.initsys()
 symbols.buffer.log.initsys()
@@ -32,18 +32,15 @@ import editor.clipboard
 import editor.files
 import editor.buffers.ring
 import editor.buffers.searches
-#import editor.buffers.userlog
-import editor.bind.keymap
+import editor.bind.modes
 import editor.autocomplete
-
-#shared.lib.err_create_log_buffer()
-#ctypes.cast(shared.lib.err_stream, ctypes.POINTER(ctypes.c_void_p)).contents.value = symbols.buffer.log.stream()
 
 from editor.command      import Command, CommandArg
 from editor.subcaption   import SubCaption
 from core.key import Key
 from core.keymap import Keymap
 from core.face   import Face
+from core.mode   import Mode
 
 alive = True
 
@@ -85,8 +82,8 @@ def addeol(w, b, ln, li):
 
     li.insert(len(li.vec), suffix)
 
-
-mastermap = core.keymap.maps["master"]
+mastermode = Mode.new(100, "default-master")
+mastermap = mastermode.keymap
 @mastermap.add(Key("V", con=True))
 def paste(keys):
     editor.clipboard.do_paste(cursors.current)
@@ -99,6 +96,8 @@ def search(keys):
 def masterexit(keys):
     global alive
     alive = False
+
+mastermode.activate()
 
 cmd = Command("repeat-string", CommandArg(int, "n" , editor.autocomplete.number()),
               CommandArg(str, "string"))
@@ -128,6 +127,8 @@ def handle_offsety_set(win, old):
 @core.key.hooks.key(500)
 def hi(key):
     print(key, file=sys.stderr)
+    import symbols.mode
+    symbols.mode.handle_press(key.struct)
 
 cur = core.cursor.spawn(core.windows.get_selected().buffer,
                         core.cursor.types.region)
@@ -140,10 +141,7 @@ while alive:
     symbols.io.listener.listen()
 
 core.ui.killsys()
-
-#symbols.hook.killsys()
 pr.disable()
-
 sortby = 'tottime'
 import sys
 ps = pstats.Stats(pr, stream=sys.stderr)

@@ -149,6 +149,9 @@ class region:
 
 on_spawn           = ctypes.cast(so.cursor_on_spawn,           hook_p)
 on_free            = ctypes.cast(so.cursor_on_free,            hook_p)
+
+on_select          = ctypes.cast(so.cursor_on_select,          hook_p)
+
 on_set_ln_pre      = ctypes.cast(so.cursor_on_set_ln_pre,      hook_p)
 on_set_ln_post     = ctypes.cast(so.cursor_on_set_ln_post,     hook_p)
 on_set_cn_pre      = ctypes.cast(so.cursor_on_set_cn_pre,      hook_p)

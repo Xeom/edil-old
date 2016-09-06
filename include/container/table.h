@@ -234,7 +234,7 @@ void *table_iter_next(table *t, void *item);
 
 #define table_foreach_ptr(table, type, name, code)           \
     {                                                        \
-        type *_table_ptr;                                    \
+        type _table_ptr;                                     \
         _table_ptr = table_iter_first(table);                \
         while (_table_ptr)                                   \
         {                                                    \

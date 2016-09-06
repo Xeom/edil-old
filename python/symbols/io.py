@@ -103,6 +103,9 @@ class keymap:
     delete.argtypes = [keymap_p, vec_p]
     delete.restype  = ctypes.c_int
 
+    on_init = ctypes.cast(so.keymap_on_init, hook_p)
+    on_free = ctypes.cast(so.keymap_on_free, hook_p)
+
 class listener:
     initsys = so.io_listener_initsys
     initsys.argtypes = []

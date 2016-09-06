@@ -29,6 +29,8 @@ hook_add(cursor_on_spawn, 1);
 
 hook_add(cursor_on_free, 1);
 
+hook_add(cursor_on_select, 1);
+
 /* Called before setting the ln of a cursor. The cursor is not affected       *
  * before calling this. Changing *new will change the value the cursor's ln   *
  * is set to. Not called if the relevant cursor_type has no set_ln function.  *
@@ -486,23 +488,33 @@ cursor *cursor_selected(void)
 
 int cursor_select_next(buffer *b)
 {
+    cursor     *oldselected;
     buffercont *cont;
+
+    oldselected = cursor_buffer_selected(b);
 
     TRACE_PTR(cont = table_get(&cursors_by_buffer, &b), return -1);
 
     cont->selectind += 1;
     cont->selectind %= vec_len(&(cont->cursors));
 
+    hook_call(cursor_on_select, b, oldselected);
+
     return 0;
 }
 
 int cursor_select_last(buffer *b)
 {
+    cursor     *oldselected;
     buffercont *cont;
+
+    oldselected = cursor_buffer_selected(b);
 
     TRACE_PTR(cont = table_get(&cursors_by_buffer, &b), return -1);
 
     cont->selectind = vec_len(&(cont->cursors)) - 1;
+
+    hook_call(cursor_on_select, b, oldselected);
 
     return 0;
 }
