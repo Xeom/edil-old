@@ -47,22 +47,32 @@ mode *mode_init(int priority, char *name)
     ASSERT_PTR(new = malloc(sizeof(mode)), terminal, return NULL);
 
     /* Allo space for the name of the mode, and copy it */
-    ASSERT_PTR(new->name = malloc(strlen(name) + 1), terminal,
-               free(new);
-               return NULL);
+    ASSERT_PTR(
+        new->name = malloc(strlen(name) + 1),
+        terminal,
+
+        free(new);
+        return NULL
+    );
     strcpy(new->name, name);
 
     /* Initialize a new keymap for this mode... */
-    TRACE_PTR(new->map = keymap_init(),
-              free(new->name);
-              free(new);
-              return NULL);
+    TRACE_PTR(
+        new->map = keymap_init(),
+
+        free(new->name);
+        free(new);
+        return NULL
+    );
 
     /* Create a vec to contain mode_mountfs for this mode */
-    TRACE_PTR(vec_create(&(new->mounts), sizeof(mode_mountf)),
-              free(new->name);
-              free(new);
-              return NULL);
+    TRACE_PTR(
+        vec_create(&(new->mounts), sizeof(mode_mountf)),
+
+        free(new->name);
+        free(new);
+        return NULL
+    );
 
     /* Put our new hooks in the mode as well.. */
     new->on_activate   = h_activate;
@@ -85,8 +95,10 @@ int mode_activate(mode *m)
 
     /* If there is no mode_active vector, initialize one. */
     if (!mode_active)
-        TRACE_PTR(mode_active = vec_init(sizeof(mode *)),
-                  return -1);
+        TRACE_PTR(
+            mode_active = vec_init(sizeof(mode *)),
+            return -1
+        );
 
     /* Check that our mode is not already active.  */
     ASSERT(!vec_contains(mode_active, &m), high, return -1);
@@ -100,8 +112,11 @@ int mode_activate(mode *m)
     TRACE_INT(vec_insert(mode_active, index, 1, &m), return -1);
 
     /* Mount all the mode_mountfs of the mode. */
-    vec_foreach(&(m->mounts), mode_mountf, mount,
-                hook_mount(mount.h, mount.funct, m->pri));
+    vec_foreach(
+        &(m->mounts), mode_mountf, mount,
+
+        hook_mount(mount.h, mount.funct, m->pri)
+    );
 
     /* Tell the mode it's active. */
     m->active = 1;
@@ -132,8 +147,11 @@ int mode_deactivate(mode *m)
             TRACE_INT(vec_delete(mode_active, index, 1), return -1);
 
             /* Unmount all its mode_mountfs */
-            vec_foreach(&(m->mounts), mode_mountf, mount,
-                hook_unmount(mount.h, mount.funct));
+            vec_foreach(
+                &(m->mounts), mode_mountf, mount,
+
+                hook_unmount(mount.h, mount.funct)
+            );
 
             /* Tell the mode it's deactivated. */
             m->active = 0;
@@ -215,8 +233,11 @@ int mode_handle_press(key k)
                     continue;
 
                 /* Try to hand the keypress to this map. */
-                TRACE_INT(res = keymap_press(m->map, k),
-                          return -1);
+                TRACE_INT(
+                    res = keymap_press(m->map, k),
+
+                    return -1
+                );
 
                 /* If it accepts it, but this is not the whole keypress, *
                  * we set mode_handle_press_last, and return.            */

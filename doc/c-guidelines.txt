@@ -1,0 +1,129 @@
+
+ * No tabs, only spaces used for both alignment and indenting.
+
+ * One indent level is 4 spaces.
+
+ * Anything inside braces is one indent level deeper than its surroundings,
+   except for with case statements:
+
+    switch (...)
+    {
+    case a:
+        ...
+    default:
+        ...
+    }
+
+    switch (...)
+    {
+    case a: ...
+    }
+
+ * There is a space before the argument brackets of flow control statements, but
+   not for function-esque statements:
+
+    if (...);
+    while (...);
+    switch (...);
+    sizeof(...);
+    funct(...);
+    int f(...);
+    f(...);
+    #define f(...)
+
+ * Braces for containing code get their own lines:
+
+    int f(...)
+    {
+        ...
+    }
+
+    if (...)
+    {
+        ...
+    }
+
+ * Braces containing array contents on one line do not get spaces:
+
+    int l[] = {1, 2, ...};
+
+ * Braces containing array contents on multiple lines only get their own lines
+   for the closing brace:
+
+    int l[] = {
+        1, 2, 3,
+        4,
+        ...
+    };
+
+ * Semicolons after flow control statements with no body go not get their own
+   lines:
+
+    while (...);
+    if (...);
+
+ * Goto labels are indented one level less than their surrounding code:
+
+    if (...)
+    {
+    a:
+        ...
+        goto a;
+    }
+
+ * For function calls with arguments spanning multiple lines, the first line
+   ends in the opening paren, and the closing paren gets its own line. The
+   arguments are indented one level:
+
+   funct_name(
+       1, 2, 3,
+       4,
+       ...
+   );
+
+ * All variable declarations come at the start of the function, C80 style.
+ Their values should not be set on the same line as their declaration, unless
+ they are static, or outside of a function:
+
+    int x = 3;
+
+    int f(...)
+    {
+        int a, b, c;
+
+        static int d = 0;
+
+        a = 1;
+        b = 2;
+        c = 3;
+        ...
+    }
+
+ * Assignments and declarations should line up where reasonable. If they don't
+   line up, they should be seperated with a blank line:
+
+    int    a;
+    size_t b_longname;
+
+    static long long int c;
+
+    b_longname = 1;
+    a          = 2;
+
+ * Other operators can be made to line up with extra whitespace:
+
+   a = cats + dog;
+   b = dog  + cats;
+
+ * When a statment is split over multiple lines by operator, the operator comes
+   before the newline. The subsequent parts of the statement also align with the
+   start of the first part:
+
+   a = 1 + 2 +
+       3 + 4;
+
+   if (a &&
+       b);
+
+ * Lines are no more than 80 characters long.
+
