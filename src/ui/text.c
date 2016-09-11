@@ -100,6 +100,47 @@ int32_t ui_text_decode_utf8(const char *str, const char *end)
     return rtn;
 }
 
+size_t ui_text_encode_utf8(int32_t chr, char *buf)
+{
+    ASSERT(chr < 0, high, return 0);
+
+    if (chr < 0x80)
+    {
+        *buf = (char)chr;
+
+        return 1;
+    }
+
+    else if (chr < 0x800)
+    {
+        buf[0] = (char)(0xc0 | (chr >> 6));
+        buf[1] = (char)(0x80 | (chr & 0x3f));
+
+        return 2;
+    }
+
+    else if (chr < 0x10000)
+    {
+        buf[0] = (char)(0xe0 | (chr >> 12));
+        buf[1] = (char)(0x80 | ((chr >> 6) & 0x3f));
+        buf[2] = (char)(0x80 | (chr & 0x3f));
+
+        return 3;
+    }
+
+    else if (chr < 0x400000)
+    {
+        buf[0] = (char)(0xe0 | (chr >> 18));
+        buf[1] = (char)(0x80 | ((chr >> 12) & 0x3f));
+        buf[2] = (char)(0x80 | ((chr >>  6) & 0x3f));
+        buf[3] = (char)(0x80 | (chr & 0x3f));
+
+        return 4;
+    }
+
+    return 0;
+}
+
 char *ui_text_next_char(const char *str, const char *end)
 {
     ASSERT_PTR(str, high, return NULL);

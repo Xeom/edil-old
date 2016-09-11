@@ -3,20 +3,11 @@
 
 #include "container/vec.h"
 #include "buffer/chunk.h"
+#include "ui/text.h"
 #include "hook.h"
 #include "err.h"
 
 #include "buffer/line.h"
-
-#define VEC_TYPED_GETSET
-#define VEC_TYPED_TYPE line *
-#define VEC_TYPED_NAME lines
-#include "container/typed_vec.h"
-
-#define VEC_TYPED_GETSET
-#define VEC_TYPED_TYPE char
-#define VEC_TYPED_NAME char
-#include "container/typed_vec.h"
 
 struct line_s
 {
@@ -55,7 +46,7 @@ vec *buffer_line_get_vec(line *l)
     ASSERT_PTR(l, high, return NULL);
 
     /* Make a new vector to return */
-    TRACE_PTR(rtn = vec_char_init(),
+    TRACE_PTR(rtn = vec_init(sizeof(char)),
               return NULL);
 
     len = l->length;
@@ -63,8 +54,29 @@ vec *buffer_line_get_vec(line *l)
     /* If there's something in the line, (So the pointer is *
      * nonnull, insert the line's contents into the new vec */
     if (len)
-        ASSERT_INT(vec_char_insert(rtn, 0, len, l->text),
+        ASSERT_INT(vec_insert(rtn, 0, len, l->text),
                    critical, return NULL);
+
+    return rtn;
+}
+
+vec *buffer_line_get_vec_chars(line *l)
+{
+    vec    *rtn;
+    int32_t chr;
+    char   *text, *end;
+
+    rtn = vec_init(sizeof(int32_t));
+
+    end  = l->text + l->length;
+    text = ui_text_first_char(l->text, end);
+
+    while (text)
+    {
+        chr = ui_text_decode_utf8(text, end);
+        vec_insert_end(rtn, 1, &chr);
+        text = ui_text_next_char(text, end);
+    }
 
     return rtn;
 }
@@ -75,7 +87,7 @@ int buffer_line_set_vec(line *l, vec *v)
 
     ASSERT_PTR(l, high, return -1);
 
-    len = vec_char_len(v);
+    len = vec_len(v);
 
     if (len == 0)
     {
@@ -95,7 +107,41 @@ int buffer_line_set_vec(line *l, vec *v)
     /* Note that we do not memcpy or alloc space for  *
      * a terminating \0. This is because we are evil. */
     if (len)
-        memcpy(l->text, vec_char_item(v, 0), len);
+        memcpy(l->text, vec_item(v, 0), len);
+
+    return 0;
+}
+
+int buffer_line_set_vec_chars(line *l, vec *v)
+{
+    size_t  textind;
+
+    l->length = vec_len(v);
+    l->text   = realloc(l->text, l->length);
+    textind   = 0;
+
+    vec_foreach(
+        v, int32_t, chr,
+
+        size_t symbollen;
+        char   symbol[4];
+
+        symbollen = ui_text_encode_utf8(chr, symbol);
+
+        if (symbollen == 1)
+            l->text[textind++] = *symbol;
+
+        else if (symbollen == 0)
+            l->text[textind++] = '?';
+
+        else
+        {
+            l->length += symbollen - 1;
+            l->text    = realloc(l->text, l->length);
+            memcpy(l->text + textind, symbol, symbollen);
+            textind += symbollen;
+        }
+    );
 
     return 0;
 }
@@ -104,5 +150,5 @@ size_t buffer_line_len(line *l)
 {
     ASSERT_PTR(l, high, return INVALID_INDEX);
 
-    return l->length;
+    return ui_text_len(l->text, l->text + l->length);
 }

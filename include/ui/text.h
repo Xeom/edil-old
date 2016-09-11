@@ -99,6 +99,8 @@ int ui_text_symbol_is_char(text_symbol_type sym);
  */
 int32_t ui_text_decode_utf8(const char *str, const char *end);
 
+size_t ui_text_encode_utf8(int32_t chr, char *buf);
+
 char *ui_text_next_symbol(const char *str, const char *end);
 
 char *ui_text_next_char(const char *str, const char *end);

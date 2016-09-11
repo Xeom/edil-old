@@ -66,6 +66,8 @@ void buffer_line_free(line *l);
  */
 vec *buffer_line_get_vec(line *l);
 
+vec *buffer_line_get_vec_chars(line *l);
+
 /*
  * Set the contents of a line to the contents of a vector. This function should
  * not be used directly on a line in a buffer, as it does not call the
@@ -77,6 +79,8 @@ vec *buffer_line_get_vec(line *l);
  *
  */
 int buffer_line_set_vec(line *l, vec *v);
+
+int buffer_line_set_vec_chars(line *l, vec *v);
 
 /*
  */
