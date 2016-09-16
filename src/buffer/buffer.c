@@ -337,6 +337,27 @@ vec *buffer_get_line(buffer *b, lineno ln)
     return rtn;
 }
 
+vec *buffer_get_line_chars(buffer *b, lineno ln)
+{
+    lineno offset;
+    vec  *rtn;
+    chunk *c;
+
+    ASSERT_PTR(b, high,
+               return NULL);
+
+    /* Get the chunk, and depth into that chunk of where we want to get. */
+    TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
+              return NULL);
+    TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
+              return NULL);
+
+    TRACE_PTR(rtn    = buffer_chunk_get_line_chars(c, offset),
+              return NULL);
+
+    return rtn;
+}
+
 int buffer_set_line(buffer *b, lineno ln, vec *v)
 {
     lineno offset;
@@ -367,6 +388,50 @@ int buffer_set_line(buffer *b, lineno ln, vec *v)
     buffer_prop_set(b, modified, true);
 
     TRACE_INT(buffer_chunk_set_line(c, offset, v),
+              return -1);
+
+    if (!b->batch_enabled)
+        hook_call_buf(buffer_line_on_change_post, b, &ln, v);
+
+    else
+    {
+        b->batch_end   = MAX(b->batch_end, ln);
+        b->batch_start = MIN(b->batch_start, ln);
+    }
+
+    return 0;
+}
+
+int buffer_set_line_chars(buffer *b, lineno ln, vec *v)
+{
+    lineno offset;
+    chunk *c;
+
+    ASSERT_PTR(b, high,
+               return -1);
+
+    if (!b->batch_enabled)
+        ASSERT(buffer_prop_get(b, locked) == 0, high, return -1);
+
+    /* Get the chunk, and depth into that chunk of where we want to get. */
+    TRACE_PTR(c      = buffer_get_containing_chunk(b, ln),
+              return -1);
+    TRACE_IND(offset = buffer_chunk_lineno_to_offset(c, ln),
+              return -1);
+
+    hook_call_buf(buffer_line_on_change_pre, b, &ln, v);
+
+    if (buffer_prop_get(b, readonly))
+    {
+        ERR_NEW(medium, "Buffer is read-only",
+                "Cannot set in read-only buffer.");
+
+        return -1;
+    }
+
+    buffer_prop_set(b, modified, true);
+
+    TRACE_INT(buffer_chunk_set_line_chars(c, offset, v),
               return -1);
 
     if (!b->batch_enabled)

@@ -69,17 +69,34 @@ vec *buffer_line_get_vec(line *l);
 vec *buffer_line_get_vec_chars(line *l);
 
 /*
- * Set the contents of a line to the contents of a vector. This function should
- * not be used directly on a line in a buffer, as it does not call the
- * buffer_line_on_change hook. buffer_set_line() should be used for this instead.
+ * Set the contents of a line to the contents of a vector
+ *
+ * This function should not be used directly on a line in a buffer, as it does 
+ * not call the buffer_line_on_change hook. buffer_set_line() should be used for
+ * this instead.
  *
  * @param l A pointer to the line to set the contents of.
+ * @param v A pointer to a vec of chars containing the new contents of the line.
  *
  * @return  0 on success, -1 on error.
  *
  */
 int buffer_line_set_vec(line *l, vec *v);
 
+/*
+ * Set the contents of a line to the utf8-encoded contents of an int32_t vector
+ *
+ * This function should not be used directly on a line in a buffer, as it does
+ * not call the buffer_line_on_change hook. buffer_set_line() should be used for
+ * this instead.
+ *
+ * @param l A pointer to the line to set the contents of.
+ * @param v A pointer to a vec of int32_ts containing the new contents of the 
+ *          line.
+ *
+d
+ *
+ */
 int buffer_line_set_vec_chars(line *l, vec *v);
 
 /*

@@ -101,6 +101,8 @@ chunk *buffer_chunk_delete_line(chunk *c, lineno offset);
  */
 vec *buffer_chunk_get_line(chunk *c, lineno offset);
 
+vec *buffer_chunk_get_line_chars(chunk *c, lineno offset);
+
 /*
  * Copy the contents of a vec(char) into a line at a particular offset in this
  * chunk. The offset must be between 0 and one less than the length of the
@@ -125,6 +127,8 @@ vec *buffer_chunk_get_line(chunk *c, lineno offset);
  *
  */
 int buffer_chunk_set_line(chunk *c, lineno offset, vec *v);
+
+int buffer_chunk_set_line_chars(chunk *c, lineno offset, vec *v);
 
 /*
  * Get a chunk that contains a particular linenumber from a chunk in the same

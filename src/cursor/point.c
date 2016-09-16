@@ -4,6 +4,7 @@
 #include "container/vec.h"
 #include "buffer/buffer.h"
 #include "cursor/cursor.h"
+#include "ui/text.h"
 #include "hook.h"
 #include "err.h"
 
@@ -512,7 +513,7 @@ int cursor_point_delete(point *p, uint n)
     colno  origcn;
     lineno origln;
 
-    TRACE_PTR(origline = buffer_get_line(p->b, p->ln),
+    TRACE_PTR(origline = buffer_get_line_chars(p->b, p->ln),
               return -1);
 
     origcn = p->cn;
@@ -540,7 +541,7 @@ int cursor_point_delete(point *p, uint n)
         p->cn = buffer_len_line(p->b, p->ln);
     }
 
-    TRACE_PTR(newline = buffer_get_line(p->b, p->ln),
+    TRACE_PTR(newline = buffer_get_line_chars(p->b, p->ln),
               vec_free(origline);
               buffer_batch_end(p->b);
               return -1);
@@ -563,7 +564,7 @@ int cursor_point_delete(point *p, uint n)
 
     p->cn -= n;
 
-    TRACE_INT(buffer_set_line(p->b, p->ln, newline),
+    TRACE_INT(buffer_set_line_chars(p->b, p->ln, newline),
               vec_free(origline);
               vec_free(newline);
               buffer_batch_end(p->b);
@@ -581,10 +582,14 @@ int cursor_point_delete(point *p, uint n)
 
 int cursor_point_insert(point *p, const char *str)
 {
-    size_t inslen;
+    char  *text, *insloc;
+    size_t inslen, insind;
     vec   *l;
     lineno origln;
     colno  origcn;
+
+    ASSERT_PTR(str, high, return -1);
+    ASSERT_PTR(p, critical, return -1);
 
     origln = p->ln;
     origcn = p->cn;
@@ -595,18 +600,35 @@ int cursor_point_insert(point *p, const char *str)
 
     inslen = strlen(str);
 
-    TRACE_PTR(l = buffer_get_line(p->b, p->ln),
-              return -1);
+    TRACE_PTR(
+        l = buffer_get_line(p->b, p->ln),
+        return -1
+    );
 
     hook_call(cursor_point_on_move_pre, p);
 
-    TRACE_INT(vec_insert(l, p->cn, inslen, str),
-              return -1);
+    text   = vec_item(l, 0);
 
-    p->cn += inslen;
+    insloc = ui_text_get_char(text, text + vec_len(l), p->cn);
 
-    TRACE_INT(buffer_set_line(p->b, p->ln, l),
-              return -1);
+    if (insloc)
+        insind = (size_t)(insloc - text);
+    else
+        insind = 0;
+
+    fprintf(stderr, "%lu %lu %p\n", insind, inslen, (void *)str);
+
+    TRACE_INT(
+        vec_insert(l, insind, inslen, str),
+        return -1
+    );
+
+    p->cn += ui_text_len(str, str + inslen);
+
+    TRACE_INT(
+        buffer_set_line(p->b, p->ln, l),
+        return -1
+    );
 
     vec_free(l);
 
@@ -623,7 +645,7 @@ int cursor_point_enter(point *p)
 
     ASSERT_PTR(p, high, return -1);
 
-    TRACE_PTR(start = buffer_get_line(p->b, p->ln),
+    TRACE_PTR(start = buffer_get_line_chars(p->b, p->ln),
               return -1);
 
     origln = p->ln;
@@ -642,7 +664,7 @@ int cursor_point_enter(point *p)
 
     hook_call(cursor_point_on_move_pre, p);
 
-    TRACE_INT(buffer_set_line(p->b, p->ln, start),
+    TRACE_INT(buffer_set_line_chars(p->b, p->ln, start),
               vec_free(start);
               vec_free(end);
               return -1);
@@ -654,7 +676,7 @@ int cursor_point_enter(point *p)
               vec_free(start);
               vec_free(end);
               return -1);
-    TRACE_INT(buffer_set_line(p->b, newln, end),
+    TRACE_INT(buffer_set_line_chars(p->b, newln, end),
               vec_free(start);
               vec_free(end);
               return -1);

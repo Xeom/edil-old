@@ -243,7 +243,7 @@ size_t ui_text_len(const char *str, const char *end)
 
     rtn = 0;
 
-    while (str < end)
+    while (str)
     {
         text_symbol_type typ;
 

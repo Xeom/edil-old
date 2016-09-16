@@ -142,7 +142,7 @@ int buffer_deferline_insert(deferline *dl, size_t index, const char *str)
 
     TRACE_PTR(chr = ui_text_get_char(start, end, index), return -1);
 
-    byte = (size_t)(chr - str);
+    byte = (size_t)(chr - start);
 
     TRACE_INT(buffer_deferline_insert_at_byte(dl, byte, str), return -1);
 

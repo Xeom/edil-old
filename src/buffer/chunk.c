@@ -316,7 +316,29 @@ vec *buffer_chunk_get_line(chunk *c, lineno offset)
     return rtn;
 }
 
+vec *buffer_chunk_get_line_chars(chunk *c, lineno offset)
+{
+    vec *rtn;
+
+    /* Get a vector from a line */
+    rtn = buffer_line_get_vec_chars(vec_lines_get((vec_lines *)c, offset));
+
+    TRACE_PTR(rtn, return NULL);
+
+    return rtn;
+}
+
+
 int buffer_chunk_set_line(chunk *c, lineno offset, vec *v)
+{
+    /* Set a line's contents to a vector */
+    TRACE_INT(buffer_line_set_vec(vec_lines_get((vec_lines *)c, offset), v),
+               return -1);
+
+    return 0;
+}
+
+int buffer_chunk_set_line_chars(chunk *c, lineno offset, vec *v)
 {
     /* Set a line's contents to a vector */
     TRACE_INT(buffer_line_set_vec(vec_lines_get((vec_lines *)c, offset), v),

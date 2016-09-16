@@ -162,6 +162,8 @@ int buffer_delete(buffer *b, lineno ln);
  */
 vec *buffer_get_line(buffer *b, lineno ln);
 
+vec *buffer_get_line_chars(buffer *b, lineno ln);
+
 /*
  * Set the contents of a line to contents provided in a vector. The vector must
  * be of width sizeof(char)
@@ -182,6 +184,8 @@ vec *buffer_get_line(buffer *b, lineno ln);
  *
  */
 int buffer_set_line(buffer *b, lineno ln, vec *l);
+
+int buffer_set_line_chars(buffer *b, lineno ln, vec *l);
 
 /*
  * Get the number of lines in a buffer. 0 on error.
