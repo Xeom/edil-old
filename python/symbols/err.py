@@ -4,11 +4,11 @@ from shared import lib as so
 import cutil
 
 class err_lvl(ctypes.c_int):
-    low      = 1
-    medium   = 2
-    high     = 3
-    critical = 4
-    terminal = 5
+    low      = 0
+    medium   = 1
+    high     = 2
+    critical = 3
+    terminal = 4
 
 class CException(Exception):
     def __init__(self, lvl):

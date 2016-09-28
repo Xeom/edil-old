@@ -5,6 +5,7 @@ import sys
 
 import symbols.hook
 
+import core.err
 from core.vec import Vec
 
 # A class for containing a python function attached to a hook
@@ -108,9 +109,10 @@ class HookFunct:
 
             pyargs.append(value)
 
-  #      try:
-        pyfunct(*pyargs)
-#        except:
+        try:
+            pyfunct(*pyargs)
+        except:
+            core.err.traced_new()
  #           pass # TODO: Something
 
 class Hook:
@@ -160,7 +162,10 @@ class NativeHookFunct:
             self.free()
             return
 
-        pyfunct(*args)
+        try:
+            pyfunct(*args)
+        except:
+            core.err.traced_new()
 
 class NativeHook:
     def __init__(self):

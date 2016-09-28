@@ -101,7 +101,7 @@ void err_new(err_lvl lvl, const char *title, const char *content)
     memcpy(errstr, prefix, plen);
     memcpy(errstr + plen, title, tlen);
 
-    errstr[plen + tlen    ] = '\n';
+    errstr[plen + tlen] = '\n';
 
     if (err_stream)
     {

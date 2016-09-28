@@ -8,11 +8,22 @@ def revert(b, override=False):
     modified = b.properties["modified"]
 
     if filename == None:
+        core.err.new(
+            title="No associated file",
+            details=("Associate a file with this buffer with the file-associate"
+                     " command before trying to dump its contents.")
+        )
         return
+
 
     filename = filename.decode("ascii")
 
     if not os.path.exists(filename):
+        core.err.new(
+            title="File does not exist",
+            details=("You cannot revert a buffer to the contents of a file that"
+                     " does not exist.")
+        )
         return
 
     for index in reversed(range(len(b))):
@@ -50,6 +61,11 @@ def dumpnew(b):
     filename = b.properties["filename"]
 
     if filename == None:
+        core.err.new(
+            title="No associated file",
+            details=("Associate a file with this buffer with the file-associate"
+                     " command before trying to dump its contents.")
+        )
         return
 
     filename = filename.decode("ascii")
@@ -65,9 +81,14 @@ def dumpnew(b):
     editor.query.confirm(rlydoit, "Really dump to new file " + filename + "?")
 
 def dump(b):
-    filename    = b.properties["filename"]
+    filename = b.properties["filename"]
 
     if filename == None:
+        core.err.new(
+            title="No associated file",
+            details=("Associate a file with this buffer with the file-associate"
+                     " command before trying to dump its contents.")
+        )
         return
 
     filename = filename.decode("ascii")
