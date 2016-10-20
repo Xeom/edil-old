@@ -189,6 +189,7 @@ def goto_line_cb(ln):
 # cursor-goto-col
 #
 # Move the cursor to a specific column number
+# if the number is negative, move it that many spaces back from the end
 
 goto_col_cmd = Command("cursor-goto-col",
                        CommandArg(int, "Colno to go to"))
@@ -196,4 +197,15 @@ goto_col_cmd = Command("cursor-goto-col",
 @goto_col_cmd.hook(500)
 def goto_col_cb(cn):
     sel = core.cursor.get_selected()
+
+    line = sel.buffer[sel.ln]
+
+    if line:
+        cn %= len(line) + 1
+    else:
+        cn = 0
+
     sel.cn = cn
+
+goto_col_cmd.map_to(curmap, Key("HOME"), defaultargs=[0])
+goto_col_cmd.map_to(curmap, Key("END"), defaultargs=[-1])

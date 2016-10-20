@@ -1,4 +1,5 @@
 import os
+import core.err
 import editor.buffers.userlog
 import editor.query
 import time
@@ -99,6 +100,9 @@ def dump(b):
 
     revert_time = b.properties["revert-time"]
     revert_time = float(revert_time) if revert_time else time.time()
+    dump_time   = b.properties["dump-time"]
+    dump_time = float(dump_time) if dump_time else None
+
     stats       = os.stat(filename)
 
     def rlydoit():
@@ -109,7 +113,7 @@ def dump(b):
 
         editor.buffers.userlog.log("Dumped buffer to file " + filename)
 
-    if revert_time < stats.st_mtime:
+    if revert_time < stats.st_mtime and (dump_time == None or dump_time < stats.st_mtime):
         editor.query.confirm(rlydoit, filename +
                              (" has been changed since you "
                               "began editing it. Really dump to it?"))

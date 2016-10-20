@@ -95,6 +95,8 @@ class CursorType:
     def _free(self, ptr):
         del self.instances[ptr]
 
+        return 0
+
     def _get_ln(self, ptr):
         return self.call(ptr, "get_ln")
 
