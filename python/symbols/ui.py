@@ -4,7 +4,6 @@ from shared import lib as so
 import cutil
 
 from symbols.hook     import hook_p
-from symbols.callback import callback_p
 from symbols.buffer   import buffer_p
 from symbols.win      import win_p
 

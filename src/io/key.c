@@ -111,8 +111,7 @@ static int io_key_handle_completed(void)
     complete = &io_key_incomplete;
 
     hook_call(io_key_on_key, complete);
-
-    io_key_clear();
+io_key_clear();
 
     return 0;
 }

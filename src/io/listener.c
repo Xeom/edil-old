@@ -256,7 +256,7 @@ static int io_listener_read(listener *li)
     {
         li->funct.nonef(li);
     }
-    
+
     return 0;
 }
 

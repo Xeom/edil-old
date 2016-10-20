@@ -15,7 +15,7 @@ mode = Mode.new(100, "default-tabs")
 kmap = mode.keymap
 
 default_tab_string    = b"   " + Face(Face.black, Face.cyan).colour(b">")
-default_indent_string = b"\t"
+default_indent_string = b"    "
 default_tab_align     = True
 
 """Hooked function to display tabs properly.
@@ -204,4 +204,4 @@ def align_last_nonzero_cb():
     lvl = get_last_nonzero_indent(cur.buffer, cur.ln)
     set_indent_of_line(cur.buffer, cur.ln, lvl, cur)
 
-align_cmd.map_to(kmap, Key("TAB"), Key("TAB"), defaultargs=[])
+align_last_nonzero_cmd.map_to(kmap, Key("TAB"), Key("TAB"), defaultargs=[])

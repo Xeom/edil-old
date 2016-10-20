@@ -1,3 +1,5 @@
+import os.path
+
 import core.windows
 
 from core.mode      import Mode
@@ -32,6 +34,7 @@ associate_cmd = Command("file-associate",
                                    editor.autocomplete.path(".")))
 @associate_cmd.hook(500)
 def associate_cb(path):
+    path = os.path.abspath(os.path.expanduser(path))
     editor.files.associate(
         core.windows.get_selected().buffer, path)
 

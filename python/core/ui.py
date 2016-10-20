@@ -8,15 +8,11 @@ import signal
 import core.buffer
 import core.windows
 import core.hook
-import core.callback
 
 from core.vec     import Vec
 from core.windows import Window
 from core.buffer  import Buffer
 from core.hook    import Hook
-
-class callbacks:
-    pass
 
 class hooks:
     resize_pre =  Hook(

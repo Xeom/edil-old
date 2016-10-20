@@ -3,6 +3,7 @@ import cProfile, pstats, io, select, sys
 pr = cProfile.Profile()
 pr.enable()
 
+import core.err
 import core.ui
 import core.windows
 import core.hook
@@ -124,18 +125,18 @@ def handle_offsety_set(win, old):
 
     win.sidebar = (b" " * before) + (b"|" * seen) + (b" " * after)
 
-@core.key.hooks.key(500)
-def hi(key):
-    print(key, file=sys.stderr)
-    import symbols.mode
-    symbols.mode.handle_press(key.struct)
-
 cur = core.cursor.spawn(core.windows.get_selected().buffer,
                         core.cursor.types.region)
 
 cur.insert(b"SLUT")
 cur.enter()
 cur.insert(b"\tI love you really <3")
+
+@core.key.hooks.key(500)
+def hi(key):
+    print(key, file=sys.stderr)
+    import symbols.mode
+    symbols.mode.handle_press(key.struct)
 
 while alive:
     symbols.io.listener.listen()

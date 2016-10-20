@@ -217,7 +217,7 @@ extern cursor *err_log_cursor;
 
 /* The maximum number of errors that should be processed every second *
  * before the error system starts ignoring them.                      */
-extern uint max_err_per_second;
+extern uint err_max_per_sec;
 
 /* The minimum error level that results in the application aborting. */
 extern err_lvl err_min_quit_lvl;

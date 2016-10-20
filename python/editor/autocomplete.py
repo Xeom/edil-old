@@ -17,7 +17,11 @@ def path(root):
 
     def rtn(string):
         curpath = os.path.abspath(
-            os.path.join(root, string))
+            os.path.join(
+                root,
+                os.path.expanduser(string)
+            )
+        )
 
         if os.path.isdir(curpath):
             partial = ""
@@ -26,10 +30,10 @@ def path(root):
             curpath, partial = os.path.split(curpath)
 
         subs = os.listdir(curpath)
+        prefix = os.path.dirname(string)
 
-        subs = [os.path.join(curpath, sub) for sub in subs \
+        subs = [os.path.join(prefix, sub) for sub in subs \
                 if sub.startswith(partial)]
-        subs = [os.path.relpath(sub, root) for sub in subs]
 
         return subs
 
