@@ -7,6 +7,15 @@
 
 #include "ui/text.h"
 
+static int ui_text_draw(
+    const char *str,
+    const char *end,
+    uint sizelim,
+    chtype filler,
+    short facen,
+    short vert
+);
+
 text_symbol_type ui_text_symbol(char c)
 {
     /* Special case - \n is an escape for a face. */
@@ -222,8 +231,8 @@ char *ui_text_get_char(const char *str, const char *end, size_t n)
 
         typ = ui_text_symbol(*str);
 
-        if (ui_text_symbol_is_char(typ))
-            if (n-- == 0)
+        if (ui_text_symbol_is_char(typ) &&
+            n-- == 0)
                 return (char *)str;
 
         str = ui_text_next_symbol(str, end);
@@ -287,14 +296,20 @@ short ui_text_face_overflow(const char *str, const char *end, face *f)
     return facen;
 }
 
-int ui_text_draw_h(
+static int ui_text_draw(
     const char *str,
     const char *end,
     uint sizelim,
     chtype filler,
-    short facen)
+    short facen,
+    short vert
+)
 {
     char *facechar, *textchar;
+    int xpos, ypos;
+
+    xpos = getcurx(stdscr);
+    ypos = getcury(stdscr);
 
     if (str == NULL)
     {
@@ -337,15 +352,41 @@ int ui_text_draw_h(
             if (facen == 0) attrset(0);
             else facen--;
 
-            addnwstr(&chr, 1);
+            mvaddnwstr(ypos, xpos, &chr, 1);
+
+            if (vert) ypos++;
+            else      xpos++;
 
             textchar = ui_text_next_char(textchar, end);
         }
         else
-            addch(filler);
+        {
+            mvaddch(ypos, xpos, filler);
 
+            if (vert) ypos++;
+            else      xpos++;
+        }
     }
 
     return 0;
 }
 
+int ui_text_draw_h(
+    const char *str,
+    const char *end,
+    uint sizelim,
+    chtype filler,
+    short facen)
+{
+    return ui_text_draw(str, end, sizelim, filler, facen, 0);
+}
+
+int ui_text_draw_v(
+    const char *str,
+    const char *end,
+    uint sizelim,
+    chtype filler,
+    short facen)
+{
+    return ui_text_draw(str, end, sizelim, filler, facen, 1);
+}

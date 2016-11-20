@@ -8,8 +8,6 @@
 
 #include "buffer/deferline.h"
 
-
-
 struct deferline_s
 {
     vec   *insertindices;
@@ -33,6 +31,7 @@ void buffer_deferline_free(deferline *dl)
 
     table_free(dl->inserts);
     vec_free(dl->insertindices);
+    vec_free(dl->deleteindices);
 
     free(dl);
 }
@@ -100,26 +99,24 @@ int buffer_deferline_insert_at_byte(
         return -1;
 
     inslen = strlen(str);
-
     oldptr = table_get(dl->inserts, &index);
 
     if (!oldptr)
     {
-        new = malloc(inslen + 1);
-
-        memcpy(new, str, inslen + 1);
-        table_set(dl->inserts, &index, &new);
+        static char *nul = NULL;
+        table_set(dl->inserts, &index, &nul);
+        oldptr  = table_get(dl->inserts, &index);
 
         buffer_deferline_sorted_vinsert(dl->insertindices, index);
+        oldlen  = 0;
     }
     else
-    {
-        oldlen  = strlen(*oldptr);
-        new     = realloc(*oldptr, oldlen + inslen + 1);
-        *oldptr = new;
+        oldlen = strlen(*oldptr);
 
-        memcpy(new + oldlen, str, inslen + 1);
-    }
+    new     = realloc(*oldptr, oldlen + inslen + 1);
+    *oldptr = new;
+
+    memcpy(new + oldlen, str, inslen + 1);
 
     return 0;
 }

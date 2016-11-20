@@ -435,6 +435,7 @@ int cursor_point_move_cols(point *p, int n)
     lineno origln;
     colno  origcn;
 
+
     origln = p->ln;
     origcn = p->cn;
 
@@ -607,16 +608,16 @@ int cursor_point_insert(point *p, const char *str)
 
     hook_call(cursor_point_on_move_pre, p);
 
-    text   = vec_item(l, 0);
+    insind = 0;
 
-    insloc = ui_text_get_char(text, text + vec_len(l), p->cn);
+    if (vec_len(l))
+    {
+        text   = vec_item(l, 0);
+        insloc = ui_text_get_char(text, text + vec_len(l), p->cn);
 
-    if (insloc)
-        insind = (size_t)(insloc - text);
-    else
-        insind = 0;
-
-    fprintf(stderr, "%lu %lu %p\n", insind, inslen, (void *)str);
+        if (insloc)
+            insind = (size_t)(insloc - text);
+    }
 
     TRACE_INT(
         vec_insert(l, insind, inslen, str),

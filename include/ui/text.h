@@ -121,4 +121,12 @@ int ui_text_draw_h(
     uint sizelim,
     chtype filler,
     short facen);
+
+int ui_text_draw_v(
+    const char *str,
+    const char *end,
+    uint sizelim,
+    chtype filler,
+    short facen);
+
 #endif /* UI_TEXT */

@@ -150,5 +150,9 @@ size_t buffer_line_len(line *l)
 {
     ASSERT_PTR(l, high, return INVALID_INDEX);
 
-    return ui_text_len(l->text, l->text + l->length);
+    if (l->text)
+        return ui_text_len(l->text, l->text + l->length);
+
+    else
+        return 0;
 }

@@ -83,7 +83,7 @@ int ui_win_frame_draw(win *w)
     ui_text_draw_h(caption, NULL, sizex - 1, (chtype)ui_win_horizontal_char, 0);
 
     move(posy, lastposx);
-    ui_util_draw_str_limited_v(sizey - 1, ui_win_vertical_char, sidebar);
+    ui_text_draw_v(sidebar, NULL, sizey - 1, (chtype)ui_win_vertical_char, 0);
 
     mvaddch(lastposy, lastposx, (uchar)ui_win_corner_char);
 

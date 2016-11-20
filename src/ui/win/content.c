@@ -21,14 +21,13 @@ size_t ui_win_content_get_cursor_offset(win *w, lineno ln)
 {
     buffer *b;
     vec    *l;
-    size_t  numlines;
-    char *curiter, *limit, *iter;
-    size_t index;
+    char   *str, *end;
+    size_t  col;
 
-    b        = win_get_buffer(w);
-    numlines = buffer_len(b);
+    ASSERT_PTR(b = win_get_buffer(w), high, return INVALID_INDEX);
 
-    ASSERT(ln < numlines, high, return INVALID_INDEX);
+    ASSERT(ln < buffer_len(b), high, return INVALID_INDEX);
+
     ASSERT_PTR(l = buffer_get_line(b, ln), high, return INVALID_INDEX);
 
     hook_call(ui_win_content_on_draw_line_pre, w, b, &ln, l);
@@ -36,33 +35,33 @@ size_t ui_win_content_get_cursor_offset(win *w, lineno ln)
     if (vec_len(l) == 0)
         return INVALID_INDEX;
 
-    limit   = (char *)vec_item(l, vec_len(l) - 1) + 1;
-    curiter = ui_util_text_next_face(vec_item(l, 0), limit);
+    str = (char *)vec_item(l, 0);
+    end = (char *)vec_item(l, vec_len(l) - 1) + 1;
 
-    for (;;)
+    col = 0;
+
+    while (str && str < end)
     {
-        ASSERT_PTR(curiter, high,
-                   vec_free(l);
-                   return INVALID_INDEX);
+        text_symbol_type typ;
 
-        if (memcmp(curiter, face_cursor, face_serialized_len) == 0)
-            break;
+        typ = ui_text_symbol(*str);
 
-        curiter = ui_util_text_next_face(curiter + 1, limit);
-    }
+        if (typ == face_start &&
+            memcmp(str, face_cursor, face_serialized_len) == 0)
+        {
+            vec_free(l);
+            return col;
+        }
 
-    iter = ui_util_text_next_char(vec_item(l, 0), curiter);
-    index = 0;
+        if (ui_text_symbol_is_char(typ))
+            col++;
 
-    while (iter)
-    {
-        iter = ui_util_text_next_char(iter + 1, curiter);
-        index++;
+        str = ui_text_next_symbol(str, end);
     }
 
     vec_free(l);
 
-    return index;
+    return INVALID_INDEX;
 }
 
 int ui_win_content_draw_subs(win *w)
@@ -163,13 +162,13 @@ int ui_win_content_draw_line(win *w, lineno ln)
         startfacen = ui_text_face_overflow(start, str, &startface);
 
         attron(ui_face_get_attr(startface));
-        ui_text_draw_h(str, end, sizex - 1, ' ', startfacen);
 
+        ui_text_draw_h(str, end, sizex - 1, ' ', startfacen);
     }
     else
         ui_text_draw_h(NULL, NULL, sizex - 1, ' ', 0);
 
-    hook_call(ui_win_content_on_draw_line_post, &w, &b, &ln, &l);
+    hook_call(ui_win_content_on_draw_line_post, w, b, &ln, l);
 
     vec_free(l);
 
