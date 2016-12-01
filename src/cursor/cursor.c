@@ -1,9 +1,11 @@
 #include "buffer/buffer.h"
 #include "buffer/deferline.h"
+
 #include "container/table.h"
 #include "win/select.h"
 #include "ui/face.h"
 #include "err.h"
+
 #include "cursor/snap.h"
 
 #include "cursor/cursor.h"

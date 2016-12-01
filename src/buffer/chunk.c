@@ -341,7 +341,7 @@ int buffer_chunk_set_line(chunk *c, lineno offset, vec *v)
 int buffer_chunk_set_line_chars(chunk *c, lineno offset, vec *v)
 {
     /* Set a line's contents to a vector */
-    TRACE_INT(buffer_line_set_vec(vec_lines_get((vec_lines *)c, offset), v),
+    TRACE_INT(buffer_line_set_vec_chars(vec_lines_get((vec_lines *)c, offset), v),
                return -1);
 
     return 0;

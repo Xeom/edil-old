@@ -111,7 +111,10 @@ int32_t ui_text_decode_utf8(const char *str, const char *end)
 
 size_t ui_text_encode_utf8(int32_t chr, char *buf)
 {
-    ASSERT(chr < 0, high, return 0);
+    ASSERT(chr > 0, high, return 0);
+    ASSERT_PTR(buf, high, return 0);
+
+    memset(buf, 0, 4);
 
     if (chr < 0x80)
     {

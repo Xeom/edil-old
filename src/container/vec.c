@@ -477,7 +477,7 @@ vec *vec_cut(vec *v, size_t index, size_t n)
 
     /* Make a new vector for the cut */
     rtn = vec_init_raw(width);
-    rtn->length = n;
+    rtn->length = amount;
 
     TRACE_INT(vec_resize_bigger(rtn),
               vec_free(rtn);
