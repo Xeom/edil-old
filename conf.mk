@@ -34,7 +34,6 @@ SRC_NAMES=\
                            \
     err                    \
     hook                   \
-    callback               \
     mode                   \
                            \
         win/label          \

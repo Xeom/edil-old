@@ -22,11 +22,8 @@ hook_add(buffer_deferline_on_draw, 4);
 
 void buffer_deferline_free(deferline *dl)
 {
-    vec_rforeach(dl->insertindices, size_t, ind,
-                 char  *str;
-
-                 str = *(char **)table_get(dl->inserts, &ind);
-                 free(str);
+    table_foreach(dl->inserts, char **, str,
+                  free(*str);
         );
 
     table_free(dl->inserts);
@@ -174,6 +171,9 @@ static int buffer_deferline_insert_next(deferline *dl)
     vec_insert(dl->v, index, len, str);
 
     vec_delete(dl->insertindices, vec_len(dl->insertindices) - 1, 1);
+
+    free(str);
+    table_delete(dl->inserts, &index);
 
     return 0;
 }

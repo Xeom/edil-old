@@ -1,15 +1,15 @@
-import core.windows
-import core.keymap
+import os.path
 
-from core.key import Key
+import core.windows
+
+from core.mode      import Mode
+from core.key       import Key
 from editor.command import Command, CommandArg
 
 import editor.autocomplete
 
-mapname = "files-default"
-
-core.keymap.maps.add(mapname)
-filesmap = core.keymap.maps[mapname]
+mode = Mode.new(100, "default-files")
+kmap = mode.keymap
 
 modifier_key = Key("F", con=True)
 
@@ -24,7 +24,7 @@ def revert_cb():
     editor.files.revert(
         core.windows.get_selected().buffer)
 
-revert_cmd.map_to(filesmap, modifier_key, Key("r"))
+revert_cmd.map_to(kmap, modifier_key, Key("r"))
 
 # file-associate
 #
@@ -34,10 +34,11 @@ associate_cmd = Command("file-associate",
                                    editor.autocomplete.path(".")))
 @associate_cmd.hook(500)
 def associate_cb(path):
+    path = os.path.abspath(os.path.expanduser(path))
     editor.files.associate(
         core.windows.get_selected().buffer, path)
 
-associate_cmd.map_to(filesmap, modifier_key, Key("a"))
+associate_cmd.map_to(kmap, modifier_key, Key("a"))
 
 # file-dump
 #
@@ -50,4 +51,4 @@ def dump_cb():
     editor.files.dump(
         core.windows.get_selected().buffer)
 
-dump_cmd.map_to(filesmap, modifier_key, Key("d"))
+dump_cmd.map_to(kmap, modifier_key, Key("d"))

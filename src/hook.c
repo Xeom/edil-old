@@ -8,30 +8,51 @@
 
 typedef struct hook_fcont_s hook_fcont;
 
+/* A structure representing a function mounted to a hook. */
 struct hook_fcont_s
 {
     hook_f funct;
     priority pri;
 };
 
+/* A vector of vectors allocated by the hook system that need to be free'd *
+ * when the system to killed.                                              */
 static vec *hook_vecs_to_free = NULL;
 
+/*
+ * Call a function mounted on a hook with a specific set of arguments.
+ *
+ * @param h    The hook the function is mounted to.
+ * @param f    A function container containing the function to call.
+ * @param args A vector of pointers to arguments to call the functions with.
+ *
+ */
 static void hook_call_funct(hook h, hook_fcont f, vec *args);
 
-int hook_killsys(void)
+void hook_killsys(void)
 {
     if (hook_vecs_to_free)
+    {
+        /* Free all the vectors we allocated */
         vec_foreach(hook_vecs_to_free, vec *, v,
                     vec_free(v));
 
-    vec_free(hook_vecs_to_free);
+        /* Free the vector we stored them in */
+    }
 
-    return 0;
+    hook_vecs_to_free = NULL;
 }
 
 void hook_free(hook h)
 {
-    vec_free(h.functs);
+    if (h.functs)
+    {
+        vec_free(h.functs);
+
+        if (vec_contains(hook_vecs_to_free, &h.functs))
+            vec_delete(hook_vecs_to_free,
+                       vec_find(hook_vecs_to_free, &h.functs), 1);
+    }
 }
 
 int hook_mount(hook *h, hook_f f, priority pri)
@@ -54,7 +75,10 @@ int hook_mount(hook *h, hook_f f, priority pri)
         h->functs = functs;
 
         if (hook_vecs_to_free == NULL)
+        {
             hook_vecs_to_free = vec_init(sizeof(vec *));
+            atexit(hook_killsys);
+        }
 
         vec_insert_end(hook_vecs_to_free, 1, &functs);
     }

@@ -24,7 +24,7 @@ FILE   *err_stream     = NULL;
 buffer *err_log_buffer = NULL;
 cursor *err_log_cursor = NULL;
 
-uint max_err_per_second = 10;
+uint err_max_per_sec = 10;
 
 err_lvl err_min_quit_lvl   = terminal;
 err_lvl err_min_care_lvl   = low;
@@ -44,10 +44,10 @@ static int err_are_we_dying(void)
     else
     {
         last_err_time = (uint)time(NULL);
-        errs_this_sec = 0;
+        errs_this_sec = 1;
     }
 
-    if (errs_this_sec == max_err_per_second)
+    if (errs_this_sec == err_max_per_sec)
     {
         if (err_stream)
             fputs("Too many errors, ignoring further errors ...\n", err_stream);
@@ -55,7 +55,7 @@ static int err_are_we_dying(void)
         return 1;
     }
 
-    if (errs_this_sec > max_err_per_second)
+    if (errs_this_sec > err_max_per_sec)
         return 1;
 
     return 0;
@@ -101,7 +101,7 @@ void err_new(err_lvl lvl, const char *title, const char *content)
     memcpy(errstr, prefix, plen);
     memcpy(errstr + plen, title, tlen);
 
-    errstr[plen + tlen    ] = '\n';
+    errstr[plen + tlen] = '\n';
 
     if (err_stream)
     {

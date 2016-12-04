@@ -1,15 +1,16 @@
 import string
 
-import core.keymap
 import editor.buffers.userlog
+import core.cursor
 
-from core.key import Key
+from core.mode      import Mode
+from core.key       import Key
 from editor.command import Command, CommandArg
 
-mapname = "cursor-default"
+mode = Mode.new(100, "default-cursor")
+kmap = mode.keymap
 
-core.keymap.maps.add(mapname)
-curmap = core.keymap.maps[mapname]
+mapname = "cursor-default"
 
 # cursor-up
 #
@@ -24,7 +25,7 @@ def up_cb(n):
     sel = core.cursor.get_selected()
     sel.move_lines(-n)
 
-up_cmd.map_to(curmap, Key("UP"), defaultargs=[1])
+up_cmd.map_to(kmap, Key("UP"), defaultargs=[1])
 
 # cursor-down
 #
@@ -39,7 +40,7 @@ def down_cb(n):
     sel = core.cursor.get_selected()
     sel.move_lines(n)
 
-down_cmd.map_to(curmap, Key("DOWN"), defaultargs=[1])
+down_cmd.map_to(kmap, Key("DOWN"), defaultargs=[1])
 
 # cursor-back
 #
@@ -55,7 +56,7 @@ def back_cb(n):
     sel = core.cursor.get_selected()
     sel.move_cols(-n)
 
-back_cmd.map_to(curmap, Key("LEFT"), defaultargs=[1])
+back_cmd.map_to(kmap, Key("LEFT"), defaultargs=[1])
 
 # cursor-forward
 #
@@ -71,7 +72,7 @@ def forward_cb(n):
     sel = core.cursor.get_selected()
     sel.move_cols(n)
 
-forward_cmd.map_to(curmap, Key("RIGHT"), defaultargs=[1])
+forward_cmd.map_to(kmap, Key("RIGHT"), defaultargs=[1])
 
 # cursor-delback
 #
@@ -85,7 +86,7 @@ def delback_cb(n):
     sel = core.cursor.get_selected()
     sel.delete(n)
 
-delback_cmd.map_to(curmap, Key("BACKSPACE"), defaultargs=[1])
+delback_cmd.map_to(kmap, Key("BACKSPACE"), defaultargs=[1])
 
 # cursor-activate
 #
@@ -100,7 +101,7 @@ def activate_cb():
     sel = core.cursor.get_selected()
     sel.activate()
 
-activate_cmd.map_to(curmap, Key("A", con=True))
+activate_cmd.map_to(kmap, Key("A", con=True))
 
 # cursor-activate
 #
@@ -115,7 +116,7 @@ def deactivate_cb():
     sel = core.cursor.get_selected()
     sel.deactivate()
 
-deactivate_cmd.map_to(curmap, Key("a", esc=True))
+deactivate_cmd.map_to(kmap, Key("a", esc=True))
 
 # cursor-enter
 #
@@ -128,7 +129,7 @@ def enter_cb():
     sel = core.cursor.get_selected()
     sel.enter()
 
-enter_cmd.map_to(curmap, Key("RETURN"))
+enter_cmd.map_to(kmap, Key("RETURN"))
 
 # cursor-insert
 #
@@ -154,8 +155,7 @@ def insert_cb(string, n):
     sel.insert(string)
 
 for char in insertable_chars:
-    insert_cmd.map_to(curmap, Key(char), defaultargs=[char, 1])
-
+    insert_cmd.map_to(kmap, Key(char), defaultargs=[char, 1])
 
 # cursor-insert-hex
 #
@@ -189,6 +189,7 @@ def goto_line_cb(ln):
 # cursor-goto-col
 #
 # Move the cursor to a specific column number
+# if the number is negative, move it that many spaces back from the end
 
 goto_col_cmd = Command("cursor-goto-col",
                        CommandArg(int, "Colno to go to"))
@@ -196,4 +197,15 @@ goto_col_cmd = Command("cursor-goto-col",
 @goto_col_cmd.hook(500)
 def goto_col_cb(cn):
     sel = core.cursor.get_selected()
+
+    line = sel.buffer[sel.ln]
+
+    if line:
+        cn %= len(line) + 1
+    else:
+        cn = 0
+
     sel.cn = cn
+
+goto_col_cmd.map_to(kmap, Key("HOME"), defaultargs=[0])
+goto_col_cmd.map_to(kmap, Key("END"), defaultargs=[-1])

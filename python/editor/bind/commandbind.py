@@ -1,16 +1,16 @@
-import core.keymap
+import shlex
+
 import core.cursor
 import core.deferline
 
-from core.key import Key
+from core.mode import Mode
+from core.key  import Key
 
 from editor.autocomplete import options_list, number
 from editor.command import Command, CommandArg, get_command
 
-mapname = "cmd-default"
-
-core.keymap.maps.add(mapname)
-cmdmap = core.keymap.maps[mapname]
+mode = Mode.new(100, "default-command")
+kmap = mode.keymap
 
 # command-run
 #
@@ -22,9 +22,29 @@ run_cmd = Command("command-run",
 @run_cmd.hook(500)
 def run_cb(name):
     cmd = get_command(name)
-    cmd.run_query()
+    cmd.run()
 
-run_cmd.map_to(cmdmap, Key("E", con=True), Key("x"))
+run_cmd.map_to(kmap, Key("E", con=True), Key("x"))
+
+# command-run-line
+#
+# Runs the command on the current line.
+
+run_line_cmd = Command("command-run-line")
+
+@run_line_cmd.hook(500)
+def run_line_cb():
+    cur    = core.cursor.get_selected()
+    line   = cur.buffer[cur.ln]
+    string = bytes(line).decode("ascii")
+    parts  = shlex.split(string)
+    cmdname = parts[0]
+    args    = parts[1:]
+
+    cmd = get_command(cmdname)
+    cmd.run_withargs_string(*args)
+
+run_line_cmd.map_to(kmap, Key("E", con=True), Key("l"))
 
 # command-undefault
 #
@@ -41,7 +61,7 @@ undefault_cmd = Command("command-undefault")
 def undefault_cb():
     Command.undefault()
 
-undefault_cmd.map_to(cmdmap, Key("e", esc=True))
+undefault_cmd.map_to(kmap, Key("e", esc=True))
 
 # command-repeat
 #
