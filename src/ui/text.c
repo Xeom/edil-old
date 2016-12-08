@@ -7,6 +7,8 @@
 
 #include "ui/text.h"
 
+/* Functions as ui_text_draw_v or ui_text_draw_h *
+ * depending on whether vert is 1 or 0.          */
 static int ui_text_draw(
     const char *str,
     const char *end,
@@ -22,23 +24,23 @@ text_symbol_type ui_text_symbol(char c)
     if ((uchar)c == '\n')
         return face_start;
 
-    /* 0xxx xxxx - Ordinary ascii */
+    /* 0xxx,xxxx - Ordinary ascii */
     if ((uchar)c < 0x80)
         return ascii;
 
-    /* 10xx xxxx - utf-8 continuation character */
+    /* 10xx,xxxx - utf-8 continuation character */
     if ((uchar)c < 0xc0)
         return utf8_mid;
 
-    /* 110x xxxx - utf-8 2-byte wide start character */
+    /* 110x,xxxx - utf-8 2-byte wide start character */
     if ((uchar)c < 0xe0)
         return utf8_2wide;
 
-    /* 1110 xxxx - utf-8 3-byte wide start character */
+    /* 1110,xxxx - utf-8 3-byte wide start character */
     if ((uchar)c < 0xf0)
         return utf8_3wide;
 
-    /* 1111 xxxx - utf-8 4-byte wide start character */
+    /* 1111,0xxx - utf-8 4-byte wide start character */
     if ((uchar)c < 0xf8)
         return utf8_4wide;
 
@@ -52,9 +54,11 @@ size_t ui_text_symbol_width(text_symbol_type sym)
     {
     case face_start:
         return face_serialized_len;
+    /* These are broken symbols, so we just give them length 1 */
     case utf8_big:
     case utf8_mid:
         return 1;
+    /* For ascii and utf8_*wide, just cast */
     default:
         return (size_t)sym;
     }
@@ -62,6 +66,7 @@ size_t ui_text_symbol_width(text_symbol_type sym)
 
 int ui_text_symbol_is_char(text_symbol_type sym)
 {
+    /* ascii, utf8_*wide */
     return sym <= utf8_4wide;
 }
 
@@ -69,8 +74,13 @@ char *ui_text_next_symbol(const char *str, const char *end)
 {
     char *rtn;
 
-    if (str >= end) return NULL;
+    /* Check our pointers */
+    ASSERT_PTR(str, high, return NULL);
+    ASSERT_PTR(end, high, return NULL);
 
+    ASSERT(end >= str, high, return NULL);
+
+    /* Simply add the width of the first symbol to the string */
     rtn = (char *)str + ui_text_symbol_width(ui_text_symbol(*str));
 
     if (rtn >= end) return NULL;
@@ -84,22 +94,31 @@ int32_t ui_text_decode_utf8(const char *str, const char *end)
     int32_t          rtn;
     size_t           width;
 
+    /* Check pointers */
     ASSERT_PTR(str, high, return -1);
     ASSERT_PTR(end, high, return -1);
+
     ASSERT(end >= str, high, return -1);
 
-    typ = ui_text_symbol(*str);
-
+    /* Get the type and width of the first symbol */
+    typ   = ui_text_symbol(*str);
     width = ui_text_symbol_width(typ);
 
+    /* Check that the string is long enough to contain the symbol fully, *
+     * and that the type is decodable to a unicode codepoint.            */
     ASSERT(str + width <= end,          high, return -1);
     ASSERT(ui_text_symbol_is_char(typ), high, return -1);
 
+    /* Ascii is simple - Just cast the first character */
     if (typ == ascii)
         return (int32_t)*str;
 
+    /* The bits of the first byte not taken up with the 11s signifying a *
+     * multi-byte character are put into a rtn accumulator variable.     */
     rtn = (0x7f >> (int)typ) & (*str);
 
+    /* Add the lower 6 bits of each subsequent utf-8 byte to the *
+     * accumulator variable.                                     */
     while (--width)
     {
         rtn <<= 6;
@@ -114,8 +133,10 @@ size_t ui_text_encode_utf8(int32_t chr, char *buf)
     ASSERT(chr > 0, high, return 0);
     ASSERT_PTR(buf, high, return 0);
 
+    /* Empty the buffer */
     memset(buf, 0, 4);
 
+    /* For ascii, we just cast the char */
     if (chr < 0x80)
     {
         *buf = (char)chr;
@@ -123,6 +144,8 @@ size_t ui_text_encode_utf8(int32_t chr, char *buf)
         return 1;
     }
 
+    /* For 2 char wide utf-8, *
+     * 110x,xxxx 10xx,xxxx    */
     else if (chr < 0x800)
     {
         buf[0] = (char)(0xc0 | (chr >> 6));
@@ -131,6 +154,8 @@ size_t ui_text_encode_utf8(int32_t chr, char *buf)
         return 2;
     }
 
+    /* For 3 char wide utf-8,        *
+     * 1110,xxxx 10xx,xxxx 10xx,xxxx */
     else if (chr < 0x10000)
     {
         buf[0] = (char)(0xe0 | (chr >> 12));
@@ -140,6 +165,8 @@ size_t ui_text_encode_utf8(int32_t chr, char *buf)
         return 3;
     }
 
+    /* For 4 char wide utf-8,                  *
+     * 1111,0xxx 10xx,xxxx 10xx,xxxx 10xx,xxxx */
     else if (chr < 0x400000)
     {
         buf[0] = (char)(0xe0 | (chr >> 18));
@@ -158,16 +185,22 @@ char *ui_text_next_char(const char *str, const char *end)
     ASSERT_PTR(str, high, return NULL);
     ASSERT_PTR(end, high, return NULL);
 
+    ASSERT(end >= str, high, return NULL);
+
+    /* Iterate across all the symbols in the string */
     while ((str = ui_text_next_symbol(str, end)))
     {
         text_symbol_type typ;
 
+        /* Get the type of each symbol */
         typ = ui_text_symbol(*str);
 
+        /* Return the first character */
         if (ui_text_symbol_is_char(typ))
             return (char *)str;
     }
 
+    /* If we've gotten to the end of the string, return NULL */
     return NULL;
 }
 
@@ -175,14 +208,22 @@ char *ui_text_first_char(const char *str, const char *end)
 {
     text_symbol_type typ;
 
+    ASSERT_PTR(str, high, return NULL);
+    ASSERT_PTR(end, high, return NULL);
+
+    ASSERT(end >= str, high, return NULL);
+
+    /* The string is 0 length */
     if (str == end)
         return NULL;
 
     typ = ui_text_symbol(*str);
 
+    /* If the first symbol is a character, return it */
     if (ui_text_symbol_is_char(typ))
         return (char *)str;
 
+    /* Otherwise, return the next one */
     else
         return ui_text_next_char(str, end);
 }
