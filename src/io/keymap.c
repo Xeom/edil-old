@@ -2,14 +2,9 @@
 
 #include "io/key.h"
 
-#define VEC_TYPED_GETSET
-#define VEC_TYPED_NULL {0, ""}
-#define VEC_TYPED_TYPE key
-#define VEC_TYPED_NAME keys
-#include "container/typed_vec.h"
-
 #include "container/table.h"
 #include "hook.h"
+#include "err.h"
 
 #include "io/keymap.h"
 
@@ -31,29 +26,30 @@ struct keytree_s
         table *subs;
         hook h;
     } cont;
+
     keytree_type type;
 };
 
 struct keymap_s
 {
-    vec_keys *keys;
-    keytree  *curr;
-    keytree  *root;
-    hook      unknown;
+    vec     *keys;
+    keytree *curr;
+    keytree *root;
+    hook     unknown;
 };
 
-static int keytree_delete_leaf(keytree *tree, vec_keys *keys, size_t index);
-static int keytree_delete_map(keytree *tree, vec_keys *keys, size_t index);
-static int keytree_delete(keytree *tree, vec_keys *keys, size_t index);
+static int keytree_delete_leaf(keytree *tree, vec *keys, size_t index);
+static int keytree_delete_map(keytree *tree, vec *keys, size_t index);
+static int keytree_delete(keytree *tree, vec *keys, size_t index);
 
 static void keytree_create_map(keytree *ptr);
 static void keytree_create_leaf(keytree *ptr);
 
-static hook *keytree_get(keytree *tree, vec_keys *keys, size_t index);
+static hook *keytree_get(keytree *tree, vec *keys, size_t index);
 
-static int keytree_add(keytree *tree, vec_keys *keys, size_t index);
+static int keytree_add(keytree *tree, vec *keys, size_t index);
 
-static int keytree_delete_leaf(keytree *tree, vec_keys *keys, size_t index)
+static int keytree_delete_leaf(keytree *tree, vec *keys, size_t index)
 {
     ASSERT(vec_len(keys) == index, high, return -1);
 
@@ -63,17 +59,17 @@ static int keytree_delete_leaf(keytree *tree, vec_keys *keys, size_t index)
     return 1;
 }
 
-static int keytree_delete_map(keytree *tree, vec_keys *keys, size_t index)
+static int keytree_delete_map(keytree *tree, vec *keys, size_t index)
 {
     int      subrtn;
     keytree *sub;
-    key      k;
+    key     *kptr;
 
     ASSERT(vec_len(keys) > index, high, return -1);
 
-    k = vec_keys_get(keys, index);
+    kptr = vec_item(keys, index);
 
-    sub = table_get(tree->cont.subs, &k);
+    sub = table_get(tree->cont.subs, kptr);
 
     ASSERT(sub != NULL, high, return -1);
 
@@ -83,7 +79,7 @@ static int keytree_delete_map(keytree *tree, vec_keys *keys, size_t index)
     if (subrtn == 0 || index == 0)
         return 0;
 
-    table_delete(tree->cont.subs, &k);
+    table_delete(tree->cont.subs, kptr);
 
     if (table_len(tree->cont.subs))
         return 0;
@@ -94,7 +90,7 @@ static int keytree_delete_map(keytree *tree, vec_keys *keys, size_t index)
     return 1;
 }
 
-static int keytree_delete(keytree *tree, vec_keys *keys, size_t index)
+static int keytree_delete(keytree *tree, vec *keys, size_t index)
 {
     if (tree->type == leaf)
         return keytree_delete_leaf(tree, keys, index);
@@ -109,7 +105,7 @@ int keymap_delete(keymap *map, vec *keys)
 {
     int rtn;
 
-    rtn = keytree_delete(map->root, (vec_keys *)keys, 0);
+    rtn = keytree_delete(map->root, keys, 0);
 
     if (rtn == -1)
         return -1;
@@ -120,6 +116,7 @@ int keymap_delete(keymap *map, vec *keys)
 static void keytree_create_leaf(keytree *ptr)
 {
     hook_add(h, 1);
+
     ptr->type   = leaf;
     ptr->cont.h = h;
 }
@@ -127,7 +124,6 @@ static void keytree_create_leaf(keytree *ptr)
 static void keytree_create_map(keytree *ptr)
 {
     ptr->type = kmap;
-
     ptr->cont.subs = table_init(
         sizeof(keytree), sizeof(key), NULL, NULL, NULL);
 }
@@ -164,9 +160,9 @@ keymap *keymap_init(void)
     root = keytree_init();
     keytree_create_map(root);
 
-    rtn->keys = vec_keys_init();
-    rtn->curr = root;
-    rtn->root = root;
+    rtn->keys    = vec_init(sizeof(key));
+    rtn->curr    = root;
+    rtn->root    = root;
     rtn->unknown = h;
     /* DO UNKNOWN HOOKS */
 
@@ -187,7 +183,7 @@ void keymap_clear(keymap *map)
 {
     ASSERT_PTR(map, high, NULL);
 
-    vec_keys_delete(map->keys, 0, vec_len(map->keys));
+    vec_delete(map->keys, 0, vec_len(map->keys));
     map->curr = map->root;
 }
 
@@ -197,7 +193,7 @@ int keymap_press(keymap *map, key k)
 
     ASSERT_PTR(map, high, NULL);
 
-    vec_keys_insert(map->keys, vec_len(map->keys), 1, &k);
+    vec_insert(map->keys, vec_len(map->keys), 1, &k);
     sub = table_get(map->curr->cont.subs, &k);
 
     if (sub == NULL)
@@ -221,21 +217,21 @@ int keymap_press(keymap *map, key k)
     return 2;
 }
 
-static hook *keytree_get(keytree *tree, vec_keys *keys, size_t index)
+static hook *keytree_get(keytree *tree, vec *keys, size_t index)
 {
     keytree *sub;
-    key      k;
+    key     *kptr;
 
     if (tree->type == leaf)
     {
-        ASSERT(vec_keys_len(keys) == index, high, return NULL);
+        ASSERT(vec_len(keys) == index, high, return NULL);
         return &(tree->cont.h);
     }
 
-    ASSERT(vec_keys_len(keys) > index, high, return NULL);
+    ASSERT(vec_len(keys) > index, high, return NULL);
 
-    k   = vec_keys_get(keys, index);
-    sub = table_get(tree->cont.subs, &k);
+    kptr = vec_item(keys, index);
+    sub = table_get(tree->cont.subs, kptr);
 
     if (!sub) return NULL;
 
@@ -246,29 +242,29 @@ hook *keymap_get(keymap *map, vec *keys)
 {
     ASSERT_PTR(map, high, return NULL);
 
-    return keytree_get(map->root, (vec_keys *)keys, 0);
+    return keytree_get(map->root, keys, 0);
 }
 
-static int keytree_add(keytree *tree, vec_keys *keys, size_t index)
+static int keytree_add(keytree *tree, vec *keys, size_t index)
 {
-    key k;
+    const key *kptr;
     keytree *sub;
 
-    k = vec_keys_get(keys, index);
+    kptr = vec_item(keys, index);
 
     ASSERT(tree->type == kmap, high, return -1);
 
-    sub = table_get(tree->cont.subs, &k);
+    sub = table_get(tree->cont.subs, kptr);
 
     /* Is this the last key */
-    if (index == vec_keys_len(keys) - 1)
+    if (index == vec_len(keys) - 1)
     {
         if (sub) return 0;
 
         sub = keytree_init();
         keytree_create_leaf(sub);
 
-        table_set(tree->cont.subs, &k, sub);
+        table_set(tree->cont.subs, kptr, sub);
 
         free(sub);
 
@@ -280,10 +276,10 @@ static int keytree_add(keytree *tree, vec_keys *keys, size_t index)
         sub = keytree_init();
         keytree_create_map(sub);
 
-        table_set(tree->cont.subs, &k, sub);
+        table_set(tree->cont.subs, kptr, sub);
 
         free(sub);
-        sub = table_get(tree->cont.subs, &k);
+        sub = table_get(tree->cont.subs, kptr);
     }
 
     return keytree_add(sub, keys, index + 1);
@@ -292,7 +288,7 @@ static int keytree_add(keytree *tree, vec_keys *keys, size_t index)
 
 int keymap_add(keymap *map, vec *keys)
 {
-    return keytree_add(map->root, (vec_keys *)keys, 0);
+    return keytree_add(map->root, keys, 0);
 }
 
 hook *keymap_get_unknown(keymap *k)

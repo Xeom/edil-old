@@ -23,7 +23,7 @@ static int table_resize_smaller(table *t);
 
 static size_t table_item_size(table *t);
 
-static void   table_key_setnull(table *t, char *k);
+static void   table_key_setnull(table *t,       char *k);
 static int    table_key_isnull (table *t, const char *k);
 static hash   table_key_hash   (table *t, const char *k);
 static int    table_key_eq     (table *t, const char *a, const char *b);
@@ -299,7 +299,7 @@ int ctable_set(table *t, const char *k, const char *value)
     }
 }
 
-int table_set(table *t, void *k, void *value)
+int table_set(table *t, const void *k, const void *value)
 {
     int    new;
     size_t ind;
@@ -334,7 +334,7 @@ char *ctable_get(table *t, const char *k)
     return *rtn;
 }
 
-void *table_get(table *t, void *k)
+void *table_get(table *t, const void *k)
 {
     int    new;
     size_t ind;
@@ -373,7 +373,7 @@ int ctable_delete(table *t, const char *k)
     return rtn;
 }
 
-int table_delete(table *t, void *k)
+int table_delete(table *t, const void *k)
 {
     int    new;
     char  *item, *open, *last;

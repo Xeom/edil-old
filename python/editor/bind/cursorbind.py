@@ -146,23 +146,92 @@ insert_cmd = Command("cursor-insert",
                      CommandArg(int, "Repetitions"))
 @insert_cmd.hook(500)
 def insert_cb(string, n):
-    if isinstance(string, str):
-        string = string.encode("ascii")
-
+    string = string.encode("utf-8")
     string *= n
 
     sel = core.cursor.get_selected()
     sel.insert(string)
 
+# Bind cursor-insert to every printable ascii character
 for char in insertable_chars:
     insert_cmd.map_to(kmap, Key(char), defaultargs=[char, 1])
 
-# cursor-insert-hex
-#
-# Insert a character, takes argument in hex, bin, oct etc.
+class Utf8_Processor:
+    def __init__(self):
+        self.codepoint = 0
+        self.width     = 0
+        self.currlen   = 0
+        self.repeats   = 0
 
-insert_hex_cmd = Command("cursor-insert-hex",
-                         CommandArg(str,
+    def repeat(self, n):
+        self.repeats = max(self.repeats, n)
+
+    def process_continue(self, keycode):
+        self.codepoint <<= 6
+        self.codepoint  |= keycode & 0x3f
+        self.currlen    += 1
+
+        if self.currlen == self.width:
+            return chr(self.codepoint) * self.repeats
+
+    def process_start(self, keycode):
+        if   keycode < 0xe0: self.width = 2
+        elif keycode < 0xf0: self.width = 3
+        elif keycode < 0xf8: self.width = 4
+
+        self.currlen   = 1
+        self.repeats   = 1
+        self.codepoint = keycode & (0x7f >> self.width)
+
+    def process_ascii(self, keycode):
+        rtn = chr(keycode) * self.repeats
+        self.repeats = 1
+
+        return rtn
+
+    def process(self, keycode):
+        if   keycode < 0x80:
+            return self.process_ascii(keycode)
+        elif keycode < 0xc0:
+            return self.process_continue(keycode)
+        else:
+            return self.process_start(keycode)
+
+utf8_processor  = Utf8_Processor()
+
+# cursor-insert-utf8
+#
+# Insert a utf-8 encoded byte
+#
+# When the command is called multiple times until a full utf-8 character is
+# completed, the character is inserted.
+
+insert_utf8_cmd = Command("cursor-insert-utf8",
+                          CommandArg(int, "Next UTF-8 character code"),
+                          CommandArg(int, "Repetitions"))
+
+@insert_utf8_cmd.hook(500)
+def insert_utf8_cb(keycode, n):
+    if keycode > 0xf9:
+        return
+
+    utf8_processor.repeat(n)
+    string = utf8_processor.process(keycode)
+
+    if string:
+        insert_cmd.run_withargs(string, 1)
+
+# Bind cursor-insert-utf8 to all the utf-8 specific keycodes
+for char in range(0x80, 0xf9):
+    insert_utf8_cmd.map_to(kmap,
+                           Key("<{:04x}>".format(char)), defaultargs=[char, 1])
+
+# cursor-insert-codepoint
+#
+# Insert a character, of a specific codepoint
+
+insert_hex_cmd = Command("cursor-insert-codepoint",
+                         CommandArg(lambda s:int(s, base=0),
                                     "Character (0x.., 0b.., 0o.., 1..)"))
 @insert_hex_cmd.hook(500)
 def insert_hex_cb(number):

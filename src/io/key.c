@@ -111,7 +111,7 @@ static int io_key_handle_completed(void)
     complete = &io_key_incomplete;
 
     hook_call(io_key_on_key, complete);
-io_key_clear();
+    io_key_clear();
 
     return 0;
 }
@@ -127,6 +127,7 @@ int io_key_handle_chr(int chr)
     else if (chr < 32) /* ASCII Ctrl-Key control char */
     {
         char name[2];
+
         name[0] = (chr + 64) & CHAR_MAX;
         name[1] = '\0';
 
@@ -137,6 +138,7 @@ int io_key_handle_chr(int chr)
     else if (chr < 128) /* Normal ascii character */
     {
         char name[2];
+
         name[0] = chr & CHAR_MAX;
         name[1] = '\0';
 
@@ -145,14 +147,23 @@ int io_key_handle_chr(int chr)
 
     else
     {
-        const char *name;
+        const char *kname;
 
-        name = keyname(chr);
+        kname = keyname(chr);
 
-        if (name && strncmp(name, "KEY_", 4) == 0)
-            io_key_incomplete = io_key_set_name(io_key_incomplete, name + 4);
+        fprintf(stderr, "KEYNAME <%s> %d\n", kname, chr);
+
+        if (kname && strncmp(kname, "KEY_", 4) == 0)
+            io_key_incomplete = io_key_set_name(io_key_incomplete, kname + 4);
         else
-            io_key_incomplete = io_key_set_name(io_key_incomplete, "<?>");
+        {
+            char name[7];
+
+            strcpy(name, "<xxxx>");
+            snprintf(name, 7, "<%04x>", chr);
+
+            io_key_incomplete = io_key_set_name(io_key_incomplete, name);
+        }
     }
 
     io_key_handle_completed();

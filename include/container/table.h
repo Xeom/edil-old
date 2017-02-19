@@ -174,7 +174,7 @@ int ctable_set(table *t, const char *k, const char *value);
  * @return      0 on success, -1 on error.
  *
  */
-int table_set(table *t, void *k, void *value);
+int table_set(table *t, const void *k, const void *value);
 
 char *ctable_get(table *t, const char *k);
 
@@ -196,7 +196,7 @@ char *ctable_get(table *t, const char *k);
  *          there is no value associated with the key.
  *
  */
-void *table_get(table *t, void *k);
+void *table_get(table *t, const void *k);
 
 int ctable_delete(table *t, const char *k);
 
@@ -213,7 +213,7 @@ int ctable_delete(table *t, const char *k);
  * @return  0 on success, -1 on error.
  *
  */
-int table_delete(table *t, void *k);
+int table_delete(table *t, const void *k);
 
 void *table_iter_first(table *t);
 

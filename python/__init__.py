@@ -70,15 +70,15 @@ def getselected(win):
 @core.deferline.hooks.draw(50)
 def addlineno(w, b, ln, li):
     face = Face(Face.black, Face.black, bright=True)
-    prefix =  hex(ln.value)[2:].zfill(4) + "> "
-    prefix = face.serialize(len(prefix)) + prefix.encode("ascii")
+    prefix =  hex(ln.value)[2:].zfill(4) + "» "
+    prefix = face.serialize(len(prefix)) + prefix.encode("utf-8")
 
     li.insert_at_byte(0, prefix)
 
 @core.deferline.hooks.draw(900)
 def addeol(w, b, ln, li):
     face = Face(Face.black, Face.black, bright=True)
-    suffix = "<«CATS"
+    suffix = "«"
     suffix = b" " + face.serialize(len(suffix)) + suffix.encode("utf-8")
 
     li.insert_at_byte(len(li.vec), suffix)
