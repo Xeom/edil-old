@@ -69,7 +69,11 @@ vec *buffer_line_get_vec_chars(line *l)
     rtn = vec_init(sizeof(int32_t));
 
     end  = l->text + l->length;
-    text = ui_text_first_char(l->text, end);
+
+    if (l->length)
+        text = ui_text_first_char(l->text, end);
+    else
+        text = NULL;
 
     while (text)
     {
@@ -114,11 +118,17 @@ int buffer_line_set_vec(line *l, vec *v)
 
 int buffer_line_set_vec_chars(line *l, vec *v)
 {
-    size_t  textind;
+    size_t textind, len;
 
-    l->length = vec_len(v);
-    l->text   = realloc(l->text, l->length);
-    textind   = 0;
+    len = vec_len(v);
+    l->length = len;
+
+    if (len)
+        l->text = realloc(l->text, len);
+    else
+        l->text = NULL;
+
+    textind = 0;
 
     vec_foreach(
         v, int32_t, chr,
