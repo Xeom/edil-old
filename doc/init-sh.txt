@@ -1,0 +1,12 @@
+init.sh is a simple bash script to invoke edil.
+
+When invoked, edil is built to its latest version and opens right up.
+
+The script has several options:
+
+ * -g  - Debug. This enables valgrind's memcheck tool.
+ * -gg - Debug level 2. This displays all kinds of memory leaks, not
+          just definite ones
+ * -b  - Forces edil to rebuild.
+ * -s  - Prevents logging stderr output of the program in a tmp file.
+
