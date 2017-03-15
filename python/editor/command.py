@@ -3,6 +3,10 @@ import editor.query
 
 import weakref
 
+class hooks:
+    command_call   = NativeHook()
+    command_return = NativeHook()
+
 class CommandArg:
     def __init__(self, type, prefix="", completecallback=None):
         if prefix:
@@ -22,7 +26,7 @@ class CommandArg:
 class Command:
     by_name    = weakref.WeakValueDictionary()
     names      = set()
-    undefaulted = 0
+    undefaulted = []
 
     def __init__(self, name, *args):
         if name in self.names:
@@ -39,10 +43,10 @@ class Command:
             self.by_name[name] = self
 
     @classmethod
-    def undefault(cls):
-        cls.undefaulted += 1
+    def set_undefaulted(cls, undefaulted):
+        cls.undefaulted = undefaulted[:]
         editor.buffers.userlog.log(
-            "Undefaulted next (%s) command arguments." % cls.undefaulted)
+            "Set next ({}) default arguments.".format(len(undefaulted)))
 
     def __del__(self):
         if self.name != None:
@@ -52,20 +56,29 @@ class Command:
         if default == None:
             return []
 
-        num_undefaulted = min(len(default), self.undefaulted)
+        rtn = default[:]
+        rtn = []
 
-        if num_undefaulted:
-            default = default[:-num_undefaulted]
+        for darg, arg in reversed(list(zip(default, self.args))):
+            if self.undefaulted:
+                subst = self.undefaulted.pop(0)
 
-        type(self).undefaulted -= num_undefaulted
+                try:
+                    rtn.insert(0, arg.type_convert(subst))
+                    continue
+                except:
+                    editor.buffers.userlog.log(
+                        "Substitute argument '{}' is invalid".format(subst))
 
-        return default
+            rtn.insert(0, darg)
+
+        return rtn
 
     def get_arg(self, args):
         n = len(args)
 
         if n >= len(self.args):
-            self.hook.call(args)
+            self.run_withargs(*args)
 
         else:
             arg = self.args[n]
@@ -77,7 +90,9 @@ class Command:
             arg.make_query(cb)
 
     def run_withargs(self, *args):
+        hooks.command_call.call([self.name, args])
         self.hook.call(args)
+        hooks.command_return.call([self.name, args])
 
     def run(self, keys=None, default=None):
         args = self.get_default_args(default)
@@ -91,8 +106,9 @@ class Command:
         keymap.add(*keys)(mapped)
 
     def run_withargs_string(self, *strargs):
-        self.hook.call(
-            a.type_convert(s) for a, s in zip(self.args, strargs))
+        self.run_withargs(
+            *(a.type_convert(s) for a, s in zip(self.args, strargs))
+        )
 
 def get_command(name):
     return Command.by_name[name]

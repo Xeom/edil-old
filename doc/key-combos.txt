@@ -16,7 +16,9 @@ TAB RIGHT - Increase current line indentation by 1
 ^W -      - Adjust selected splitter up/left
 
 ^E x      - Execute command by name
-M-e       - Undefault next command argument
+^E u      - Undefault next command arguments
+^E r      - Repeat the next command
+^E l      - Run the current line as a command
 
 ^B ,      - Previous buffer
 ^B .      - Next buffer

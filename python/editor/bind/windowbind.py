@@ -84,7 +84,7 @@ def next_cb(n):
     w = core.windows.get_selected()
 
     if n < 0:
-        for i in range(n):
+        for i in range(-n):
             w = w.prev()
 
     elif n > 0:

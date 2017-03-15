@@ -156,12 +156,13 @@ def insert_cb(string, n):
 for char in insertable_chars:
     insert_cmd.map_to(kmap, Key(char), defaultargs=[char, 1])
 
+# A class to help interpret wide characters when they are inserted
 class Utf8_Processor:
     def __init__(self):
         self.codepoint = 0
         self.width     = 0
         self.currlen   = 0
-        self.repeats   = 0
+        self.repeats   = 1
 
     def repeat(self, n):
         self.repeats = max(self.repeats, n)
@@ -172,7 +173,9 @@ class Utf8_Processor:
         self.currlen    += 1
 
         if self.currlen == self.width:
-            return chr(self.codepoint) * self.repeats
+            rtn = chr(self.codepoint) * self.repeats
+            self.repeats   = 1
+            return rtn
 
     def process_start(self, keycode):
         if   keycode < 0xe0: self.width = 2
@@ -180,7 +183,6 @@ class Utf8_Processor:
         elif keycode < 0xf8: self.width = 4
 
         self.currlen   = 1
-        self.repeats   = 1
         self.codepoint = keycode & (0x7f >> self.width)
 
     def process_ascii(self, keycode):
@@ -192,8 +194,10 @@ class Utf8_Processor:
     def process(self, keycode):
         if   keycode < 0x80:
             return self.process_ascii(keycode)
+
         elif keycode < 0xc0:
             return self.process_continue(keycode)
+
         else:
             return self.process_start(keycode)
 
@@ -228,20 +232,20 @@ for char in range(0x80, 0xf9):
 
 # cursor-insert-codepoint
 #
-# Insert a character, of a specific codepoint
+# Insert a character, with a specific codepoint
 
 insert_hex_cmd = Command("cursor-insert-codepoint",
                          CommandArg(lambda s:int(s, base=0),
                                     "Character (0x.., 0b.., 0o.., 1..)"))
 @insert_hex_cmd.hook(500)
-def insert_hex_cb(number):
-    char = chr(int(number, base=0))
+def insert_hex_cb(codepoint):
+    char = chr(codepoint)
 
     if char == "\n":
         enter_cmd.run()
 
     else:
-        insert_cmd.run_withargs(char)
+        insert_cmd.run_withargs(char, 1)
 
 # cursor-goto-line
 #
