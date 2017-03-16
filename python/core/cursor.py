@@ -170,8 +170,6 @@ class CursorType:
     def is_instance(self, cursor):
         return symbols.cursor.get_ptr(cursor.struct) in self.instances
 
-    
-
 class CursorTypeFromPtr:
     """Class used to represent a cursor type defined outside python.
 
@@ -299,7 +297,12 @@ def get_selected():
 
     Equivilent to get_buffer_selected(core.windows.get_selected().buffer).
     """
-    return Cursor(symbols.cursor.selected())
+    ptr = symbols.cursor.selected()
+
+    if not ptr:
+        return None
+
+    return Cursor(ptr)
 
 def spawn(buf, typ):
     """Spawn a cursor of a specific type in a buffer.

@@ -38,9 +38,9 @@ void hook_killsys(void)
                     vec_free(v));
 
         /* Free the vector we stored them in */
+        vec_free(hook_vecs_to_free);
+        hook_vecs_to_free = NULL;
     }
-
-    hook_vecs_to_free = NULL;
 }
 
 void hook_free(hook h)
@@ -52,6 +52,12 @@ void hook_free(hook h)
         if (vec_contains(hook_vecs_to_free, &h.functs))
             vec_delete(hook_vecs_to_free,
                        vec_find(hook_vecs_to_free, &h.functs), 1);
+
+        if (vec_len(hook_vecs_to_free) == 0)
+        {
+            vec_free(hook_vecs_to_free);
+            hook_vecs_to_free = NULL;
+        }
     }
 }
 

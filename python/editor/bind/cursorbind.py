@@ -142,10 +142,10 @@ insertable_chars = ("!\"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ "
                     "0123456789")
 
 insert_cmd = Command("cursor-insert",
-                     CommandArg(str, "String to insert"),
-                     CommandArg(int, "Repetitions"))
+                     CommandArg(int, "Repetitions")
+                     CommandArg(str, "String to insert"))
 @insert_cmd.hook(500)
-def insert_cb(string, n):
+def insert_cb(n, string):
     string = string.encode("utf-8")
     string *= n
 
@@ -154,7 +154,7 @@ def insert_cb(string, n):
 
 # Bind cursor-insert to every printable ascii character
 for char in insertable_chars:
-    insert_cmd.map_to(kmap, Key(char), defaultargs=[char, 1])
+    insert_cmd.map_to(kmap, Key(char), defaultargs=[1, char])
 
 # A class to help interpret wide characters when they are inserted
 class Utf8_Processor:
@@ -215,7 +215,7 @@ insert_utf8_cmd = Command("cursor-insert-utf8",
                           CommandArg(int, "Repetitions"))
 
 @insert_utf8_cmd.hook(500)
-def insert_utf8_cb(keycode, n):
+def insert_utf8_cb(n, keycode):
     if keycode > 0xf9:
         return
 
@@ -228,7 +228,7 @@ def insert_utf8_cb(keycode, n):
 # Bind cursor-insert-utf8 to all the utf-8 specific keycodes
 for char in range(0x80, 0xf9):
     insert_utf8_cmd.map_to(kmap,
-                           Key("<{:04x}>".format(char)), defaultargs=[char, 1])
+                           Key("<{:04x}>".format(char)), defaultargs=[1, char])
 
 # cursor-insert-codepoint
 #

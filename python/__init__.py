@@ -135,7 +135,7 @@ cur.insert(b"\tI love you really <3")
 
 @core.key.hooks.key(500)
 def hi(key):
-    print(key, file=sys.stderr)
+    print("KEY:", key, file=sys.stderr)
     import symbols.mode
     symbols.mode.handle_press(key.struct)
 

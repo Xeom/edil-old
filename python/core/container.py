@@ -27,6 +27,9 @@ class StructObject:
             ptr (ctypes.POINTER(...)): A pointer to the struct this class
                 represents. May be of a different pointer type.
         """
+        if not ptr:
+            raise Exception("Attempt to create NULL StructObject")
+
         self.struct = ctypes.cast(ptr, self.PtrType)
 
     @property
@@ -174,6 +177,9 @@ class Container:
 
         if objtype == None:
             objtype = self.Obj
+
+        if not struct:
+            raise Exception("Tried to find NULL StructObject")
 
         # Get an integer from the pointer, and try and find a matching
         # StructObject in the weak dictionary.

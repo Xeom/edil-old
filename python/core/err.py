@@ -13,7 +13,7 @@ def traced_new(lvl=Level.critical):
     new(
         lvl,
         "Caught Python Exception",
-        "\n".join(traceback.format_exception(typ, None, tb))
+        "\n".join(traceback.format_exception(typ, exc, tb))
     )
 
 def new(lvl=Level.medium, title="Python Exception", details=None):

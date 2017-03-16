@@ -151,8 +151,6 @@ int io_key_handle_chr(int chr)
 
         kname = keyname(chr);
 
-        fprintf(stderr, "KEYNAME <%s> %d\n", kname, chr);
-
         if (kname && strncmp(kname, "KEY_", 4) == 0)
             io_key_incomplete = io_key_set_name(io_key_incomplete, kname + 4);
         else

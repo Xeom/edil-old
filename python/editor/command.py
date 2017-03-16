@@ -57,20 +57,20 @@ class Command:
             return []
 
         rtn = default[:]
-        rtn = []
 
-        for darg, arg in reversed(list(zip(default, self.args))):
-            if self.undefaulted:
-                subst = self.undefaulted.pop(0)
+        for i, arg in enumerate(self.args):
+            if not self.undefaulted:
+                break
 
-                try:
-                    rtn.insert(0, arg.type_convert(subst))
-                    continue
-                except:
-                    editor.buffers.userlog.log(
-                        "Substitute argument '{}' is invalid".format(subst))
+            subst = self.undefaulted.pop(0)
 
-            rtn.insert(0, darg)
+            try:
+                rtn[i] = arg.type_convert(subst)
+            except:
+                editor.buffers.userlog.log(
+                    "Substitute argument '{}' is invalid".format(subst))
+                self.undefaulted = []
+                return default
 
         return rtn
 

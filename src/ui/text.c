@@ -368,7 +368,7 @@ static int ui_text_draw(
         textchar = ui_text_first_char(str, end);
     }
 
-    while (--sizelim)
+    while (sizelim--)
     {
         while (facechar && facen == 0 && facechar < textchar)
         {
@@ -411,6 +411,8 @@ static int ui_text_draw(
             else      xpos++;
         }
     }
+
+    attrset(0);
 
     return 0;
 }

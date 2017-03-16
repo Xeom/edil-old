@@ -115,7 +115,6 @@ class HookFunct:
             pyfunct(*pyargs)
         except:
             core.err.traced_new()
- #           pass # TODO: Something
 
 class Hook:
     def __init__(self, struct, *types):

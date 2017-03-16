@@ -53,7 +53,6 @@ class hooks:
                                   symbols.buffer.lineno,
                                   Vec.Type(ctypes.c_char))
 
-
 cursorface = symbols.ui.face.cursor.value
 
 def updates_hold(b):
@@ -69,10 +68,6 @@ def initsys():
 def resize():
     symbols.ui.resize()
     refresh()
-
-#def handle_sigwinch(sn, frame):
-#    print("\a")
-#signal.signal(signal.SIGWINCH, handle_sigwinch)
 
 def refresh():
     symbols.lib.clear()
